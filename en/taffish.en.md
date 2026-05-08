@@ -1,0 +1,646 @@
+# What Is TAFFISH
+
+TAFFISH is a lightweight command delivery system for bioinformatics tools and workflows. It has two layers:
+
+- `taffish`: the TAFFISH language compiler, which compiles `.taf` files into POSIX shell scripts.
+- `taf`: the developer and user CLI, used to create projects, check projects, build commands, publish apps, and install apps from TAFFISH Hub.
+
+In other words, a `.taf` file describes how a tool or workflow should run. `taffish` turns that description into shell code. `taf` organizes that code into versioned, publishable, indexable, installable TAFFISH apps.
+
+## Table Of Contents
+
+- [Design Goals](#design-goals)
+- [Installation](#installation)
+- [The `taffish` Compiler](#the-taffish-compiler)
+- [`.taf` File Structure](#taf-file-structure)
+- [Parameter Syntax](#parameter-syntax)
+- [Built-In Runtime Tags](#built-in-runtime-tags)
+- [The `taf` CLI](#the-taf-cli)
+- [TAFFISH App Project Structure](#taffish-app-project-structure)
+- [Recommended Development Workflow](#recommended-development-workflow)
+- [Tool Versus Flow](#tool-versus-flow)
+- [Current Boundaries](#current-boundaries)
+
+## Design Goals
+
+TAFFISH does not try to replace shell, Docker, Conda, or workflow engines. It puts them into a more stable app delivery format:
+
+- Every app has an explicit name, version, release, and command name.
+- Every app stores its runtime logic in a `.taf` file.
+- Every app can optionally bind to a container image.
+- Every app can be built into a versioned command, such as `taf-blast-v2.16.0-r1`.
+- Every app can be indexed by TAFFISH Hub and installed with `taf update` / `taf install`.
+- Flow apps can declare and call other taf apps, forming traceable workflow dependencies.
+
+## Installation
+
+The public `taffish` repository currently provides binary releases. The recommended user installation uses the release installer:
+
+```sh
+curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sh -s -- --user
+```
+
+System-wide installation:
+
+```sh
+curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sudo sh -s -- --system
+```
+
+After installation:
+
+```sh
+taf --version
+taffish --version
+taf doctor
+```
+
+`taf doctor` checks common local dependencies such as `git`, `gh`, `docker`, `podman`, `apptainer`, `sbcl`, and shell tools.
+
+## The `taffish` Compiler
+
+The compiler accepts a `.taf` file and command arguments:
+
+```sh
+taffish path/to/main.taf [ARGS...]
+```
+
+A minimal `.taf` file:
+
+```taf
+<shell>
+echo "hello from TAFFISH"
+```
+
+Compile it:
+
+```sh
+taffish hello.taf
+```
+
+`taffish` normally prints the generated shell script. Actual execution is usually handled by `taf run` or by a built `taf-*` command.
+
+## `.taf` File Structure
+
+A `.taf` file is divided into optional `ARGS` and required `RUN` sections.
+
+```taf
+ARGS
+<(--/-n)name>
+  world
+
+RUN
+<shell>
+echo "hello, ::name::"
+```
+
+Tags:
+
+- Primary tags: `ARGS` or `RUN`
+- Subtags: `<shell>`, `<container:...>`, `<taffish>`, `<taf-app:...>`
+
+If the first effective line is a subtag, TAFFISH automatically inserts `RUN`. Therefore the shortest form can be:
+
+```taf
+<shell>
+echo "hello"
+```
+
+## Parameter Syntax
+
+TAFFISH uses `::...::` as parameter slots. During compilation, slots are resolved from user input, defaults, and built-in context.
+
+The shortest form can place slots directly in `RUN`:
+
+```taf
+<shell>
+echo "input: ::input::"
+echo "name: ::(--/-n)name=world::"
+```
+
+The recommended form declares parameters explicitly in `ARGS`, then references them in `RUN`:
+
+```taf
+ARGS
+<!(--/-i)input>
+<(--/-t)threads>
+  4
+
+RUN
+<shell>
+my-tool --input ::input:: --threads ::threads::
+```
+
+Each `<...>` subtag under `ARGS` declares one parameter. The body under the subtag is its default value. User input overrides that default.
+
+### Parameter DSL
+
+The same parameter DSL is used inside `<...>` and `::...::`:
+
+```text
+!(--/-i)input        required option: --input / -i
+(--/-t)threads=8    option with inline default
+(--/-v)verbose?     boolean flag
+%(--/-x)internal=1   hidden option with default
+$1                   positional argument
+(@:)blast-step       block / slot argument
+```
+
+Common prefixes and suffixes:
+
+- `!` marks a required argument.
+- `%` marks a hidden argument, useful for internal defaults or non-user-facing settings.
+- `?` marks a boolean flag. Present means true, absent means false.
+- `=` sets a default value.
+- `$1`, `$2` define positional arguments.
+- `--` can expand to a long option name, for example `(--/-)name` maps to `--name` and `-n`.
+- `-` can expand to a short option name, for example `(--/-)threads` maps to `--threads` and `-t`.
+
+Defaults can reference other parameters:
+
+```taf
+ARGS
+<name>
+  sample
+<message>
+  hello, ::name::
+<command>
+  --sample ::name:: --threads ::(--/-t)threads=4::
+
+RUN
+<shell>
+echo "::message::"
+echo "::command::"
+```
+
+Inside an `ARGS` body, `::name::`, `@name`, and `@{name}` can all reference another parameter. Prefer `::name::` for ordinary references, because it matches the parameter slot syntax used in `RUN` and allows TAFFISH to extract inner parameter specs from defaults.
+
+`@name` and `@{name}` are default-expression syntax. They are best reserved for string composition, especially inside parameter DSL defaults:
+
+```taf
+ARGS
+<name>
+  sample
+
+RUN
+<shell>
+echo ::(--/-p)prefix=out-@{name}::
+```
+
+Use `@{name}` when the reference is followed immediately by letters, numbers, `-`, or `_`, because it avoids boundary ambiguity.
+
+### `@:` Block Parameters
+
+`(@:)name` is an important part of TAFFISH's parameter system. It creates a named slot:
+
+```taf
+ARGS
+<(@:)blast-step>
+  --db ::(--/-d)db=nt::
+  --query ::!(--/-q)query::
+  --outfmt ::(--/-of)outfmt=6::
+  ::(--/-e)extra=::
+
+RUN
+<taffish>
+[[taf: taf-blast-v2.16.0-r1 ::(@:)blast-step::]]
+```
+
+Here `blast-step` is not a plain string parameter. It is a composable parameter block. Its default block can contain ordinary parameter DSL entries such as `db`, `query`, `outfmt`, and `extra`. TAFFISH extracts these inner parameters, so developers can:
+
+- Expose domain-oriented parameters such as `query`, `db`, and `outfmt`.
+- Package a group of low-level tool arguments as one step parameter.
+- Keep `[[taf: ...]]` calls readable in flow apps.
+- Preserve an advanced escape hatch such as `extra`.
+
+At the command-line layer, `(@:)blast-step` corresponds to the `@blast-step:` slot. Ordinary users usually do not need to pass slot blocks directly. App authors mainly use them inside `.taf` files to organize step defaults, domain parameters, and extra arguments.
+
+### Built-In Parameters
+
+Built-in parameters include:
+
+```text
+::*USER*::
+::*HOMEDIR*::
+::*WORKDIR*::
+::*LOADDIR*::
+::*ARGV*::
+::*CMD*::
+::*CPUS*::
+::*CONTAINER*::
+```
+
+Example:
+
+```taf
+<shell>
+echo "user   : ::*USER*::"
+echo "workdir: ::*WORKDIR*::"
+echo "argv   : ::*ARGV*::"
+```
+
+TAFFISH escaping is not general shell-style escaping. Only a few syntax characters are consumed by specific parsers.
+
+At the `.taf` lexer layer, only these escapes are recognized:
+
+```text
+\:  -> :
+\<  -> <
+\#  -> #
+\\  -> \
+```
+
+Other backslash sequences are preserved as text. For example, `\@` is not a `.taf` lexer escape. It is only interpreted as a literal `@` inside an `ARGS` default-expression context.
+
+`ARGS` default expressions support these escapes:
+
+```text
+\@  -> @
+\{  -> {
+\}  -> }
+\\  -> \
+```
+
+## Built-In Runtime Tags
+
+### `<shell>`
+
+`<shell>` means the following body is shell code:
+
+```taf
+<shell>
+echo "hello"
+pwd
+```
+
+### `<container:IMAGE>`
+
+`<container:IMAGE>` runs the following shell code through an available container backend. The generic `container` backend chooses from `apptainer`, `podman`, or `docker` according to the environment.
+
+```taf
+<container:ghcr.io/taffish/blast:2.16.0>
+blastp -query ::query:: -db ::db::
+```
+
+You can also request a specific backend:
+
+```taf
+<docker:ghcr.io/taffish/blast:2.16.0>
+blastp -query ::query:: -db ::db::
+```
+
+Available backends are determined by the runtime environment. `taf run` can force a backend:
+
+```sh
+taf run --backend docker -- --query test.fa --db nr
+```
+
+`--backend` only forces generic container tags such as `<container:...>` or `<taf-app:container:...>`. If the tag explicitly says `<docker:...>`, `<podman:...>`, `<taf-app:docker:...>`, or `<taf-app:podman:...>`, TAFFISH respects that explicit backend.
+
+When testing an unpublished local image, build and run with the same backend:
+
+```sh
+taf build --image --backend docker
+taf run --backend docker -- --help
+```
+
+If the app only works with a specific backend, or the local image only exists in one backend store, use an explicit backend tag in `src/main.taf`:
+
+```taf
+<taf-app:podman:ghcr.io/taffish/my-tool:0.1.0-r1>
+my-tool --help
+```
+
+### `<taffish>`
+
+`<taffish>` is commonly used in flow apps. It allows shell code to embed other taf apps:
+
+```taf
+<taffish>
+[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
+[[taf: taf-multiqc-v1.19-r1 .]]
+```
+
+Embedding syntax:
+
+```text
+[[taf: taf-command args...]]
+```
+
+At compile time, TAFFISH compiles those taf apps into temporary shell steps, then executes them inside the current workflow. This makes it possible for flow apps to compose existing tools while preserving explicit dependency relationships.
+
+To print a literal `[[taf: ...]]` inside a `<taffish>` block, escape the bracket with `\[` or `\]`:
+
+```taf
+<taffish>
+echo \[[taf: taf-example arg]]
+```
+
+### `<taf-app:...>`
+
+`<taf-app:...>` is the common top-level tag in app projects. Tool projects created by `taf new --tool` usually use it.
+
+Example containerized tool app:
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
+my-tool --input ::input:: --output ::output::
+```
+
+The built command compiles the `.taf` file into shell and runs it. Users see an ordinary command, while the internals are still compiled and dispatched by TAFFISH.
+
+## The `taf` CLI
+
+`taf` is the developer and package-management CLI. Its commands fall into three groups.
+
+### Project Commands
+
+```sh
+taf new
+taf check
+taf compile
+taf run
+taf build
+taf publish
+```
+
+### Hub Commands
+
+```sh
+taf update
+taf search
+taf info
+taf install
+taf uninstall
+taf list
+taf which
+```
+
+### System Commands
+
+```sh
+taf doctor
+taf config
+taf history
+```
+
+Common usage:
+
+Create a flow project:
+
+```sh
+taf new my-flow
+cd my-flow
+```
+
+Create a tool project:
+
+```sh
+taf new my-tool --tool
+```
+
+Create a tool project with a Dockerfile and GitHub Actions image workflow:
+
+```sh
+taf new my-tool --tool --docker
+```
+
+Check a project:
+
+```sh
+taf check
+```
+
+Run a project:
+
+```sh
+taf run -- --input sample.fa
+```
+
+Build a versioned command:
+
+```sh
+taf build
+```
+
+Publish preview:
+
+```sh
+taf publish --dry-run
+```
+
+Publish:
+
+```sh
+taf publish --yes --build
+```
+
+Update the Hub index:
+
+```sh
+taf update
+```
+
+Install an app:
+
+```sh
+taf install blast 2.16.0-r1
+```
+
+List installed apps:
+
+```sh
+taf list
+```
+
+## TAFFISH App Project Structure
+
+A typical app project:
+
+```text
+my-tool/
+  README.md
+  taffish.toml
+  src/
+    main.taf
+  docs/
+    help.md
+  target/
+    .gitkeep
+  docker/
+    Dockerfile
+  .github/
+    workflows/
+      build-image.yml
+```
+
+Required files:
+
+- `taffish.toml`: project metadata.
+- `src/main.taf`: app runtime source.
+- `docs/help.md`: help text shown by the built command.
+
+`target/` stores built artifacts and frozen source snapshots.
+
+Core metadata lives in `taffish.toml`:
+
+```toml
+[package]
+name = "my-tool"
+kind = "tool"
+version = "0.1.0"
+release = 1
+license = "Apache-2.0"
+main = "src/main.taf"
+
+[repository]
+url = "https://github.com/taffish/my-tool"
+
+[command]
+name = "taf-my-tool"
+
+[runtime]
+pipe = true
+command_mode = true
+```
+
+For a flow:
+
+```toml
+[package]
+name = "my-flow"
+kind = "flow"
+version = "0.1.0"
+release = 1
+license = "Apache-2.0"
+main = "src/main.taf"
+
+[runtime]
+pipe = false
+command_mode = false
+```
+
+For a container app:
+
+```toml
+[container]
+image = "ghcr.io/taffish/my-tool:0.1.0-r1"
+dockerfile = "docker/Dockerfile"
+build_platforms = "linux/amd64,linux/arm64"
+```
+
+For flow dependencies:
+
+```toml
+[dependencies]
+taf-fastqc = "0.12.1-r1"
+taf-multiqc = "1.19-r1"
+```
+
+If the same flow requires multiple versions of the same dependency:
+
+```toml
+[dependencies]
+taf-align = ["2.0.0-r1", "2.1.0-r1"]
+```
+
+That means both versions are required. It does not mean "choose one".
+
+## Recommended Development Workflow
+
+A common app lifecycle:
+
+```sh
+taf new my-tool --tool --docker
+cd my-tool
+```
+
+Edit:
+
+```text
+taffish.toml
+src/main.taf
+docs/help.md
+docker/Dockerfile
+```
+
+Check locally:
+
+```sh
+taf check
+```
+
+For a containerized app, build the local image first and choose the backend explicitly:
+
+```sh
+taf build --image --backend docker
+```
+
+Run locally:
+
+```sh
+taf run --backend docker -- --help
+```
+
+Build the command wrapper:
+
+```sh
+taf build
+```
+
+To build image and command wrapper together:
+
+```sh
+taf build --all --backend docker
+```
+
+Preview publishing:
+
+```sh
+taf publish --dry-run
+```
+
+Publish:
+
+```sh
+taf publish --yes --build
+```
+
+After publishing, the app repository has a release tag such as:
+
+```text
+v0.1.0-r1
+```
+
+TAFFISH Hub's index automation later scans the repository and adds it to the Hub index.
+
+## Tool Versus Flow
+
+### Tool App
+
+A tool app usually wraps one upstream tool. It often:
+
+- Uses `<taf-app:shell>` or `<taf-app:container:...>`.
+- Uses `runtime.pipe = true`.
+- Uses `runtime.command_mode = true`.
+- Exposes a command that behaves like a normal command-line tool.
+
+### Flow App
+
+A flow app combines multiple taf apps into an analysis workflow. It usually:
+
+- Uses `<taffish>`.
+- Calls other apps with `[[taf: ...]]`.
+- Declares dependencies in `[dependencies]`.
+- Uses `runtime.pipe = false`.
+- Uses `runtime.command_mode = false`.
+
+## Current Boundaries
+
+Current practical boundaries:
+
+- TAFFISH app publishing currently targets the official `taffish` GitHub organization.
+- The official Hub is not an open self-service publishing platform.
+- Container image builds are handled by each app repository's GitHub Actions workflow, not by `taffish-index`.
+- TAFFISH Hub is currently GitHub-based. A standalone server can be considered later.
+- Users in regions with unstable GitHub connectivity may need mirrors or network configuration in the future.
+

@@ -1,0 +1,700 @@
+# 什么是 TAFFISH
+
+TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。它包含两个层次：
+
+- `taffish`：TAFFISH 语言编译器，把 `.taf` 文件编译成 POSIX shell 脚本。
+- `taf`：面向开发者和用户的 CLI，负责创建项目、检查项目、构建命令、发布 app，以及从 TAFFISH Hub 安装 app。
+
+换句话说，`.taf` 是描述“这个工具或流程应该如何运行”的源代码；`taffish` 负责把它变成 shell；`taf` 负责把这种代码组织成可发布、可索引、可安装的 TAFFISH app。
+
+## 目录
+
+- [设计目标](#设计目标)
+- [安装](#安装)
+- [`taffish` 编译器](#taffish-编译器)
+- [`.taf` 文件结构](#taf-文件结构)
+- [参数语法](#参数语法)
+- [内置运行标签](#内置运行标签)
+- [`taf` CLI](#taf-cli)
+- [TAFFISH app 项目结构](#taffish-app-项目结构)
+- [推荐开发流程](#推荐开发流程)
+- [Tool 与 Flow 的区别](#tool-与-flow-的区别)
+- [当前边界](#当前边界)
+
+## 设计目标
+
+TAFFISH 的目标不是替代 shell、Docker、Conda 或 workflow engine，而是把它们放进一个更稳定的 app 交付格式中：
+
+- 每个 app 有明确的名称、版本、release 和命令名。
+- 每个 app 的运行逻辑写在 `.taf` 文件里。
+- 每个 app 可以选择绑定容器镜像。
+- 每个 app 可以被构建成版本化命令，例如 `taf-blast-v2.16.0-r1`。
+- 每个 app 可以被 TAFFISH Hub 索引，并通过 `taf update` / `taf install` 安装。
+- flow app 可以声明并调用其他 taf app，形成可追踪的流程依赖。
+
+## 安装
+
+当前公开仓库提供的是二进制发布版本。用户安装推荐使用发布脚本：
+
+```sh
+curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sh -s -- --user
+```
+
+系统安装：
+
+```sh
+curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sh -s -- --system
+```
+
+安装后会得到两个命令：
+
+```text
+taffish
+taf
+```
+
+默认用户路径：
+
+```text
+bin  = ~/.local/bin
+home = ~/.local/share/taffish
+```
+
+默认系统路径：
+
+```text
+bin  = /usr/local/bin
+home = /opt/taffish
+```
+
+安装器默认会尝试运行 `taf update` 初始化本地索引。如果网络不可用，安装器会给出警告，但不会回滚已经安装的二进制文件。
+
+## `taffish` 编译器
+
+`taffish` 的直接职责是把 `.taf` 文件编译成 shell：
+
+```sh
+taffish path/to/main.taf [ARGS...]
+```
+
+也可以从标准输入读取：
+
+```sh
+cat path/to/main.taf | taffish --
+```
+
+查看版本和帮助：
+
+```sh
+taffish --version
+taffish --help
+```
+
+`taffish` 默认只输出生成后的 shell 脚本，不直接执行。实际执行通常由 `taf run` 或构建后的 `taf-*` 命令完成。
+
+## `.taf` 文件结构
+
+`.taf` 文件由若干行组成。每一行会被识别为以下类型之一：
+
+- 空行
+- 注释行：去掉前导空格后以 `#` 开头
+- 主标签：`ARGS` 或 `RUN`
+- 子标签：`<...>`
+- 普通代码行
+
+完整结构通常是：
+
+```taf
+ARGS
+<name>
+world
+
+RUN
+<shell>
+echo "hello, ::name::"
+```
+
+如果 `.taf` 文件第一条有效行就是普通代码，TAFFISH 会自动补成：
+
+```taf
+RUN
+<taffish>
+...
+```
+
+如果第一条有效行是 `<...>` 子标签，TAFFISH 会自动补一个 `RUN`。因此最短形式也可以直接写：
+
+```taf
+<shell>
+echo "hello"
+```
+
+## 参数语法
+
+TAFFISH 使用 `::...::` 表示参数插槽。编译时，插槽会根据传入参数、默认值和内置上下文被解析并替换。
+
+最短形式可以直接在 `RUN` 中写参数插槽：
+
+```taf
+<shell>
+echo "input: ::input::"
+echo "name: ::(--/-n)name=world::"
+```
+
+更推荐的写法是使用 `ARGS` 显式声明参数，再在 `RUN` 中引用：
+
+```taf
+ARGS
+<!(--/-i)input>
+<(--/-t)threads>
+  4
+
+RUN
+<shell>
+my-tool --input ::input:: --threads ::threads::
+```
+
+`ARGS` 中每个 `<...>` 子标签声明一个参数。子标签下面的正文是默认值；如果用户传入了对应参数，用户输入会覆盖默认值。
+
+### 参数 DSL
+
+`<...>` 和 `::...::` 内部使用同一套参数 DSL：
+
+```text
+!(--/-i)input        required option: --input / -i
+(--/-t)threads=8    option with inline default
+(--/-v)verbose?     boolean flag
+%(--/-x)internal=1   hidden option with default
+$1                   positional argument
+(@:)blast-step       block / slot argument
+```
+
+常用前缀和后缀：
+
+- `!` 表示必需参数。
+- `%` 表示隐藏参数，适合内部默认值或不希望暴露给普通用户的参数。
+- `?` 表示布尔 flag，出现为 true，不出现为 false。
+- `=` 表示默认值。
+- `$1`、`$2` 表示位置参数。
+- `--` 可以自动展开成长参数名，例如 `(--/-)name` 对应 `--name` 和 `-n`。
+- `-` 可以自动展开成短参数名，例如 `(--/-)threads` 对应 `--threads` 和 `-t`。
+
+默认值可以引用其他参数：
+
+```taf
+ARGS
+<name>
+  sample
+<message>
+  hello, ::name::
+<command>
+  --sample ::name:: --threads ::(--/-t)threads=4::
+
+RUN
+<shell>
+echo "::message::"
+echo "::command::"
+```
+
+在 `ARGS` 的正文里，`::name::`、`@name` 和 `@{name}` 都可以引用另一个参数。推荐优先使用 `::name::`，因为它和 `RUN` 中的参数插槽保持一致，也方便 TAFFISH 从默认值中抽取内层参数。
+
+`@name` 和 `@{name}` 是默认值表达式语法，适合保留给拼接场景，尤其是写在参数 DSL 的默认值里：
+
+```taf
+ARGS
+<name>
+  sample
+
+RUN
+<shell>
+echo ::(--/-p)prefix=out-@{name}::
+```
+
+当引用后面紧跟字母、数字、`-` 或 `_` 时，使用 `@{name}` 可以避免边界歧义。
+
+### `@:` 块参数
+
+`(@:)name` 是 TAFFISH 参数系统里很重要的块参数。它会创建一个命名 slot，例如：
+
+```taf
+ARGS
+<(@:)blast-step>
+  --db ::(--/-d)db=nt::
+  --query ::!(--/-q)query::
+  --outfmt ::(--/-of)outfmt=6::
+  ::(--/-e)extra=::
+
+RUN
+<taffish>
+[[taf: taf-blast-v2.16.0-r1 ::(@:)blast-step::]]
+```
+
+这里 `blast-step` 不是一个普通字符串参数，而是一整段可组合的参数块。它的默认块中还可以继续嵌入普通参数 DSL，例如 `db`、`query`、`outfmt` 和 `extra`。TAFFISH 会从块默认值中抽取这些内层参数，使开发者可以：
+
+- 对外暴露领域化参数，例如 `query`、`db`、`outfmt`。
+- 把底层工具需要的一组参数封装成一个步骤参数。
+- 在 flow 中保持 `[[taf: ...]]` 调用简洁。
+- 给高级用户保留 `extra` 之类的扩展入口。
+
+从命令行层面看，`(@:)blast-step` 对应 `@blast-step:` 这个 slot。普通用户通常不需要直接使用 slot；app 作者更多是用它在 `.taf` 内部组织默认步骤、领域参数和额外参数。
+
+### 内置参数
+
+内置参数包括：
+
+```text
+::*USER*::
+::*HOMEDIR*::
+::*WORKDIR*::
+::*LOADDIR*::
+::*ARGV*::
+::*CMD*::
+::*CPUS*::
+::*CONTAINER*::
+```
+
+示例：
+
+```taf
+<shell>
+echo "user   : ::*USER*::"
+echo "workdir: ::*WORKDIR*::"
+echo "argv   : ::*ARGV*::"
+```
+
+TAFFISH 的转义不是通用 shell 风格转义，只有少数语法字符会被特定解析器消费。
+
+`.taf` 词法层只识别这些转义：
+
+```text
+\:  -> :
+\<  -> <
+\#  -> #
+\\  -> \
+```
+
+其他反斜杠序列会按原样保留。比如 `\@` 不是 `.taf` 词法层转义；它只会在 `ARGS` 默认值表达式中被参数解析器解释为字面量 `@`。
+
+`ARGS` 默认值表达式支持这些转义：
+
+```text
+\@  -> @
+\{  -> {
+\}  -> }
+\\  -> \
+```
+
+## 内置运行标签
+
+### `<shell>`
+
+`<shell>` 表示下面的内容就是 shell 代码：
+
+```taf
+<shell>
+echo "hello"
+pwd
+```
+
+### `<container:IMAGE>`
+
+`<container:IMAGE>` 表示用可用的容器后端运行下面的 shell。`container` 是泛化后端，会根据环境选择 `apptainer`、`podman` 或 `docker`。
+
+```taf
+<container:ghcr.io/taffish/blast:2.16.0>
+blastp -query ::query:: -db ::db::
+```
+
+也可以明确指定后端：
+
+```taf
+<docker:ghcr.io/taffish/blast:2.16.0>
+blastp -query ::query:: -db ::db::
+```
+
+可用后端由运行环境决定。`taf run` 可以用 `--backend` 强制选择：
+
+```sh
+taf run --backend docker -- --query test.fa --db nr
+```
+
+`--backend` 只会强制泛化容器标签，例如 `<container:...>` 或 `<taf-app:container:...>`。如果标签已经明确写成 `<docker:...>`、`<podman:...>`、`<taf-app:docker:...>` 或 `<taf-app:podman:...>`，TAFFISH 会尊重标签中的显式后端。
+
+本地测试未发布镜像时，构建镜像和运行项目应使用一致后端：
+
+```sh
+taf build --image --backend docker
+taf run --backend docker -- --help
+```
+
+如果这个 app 只适合某个后端，或者本地镜像只存在于某个后端，可以在 `src/main.taf` 里把泛化标签改成显式标签：
+
+```taf
+<taf-app:podman:ghcr.io/taffish/my-tool:0.1.0-r1>
+my-tool --help
+```
+
+### `<taffish>`
+
+`<taffish>` 是 flow 常用标签。它允许在 shell 中嵌入其他 taf app：
+
+```taf
+<taffish>
+[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
+[[taf: taf-multiqc-v1.19-r1 .]]
+```
+
+嵌入语法是：
+
+```text
+[[taf: taf-command args...]]
+```
+
+编译时，TAFFISH 会把这些 taf app 先编译成临时 shell step，然后在当前流程中执行。这个机制让 flow 可以组合已有工具，并且保留明确的依赖关系。
+
+如果只想输出字面量 `[[taf: ...]]`，可以在 `<taffish>` block 中用 `\[` 或 `\]` 转义方括号：
+
+```taf
+<taffish>
+echo \[[taf: taf-example arg]]
+```
+
+### `<taf-app:...>`
+
+`<taf-app:...>` 是 app 项目中常见的顶层标签。`taf new --tool` 生成的工具项目通常会使用它。
+
+例如一个容器化 tool app：
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
+my-tool --input ::input:: --output ::output::
+```
+
+构建后的命令会把 `.taf` 编译为 shell 并执行。用户调用时看到的是普通命令，但内部仍然由 TAFFISH 编译和调度。
+
+## `taf` CLI
+
+`taf` 是 TAFFISH 的开发和包管理命令。主要命令分为三类。
+
+### 项目命令
+
+```sh
+taf new <APP-NAME>
+taf check
+taf compile [ARGS...]
+taf run [ARGS...]
+taf build
+taf publish
+```
+
+创建 flow 项目：
+
+```sh
+taf new my-flow
+```
+
+创建 tool 项目：
+
+```sh
+taf new my-tool --tool
+```
+
+创建带 Dockerfile 和 GitHub Actions 镜像构建 workflow 的 tool 项目：
+
+```sh
+taf new my-tool --tool --docker
+```
+
+检查项目：
+
+```sh
+taf check
+```
+
+编译当前项目并打印 shell：
+
+```sh
+taf compile -- --input sample.fa
+```
+
+直接运行当前项目：
+
+```sh
+taf run -- --input sample.fa
+```
+
+构建版本化命令：
+
+```sh
+taf build
+```
+
+生成的命令位于：
+
+```text
+target/<command-name>-v<version>-r<release>
+```
+
+例如：
+
+```text
+target/taf-my-tool-v0.1.0-r1
+```
+
+发布项目：
+
+```sh
+taf publish --dry-run
+taf publish --yes --build
+```
+
+发布会检查项目、读取 `taffish.toml` 中的仓库地址、检查远端 tag，并在确认后 commit、tag、push。
+
+### Hub 命令
+
+```sh
+taf update
+taf search <keyword>
+taf info <app-or-command>
+taf install <app-or-command>
+taf uninstall <app-or-command>
+taf list
+taf which <taf-command>
+```
+
+更新本地索引：
+
+```sh
+taf update
+```
+
+搜索在线索引缓存：
+
+```sh
+taf search blast
+taf list --online
+```
+
+安装最新版本：
+
+```sh
+taf install blast
+```
+
+安装指定版本：
+
+```sh
+taf install blast 2.16.0-r1
+```
+
+也可以使用命令名：
+
+```sh
+taf install taf-blast
+taf install taf-blast v2.16.0-r1
+taf install taf-blast-v2.16.0-r1
+```
+
+卸载和定位：
+
+```sh
+taf uninstall taf-blast
+taf which taf-blast-v2.16.0-r1
+```
+
+### 系统命令
+
+```sh
+taf doctor
+taf config
+taf history
+```
+
+`doctor` 用于检查或初始化本地 TAFFISH 环境；`config` 显示当前配置；`history` 显示或清理本地运行历史。
+
+## TAFFISH app 项目结构
+
+一个标准 TAFFISH app 项目大致如下：
+
+```text
+my-tool/
+  taffish.toml
+  src/
+    main.taf
+  docs/
+    help.md
+  target/
+    .gitkeep
+  README.md
+  LICENSE
+```
+
+如果是带 Dockerfile 的 tool 项目，还会有：
+
+```text
+docker/
+  Dockerfile
+.github/
+  workflows/
+    build-image.yml
+```
+
+核心元数据位于 `taffish.toml`：
+
+```toml
+[package]
+name = "my-tool"
+kind = "tool"
+version = "0.1.0"
+release = 1
+license = "Apache-2.0"
+main = "src/main.taf"
+
+[repository]
+url = "https://github.com/taffish/my-tool"
+
+[command]
+name = "taf-my-tool"
+
+[runtime]
+pipe = true
+command_mode = true
+```
+
+对于 flow：
+
+```toml
+[package]
+kind = "flow"
+
+[runtime]
+pipe = false
+command_mode = false
+```
+
+对于容器化 tool：
+
+```toml
+[container]
+image = "ghcr.io/taffish/my-tool:0.1.0-r1"
+dockerfile = "docker/Dockerfile"
+build_platforms = "linux/amd64,linux/arm64"
+```
+
+对于 flow 依赖：
+
+```toml
+[dependencies]
+taf-fastqc = "0.12.1-r1"
+taf-aligner = ["1.0.0-r1", "1.0.0-r2"]
+```
+
+对于上游软件来源：
+
+```toml
+[upstream]
+name = "CD-HIT"
+type = "github"
+homepage = "https://github.com/weizhongli/cdhit"
+repository = "weizhongli/cdhit"
+version = "4.8.1"
+license = "GPL-2.0"
+doi = "10.1093/bioinformatics/bts565"
+pmid = "23060610"
+```
+
+`[upstream]` 是可选的。它描述被包装软件的原始来源，不是 TAFFISH app 自己的仓库来源。
+
+## 推荐开发流程
+
+一个 app 的常见生命周期：
+
+```sh
+taf new my-tool --tool --docker
+cd my-tool
+```
+
+编辑：
+
+```text
+taffish.toml
+src/main.taf
+docs/help.md
+docker/Dockerfile
+```
+
+本地检查：
+
+```sh
+taf check
+```
+
+如果是容器化 app，先构建本地镜像，并明确后端：
+
+```sh
+taf build --image --backend docker
+```
+
+本地试运行：
+
+```sh
+taf run --backend docker -- --help
+```
+
+构建：
+
+```sh
+taf build
+```
+
+如果想一次性构建镜像和 command wrapper，可以使用：
+
+```sh
+taf build --all --backend docker
+```
+
+发布前预览：
+
+```sh
+taf publish --dry-run
+```
+
+发布：
+
+```sh
+taf publish --yes --build
+```
+
+发布完成后，GitHub 上的 app 仓库会有 release tag，例如：
+
+```text
+v0.1.0-r1
+```
+
+TAFFISH Hub 的索引自动化会扫描这个 tag，并把 app 纳入 index。用户运行 `taf update` 后即可安装。
+
+## Tool 与 Flow 的区别
+
+Tool app 通常包装一个具体软件，例如 BLAST、BWA、CD-HIT。它的特点是：
+
+- 可以绑定容器镜像。
+- 通常 `pipe = true`。
+- 通常 `command_mode = true`。
+- 用户安装后得到一个版本化命令。
+
+Flow app 通常组合多个 taf app，描述一个分析流程。它的特点是：
+
+- 通常使用 `<taffish>` 标签。
+- 可以通过 `[[taf: ...]]` 调用其他 taf app。
+- 需要在 `[dependencies]` 中声明依赖。
+- 通常 `pipe = false`。
+- 通常 `command_mode = false`。
+
+## 当前边界
+
+需要明确几件事：
+
+- TAFFISH 不是通用编程语言，它是一种“编译到 shell 的 app 描述语言”。
+- TAFFISH 不直接替代 Docker、Podman、Apptainer，而是选择和调用它们。
+- TAFFISH Hub 不负责构建每个 app 的镜像；镜像构建由各 app 仓库自己的 GitHub Actions 完成。
+- `taffish` 编译器当前公开仓库以二进制发布为主，核心源码暂未开源。
