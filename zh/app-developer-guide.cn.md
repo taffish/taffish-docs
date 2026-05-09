@@ -535,7 +535,7 @@ taf publish --yes --pre
 taf update
 taf search my-tool
 taf info my-tool
-taf install my-tool --dry-run
+taf install --dry-run my-tool
 ```
 
 ## 维护版本

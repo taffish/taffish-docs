@@ -176,16 +176,18 @@ pipe = false
 command_mode = false
 ```
 
-Optional upstream metadata:
+Recommended upstream metadata:
 
 ```toml
 [upstream]
-name = "My Tool"
-version = "1.0.0"
-url = "https://example.org/my-tool"
-repository = "https://github.com/example/my-tool"
-license = "MIT"
-description = "Short upstream description."
+name = "CD-HIT"
+type = "github"
+homepage = "https://github.com/weizhongli/cdhit"
+repository = "weizhongli/cdhit"
+version = "4.8.1"
+license = "GPL-2.0"
+doi = "10.1093/bioinformatics/bts565"
+pmid = "23060610"
 ```
 
 `[upstream]` describes the original software being wrapped. It is not the TAFFISH app repository.
@@ -532,7 +534,7 @@ After the index updates:
 taf update
 taf search my-tool
 taf info my-tool
-taf install my-tool --dry-run
+taf install --dry-run my-tool
 ```
 
 ## Version Maintenance

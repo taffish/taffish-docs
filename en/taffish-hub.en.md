@@ -1,69 +1,97 @@
 # What Is TAFFISH Hub
 
-TAFFISH Hub is the official app registry and index layer for TAFFISH. It is not a traditional database of biological datasets. It is closer to a package registry: its records describe tools and workflows that can be installed by `taf`.
+TAFFISH Hub is the app index and distribution layer of the TAFFISH ecosystem. Its
+goal is to let users obtain reproducible, versioned, source-traceable
+bioinformatics tools and flows through:
 
-TAFFISH Hub currently relies on GitHub infrastructure:
+```sh
+taf update
+taf install <app>
+```
 
-- App repositories live under the `taffish` GitHub organization.
-- Each app repository contains a valid `taffish.toml`.
-- Container images are built by each app repository's GitHub Actions workflow.
-- The `taffish-index` repository scans app repositories and generates static JSON index files.
-- The `taffish.github.io` site provides a web interface for browsing the Hub.
-- Local `taf` commands consume the JSON index for search and installation.
+At the current stage, TAFFISH Hub mainly relies on GitHub automation and does
+not require an independent backend server. It has three core parts:
+
+- `taffish-index`: a static index repository that generates machine-readable index JSON.
+- `taffish.github.io`: a static website that displays apps from the index.
+- `.github`: the organization profile repository that controls the `github.com/taffish` overview page.
+
+You can browse the current TAFFISH Hub at [taffish.github.io](https://taffish.github.io).
+The website reads static JSON from `taffish-index`, so it displays apps currently
+discovered by the official index.
+
+Each real app repository can also have its own GitHub Actions workflow, for
+example to build GHCR images from a Dockerfile. That responsibility belongs to
+the app repository itself and is not centrally handled by `taffish-hub`.
 
 ## Table Of Contents
 
-- [Publishing Policy](#publishing-policy)
-- [What Hub Stores](#what-hub-stores)
-- [Repository Model](#repository-model)
-- [Index Repository](#index-repository)
-- [GitHub Actions Automation](#github-actions-automation)
-- [Index Files](#index-files)
-- [How `taf` Uses The Index](#how-taf-uses-the-index)
+- [Why Hub Exists](#why-hub-exists)
+- [Access And Publishing Policy](#access-and-publishing-policy)
+- [Current Repository Layout](#current-repository-layout)
+- [Data Flow](#data-flow)
+- [`taffish-index`](#taffish-index)
+- [App Discovery Rules](#app-discovery-rules)
+- [Index Data Model](#index-data-model)
 - [Dependencies](#dependencies)
-- [Container Images](#container-images)
-- [Upstream Metadata](#upstream-metadata)
-- [Web Hub](#web-hub)
-- [GitHub-Based Operation](#github-based-operation)
-- [Future Server Option](#future-server-option)
-- [Maintenance Workflow](#maintenance-workflow)
+- [Platform Constraints](#platform-constraints)
+- [Upstream Source Metadata](#upstream-source-metadata)
+- [`taffish.github.io`](#taffishgithubio)
+- [`.github`](#github)
+- [App Image Builds](#app-image-builds)
+- [How Users Are Served](#how-users-are-served)
+- [How Developers Publish Apps](#how-developers-publish-apps)
+- [Current Boundaries](#current-boundaries)
 
-## Publishing Policy
+## Why Hub Exists
 
-The official TAFFISH Hub is not currently an open self-service publishing platform.
+TAFFISH apps are distributed across many GitHub repositories. Users should not
+need to manually know every repository, tag, Docker image, or command name.
 
-Only members of the `taffish` GitHub organization can create and maintain official Hub app repositories. At present, the organization is maintained by a single maintainer. Developers who want an app included in the official Hub should contact the maintainer to request organization membership or maintainer-assisted review and publication.
+Hub provides a central index that organizes distributed information into:
 
-This policy keeps the official registry small, curated, and reproducible while TAFFISH is still young.
+- which apps are available
+- which versions each app has
+- which version is latest
+- whether an app is a tool or a flow
+- install command
+- app GitHub repository
+- app release tag and commit
+- whether a container image exists
+- whether dependencies exist
+- platform constraints
+- original upstream software source
 
-## What Hub Stores
+Users only need to update the local index, then install by name.
 
-For each app, Hub stores metadata such as:
+## Access And Publishing Policy
 
-- Package name.
-- App kind: `tool` or `flow`.
-- Version and release.
-- GitHub repository URL.
-- Release tag.
-- Command name and versioned command name.
-- Runtime flags.
-- Container image metadata, if present.
-- Flow dependencies, if present.
-- Platform constraints, if declared.
-- Upstream software metadata, if provided.
+The TAFFISH Hub website and static index are public for users. Any user can open
+[taffish.github.io](https://taffish.github.io), and any user can download the
+public index through `taf update`.
 
-Hub does not store the actual application source as a separate backend database. The source lives in app repositories and release tags. The index records where the source is and how `taf` should install it.
+Official TAFFISH Hub app publishing and maintenance are not open self-service at
+the moment. Currently, only members of the `taffish` GitHub organization can
+create, publish, and maintain official app repositories. The official maintainer
+set is currently small. Developers who want their apps included in the official
+TAFFISH Hub should contact the maintainer to request organization membership or
+maintainer-assisted review and publication.
 
-## Repository Model
+This design keeps early-ecosystem app metadata, version tags, Docker images,
+licenses, upstream sources, and dependency relationships consistent. If the
+maintainer group grows later, a more formal review, ownership, and contribution
+process can be added.
 
-The current project layout separates local Hub work from published repositories.
+## Current Repository Layout
 
-Example local layout:
+In the local `taffish-hub` workspace, repositories that will be published to
+GitHub are staged under `repos/`:
 
 ```text
 taffish-hub/
   README.md
   docs/
+    README.md
     zh/
       taffish.cn.md
       taffish-hub.cn.md
@@ -76,235 +104,479 @@ taffish-hub/
     .github/
 ```
 
-`repos/` contains repositories that are prepared locally and then published to GitHub. Each app repository can also be staged here before publication.
+This means `taffish-hub` is a local factory, while `repos/<name>` is the root of
+a real repository that will be or has already been published to GitHub.
 
-In the future, local maintenance data can be separated from publishable app repositories. For example:
+Current main repositories:
 
 ```text
-local-store/
-  app-name/
-    upstream.toml
-    versions/
-      1.0.0/
-        r1/
-          taf-app-project/
-
-repos/
-  app-name/
+repos/taffish-index       -> github.com/taffish/taffish-index
+repos/taffish.github.io   -> github.com/taffish/taffish.github.io
+repos/.github             -> github.com/taffish/.github
 ```
 
-This keeps long-term local maintenance history separate from the clean repository that is published to GitHub.
+## Data Flow
 
-## Index Repository
+From app developer to user installation, the approximate flow is:
 
-`taffish-index` is a special repository. It is not an app. It is the automation and output repository for the Hub index.
+```text
+developer creates a TAFFISH app
+        |
+        v
+app repository publishes release tag: v<version>-r<release>
+        |
+        v
+taffish-index GitHub Actions scans the taffish organization
+        |
+        v
+generate index/index.json
+        |
+        +----> taffish.github.io reads and displays it
+        |
+        +----> user downloads it locally with taf update
+                         |
+                         v
+                  taf install resolves and installs the app
+```
 
-Responsibilities:
+There is no central database and no long-running backend service in this path.
+GitHub repositories are the data source, GitHub Actions periodically generates
+the static index, and GitHub Pages displays the web interface.
 
-- Scan repositories under the `taffish` organization.
-- Detect app repositories by looking for a valid root-level `taffish.toml`.
-- Read release tags.
-- Read app metadata.
-- Build JSON index files.
-- Commit generated index files back into the index repository.
+## `taffish-index`
 
-The index repository lets the Hub work without a separate backend server.
+`taffish-index` is a static index repository. Its core files are:
 
-## GitHub Actions Automation
+```text
+index/index.json
+index/packages/<package>.json
+index/commands/<command>.json
+```
 
-The index repository has a GitHub Actions workflow that runs on:
+`index/index.json` is the complete index. `packages/` and `commands/` are split
+helper indexes.
 
-- A scheduled interval.
-- Manual dispatch through `workflow_dispatch`.
+The index builder is written in Common Lisp. Its entry point is:
 
-The workflow:
+```sh
+sbcl --script scripts/build-index.lisp -- --org "taffish" --output index
+```
 
-1. Checks out the index repository.
-2. Installs SBCL.
-3. Runs the Common Lisp index builder.
-4. Writes generated JSON into `index/`.
-5. Commits changes if the generated index changed.
+For local testing, you can disable GitHub scanning and scan a local project:
 
-The current schedule can be daily instead of hourly to reduce GitHub Actions usage. Manual dispatch remains useful when a maintainer publishes a new app and wants the index updated immediately.
+```sh
+sbcl --script scripts/build-index.lisp -- --no-org --local-repo ../../../taffish/test/my-test-tool --output index
+```
 
-## Index Files
+### Automation
 
-The main index file uses schema:
+The GitHub Actions workflow in `taffish-index` is located at:
+
+```text
+.github/workflows/build-index.yml
+```
+
+Triggers:
+
+- Manual dispatch: `workflow_dispatch`
+- Scheduled run: once per day
+
+Current schedule:
+
+```yaml
+schedule:
+  - cron: "17 1 * * *"
+```
+
+This is UTC time. The workflow:
+
+1. checks out the `taffish-index` repository
+2. installs SBCL
+3. runs `scripts/build-index.lisp`
+4. scans repositories in the `taffish` organization
+5. generates `index/`
+6. commits and pushes automatically if the index changed
+
+By default, the workflow uses `GITHUB_TOKEN` for public repositories. If private
+repositories need to be scanned, configure:
+
+```text
+TAFFISH_BOT_TOKEN
+```
+
+## App Discovery Rules
+
+A GitHub repository is considered a TAFFISH app when it satisfies:
+
+- root-level `taffish.toml` exists
+- required `taffish.toml` sections and fields are valid
+- `[package].main` points to an existing `.taf` file
+- `docs/help.md` exists
+- `[repository].url` points to the scanned GitHub repository
+- release tags use `v<version>-r<release>`
+
+Examples:
+
+```text
+v0.1.0-r1
+v0.1.0-r2
+v1.0.0-r1
+```
+
+The index builder prefers release tags. The default branch can be indexed as a
+development snapshot, but this requires enabling `include_default_branch` during
+manual use.
+
+## Index Data Model
+
+The top-level structure of the full index is approximately:
 
 ```json
-"schema": "taffish.index/v1"
-```
-
-It contains:
-
-- `generated_at`
-- `source`
-- `counts`
-- `packages`
-- `command_index`
-- `warnings`
-
-See [TAFFISH Index JSON Specification](index-json-spec.en.md) for the detailed schema.
-
-## How `taf` Uses The Index
-
-`taf update` downloads the latest index and stores it locally.
-
-`taf search` uses the local index to find packages.
-
-`taf info` displays package, version, dependency, container, and upstream metadata.
-
-`taf install` resolves the selected package and version, installs dependencies first, then clones or copies the indexed source ref and builds the command wrapper locally.
-
-`taf uninstall` removes installed command wrappers and related local metadata.
-
-`taf list` shows installed apps.
-
-This means `taf install` does not need to scan GitHub at install time. It only needs the index record for the selected package.
-
-## Dependencies
-
-Flow dependencies are stored in both `taffish.toml` and the index.
-
-`taffish.toml` example:
-
-```toml
-[dependencies]
-taf-fastqc = "0.12.1-r1"
-taf-align = ["2.0.0-r1", "2.1.0-r1"]
-```
-
-Index example:
-
-```json
-"dependencies": {
-  "taf-fastqc": ["0.12.1-r1"],
-  "taf-align": ["2.0.0-r1", "2.1.0-r1"]
+{
+  "schema_version": "taffish.index/v1",
+  "generated_at": "2026-05-08T00:00:00Z",
+  "organization": "taffish",
+  "counts": {},
+  "packages": {},
+  "commands": {},
+  "repositories": {},
+  "warnings": []
 }
 ```
 
-Arrays mean all listed versions are required. They are not alternatives.
+Each package contains:
 
-`taf install` should install every listed dependency before installing the flow itself.
-
-## Container Images
-
-Hub does not build container images.
-
-Each app repository that uses a container should own:
-
-```text
-docker/Dockerfile
-.github/workflows/build-image.yml
+```json
+{
+  "name": "my-tool",
+  "latest": "0.1.0-r1",
+  "repository_url": "https://github.com/taffish/my-tool",
+  "command": {
+    "name": "taf-my-tool"
+  },
+  "versions": {}
+}
 ```
 
-`taf new --tool --docker` can create a project skeleton with Dockerfile and GitHub Actions image workflow.
+Each version record contains:
 
-The image build workflow reads `taffish.toml`, builds the image, and pushes to GHCR.
+```json
+{
+  "name": "my-tool",
+  "kind": "tool",
+  "version": "0.1.0",
+  "release": 1,
+  "version_id": "0.1.0-r1",
+  "tag": "v0.1.0-r1",
+  "license": "Apache-2.0",
+  "repository_url": "https://github.com/taffish/my-tool",
+  "repository_slug": "taffish/my-tool",
+  "command": {
+    "name": "taf-my-tool"
+  },
+  "runtime": {
+    "pipe": true,
+    "command_mode": true
+  },
+  "dependencies": {},
+  "platform": {
+    "os": [],
+    "arch": [],
+    "container": "optional",
+    "min_cpus": null,
+    "min_memory_mb": null
+  },
+  "paths": {
+    "main": "src/main.taf",
+    "help": "docs/help.md",
+    "dockerfile": "docker/Dockerfile"
+  },
+  "container": {
+    "image": "ghcr.io/taffish/my-tool:0.1.0-r1",
+    "dockerfile": "docker/Dockerfile",
+    "image_tag": "0.1.0-r1",
+    "image_tag_matches_version": true
+  },
+  "source": {
+    "repository": "taffish/my-tool",
+    "ref": "v0.1.0-r1",
+    "commit": "...",
+    "html_url": "https://github.com/taffish/my-tool/tree/v0.1.0-r1"
+  }
+}
+```
 
-Important requirements:
+If the app provides `[upstream]`, the version record may also include:
 
-- The image tag should match `<version>-r<release>`.
-- The GHCR package should be public.
-- The image in `src/main.taf` should match `[container].image`.
-- If local testing uses Docker or Podman, build and run should use the same backend.
+```json
+{
+  "upstream": {
+    "name": "CD-HIT",
+    "type": "github",
+    "homepage": "https://github.com/weizhongli/cdhit",
+    "repository": "weizhongli/cdhit",
+    "version": "4.8.1",
+    "license": "GPL-2.0",
+    "doi": "10.1093/bioinformatics/bts565",
+    "pmid": "23060610"
+  }
+}
+```
 
-## Upstream Metadata
+If no valid upstream information is provided, the `upstream` field is omitted
+instead of being written as `null` or `none`.
 
-Tool apps should describe their original upstream software when possible:
+## Dependencies
+
+Flow apps can declare dependencies in `taffish.toml`:
+
+```toml
+[dependencies]
+taf-dep-tool = "0.1.0-r1"
+taf-x = ["0.1.0-r1", "0.1.0-r2"]
+```
+
+The index exports them as:
+
+```json
+{
+  "dependencies": {
+    "taf-dep-tool": "0.1.0-r1",
+    "taf-x": ["0.1.0-r1", "0.1.0-r2"]
+  }
+}
+```
+
+This does not mean "alternative versions". It means the flow may need multiple
+different versions. `taf install` installs dependencies according to the index.
+
+## Platform Constraints
+
+Apps can declare platform constraints:
+
+```toml
+[platform]
+os = "linux,darwin"
+arch = "amd64,arm64"
+container = "required"
+min_cpus = 2
+min_memory_mb = 4096
+```
+
+This information enters the index and can be used by the installer, web UI, and
+users when deciding whether an app fits an environment.
+
+Current `container` values:
+
+```text
+optional
+required
+forbidden
+```
+
+## Upstream Source Metadata
+
+`[upstream]` describes the original software source wrapped by an app, such as
+BLAST, CD-HIT, BWA, and other tools.
+
+Example:
 
 ```toml
 [upstream]
-name = "BLAST"
+name = "BLAST+"
+type = "official"
+homepage = "https://blast.ncbi.nlm.nih.gov/"
 version = "2.16.0"
-url = "https://blast.ncbi.nlm.nih.gov/"
-repository = "https://github.com/ncbi/blast_plus_docs"
-license = "Public Domain"
-description = "NCBI BLAST+ sequence alignment tools."
 ```
 
-Hub displays this metadata so users can distinguish:
+Or:
 
-- The TAFFISH app repository.
-- The original upstream software.
-- The container image.
-- The command installed by `taf`.
+```toml
+[upstream]
+name = "CD-HIT"
+type = "github"
+repository = "weizhongli/cdhit"
+version = "4.8.1"
+```
 
-If upstream metadata is not provided, Hub should omit it rather than display "none".
+Supported fields:
 
-## Web Hub
+```text
+name
+type
+homepage
+repository
+release_url
+docker_image
+version
+license
+citation
+doi
+pmid
+```
 
-The web Hub lives at:
+This information matters because:
 
-[https://taffish.github.io](https://taffish.github.io)
+- users can see which original tool the taf app wraps
+- maintainers can check new upstream versions
+- bioinformatics tools can preserve citation, license, and paper information
+
+## `taffish.github.io`
+
+`taffish.github.io` is a static website repository. It reads the index from:
+
+```text
+https://raw.githubusercontent.com/taffish/taffish-index/main/index/index.json
+```
 
 It provides:
 
-- Package browsing.
-- Tool / flow filtering.
-- Sorting.
-- Search.
-- Version details.
-- Install commands.
-- Dependency display.
-- Container and upstream metadata.
+- English and Chinese interface
+- app search
+- tool / flow filters
+- dependency filters
+- container image filters
+- name / latest-version sorting
+- package detail view
+- version list
+- dependency list
+- platform constraints
+- upstream source display
+- install command copy
+- dependency-aware install chain
+- index sync failure notice
 
-The website can be served by GitHub Pages because the index is static JSON. No custom server is required for the current design.
+It does not need a backend server. GitHub Pages directly hosts static files:
 
-## GitHub-Based Operation
+```text
+index.html
+styles.css
+app.js
+```
 
-The current Hub design is intentionally GitHub-based:
+## `.github`
 
-- GitHub repositories store source.
-- GitHub tags identify released versions.
-- GitHub Actions builds images and index files.
-- GitHub Pages hosts the web registry.
-- GHCR hosts container images.
+`.github` is the GitHub organization profile repository. GitHub displays:
 
-Advantages:
+```text
+profile/README.md
+```
 
-- No custom backend to operate.
-- Public infrastructure is easy to inspect.
-- Releases and tags are auditable.
-- Static index files are easy for `taf` to consume.
+at:
 
-Tradeoffs:
+```text
+https://github.com/taffish
+```
 
-- GitHub connectivity can be unstable for some users.
-- GitHub Actions is not unlimited.
-- GHCR packages require visibility checks.
-- Large scale may eventually need more dedicated infrastructure.
+It is a good place for organization entry points, Hub links, index repository
+links, and current project status.
 
-## Future Server Option
+## App Image Builds
 
-Later, TAFFISH Hub could move from a GitHub-only system to a dedicated server.
+Image building is not the responsibility of `taffish-index` or
+`taffish.github.io`.
 
-A future server could provide:
+Each app with a Dockerfile should have its own GitHub Actions workflow, for
+example:
 
-- Faster index queries.
-- Mirror support.
-- Region-specific download endpoints.
-- Maintainer dashboards.
-- Automated upstream update detection.
-- Richer package analytics.
+```text
+app-repo/
+  Dockerfile or docker/Dockerfile
+  .github/workflows/build-image.yml
+```
 
-This is not required for the current phase. The current GitHub-based system is enough to support a curated official registry.
+`taf new --tool --docker` can generate a project skeleton with a Dockerfile and
+GitHub Actions workflow.
 
-## Maintenance Workflow
+Reasons for this design:
 
-Current practical workflow:
+- each app has a different build environment
+- each app Dockerfile should be versioned with the app source
+- each app release tag should correspond to its image tag
+- Hub discovers and indexes apps; it does not build images for them
 
-1. Develop or update an app project locally.
-2. Run `taf check`.
-3. For containerized apps, build and test the image locally.
-4. Run `taf build`.
-5. Run `taf publish --dry-run`.
-6. Publish to the `taffish` organization.
-7. Confirm GitHub Actions image build.
-8. Confirm GHCR package visibility.
-9. Trigger or wait for `taffish-index` update.
-10. Check the app on [taffish.github.io](https://taffish.github.io).
-11. Test with `taf update`, `taf search`, `taf info`, and `taf install`.
+## How Users Are Served
 
-For upstream monitoring, a future local semi-automated maintenance system can keep a separate local store of app versions and upstream metadata. It can detect new upstream versions and write update reports for manual review before publication.
+The core user path:
 
+```sh
+taf update
+taf search blast
+taf install blast
+taf list
+taf which taf-blast-v2.16.0-r1
+```
+
+`taf update` downloads the static index into the local cache:
+
+```text
+index/current.json
+index/snapshots/
+```
+
+`taf install`:
+
+1. reads local `index/current.json`
+2. resolves the target by package name, command name, or exact versioned command
+3. finds the corresponding version record
+4. installs dependencies
+5. clones the corresponding source tag
+6. builds the versioned command wrapper
+7. writes local app data and command paths
+
+Install commands can be:
+
+```sh
+taf install my-tool
+taf install my-tool 0.1.0-r1
+taf install taf-my-tool
+taf install taf-my-tool v0.1.0-r1
+taf install taf-my-tool-v0.1.0-r1
+```
+
+## How Developers Publish Apps
+
+Typical path:
+
+```sh
+taf new my-tool --tool --docker
+cd my-tool
+taf check
+taf run -- --help
+taf build --all
+taf publish --dry-run
+taf publish --yes --build
+```
+
+After publication, the app repository should have:
+
+```text
+taffish.toml
+src/main.taf
+docs/help.md
+release tag: v<version>-r<release>
+```
+
+If it is containerized, it should also have:
+
+```text
+docker/Dockerfile
+GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
+```
+
+When the next `taffish-index` automation run completes, the app is written into
+the index. Users can then run `taf update` and install it.
+
+## Current Boundaries
+
+Current TAFFISH Hub boundaries:
+
+- It is a static index and static website, not a traditional database backend.
+- It depends on GitHub repositories, release tags, GitHub Actions, and GitHub Pages.
+- It does not store long-term user-local state; user state is managed by local `taf`.
+- It does not build app images; image builds are managed by app repositories.
+- It does not solve all network problems, but index URLs and install sources can support mirrors or alternative endpoints in the future.
+
+If an independent server is needed later, the current static index model can be
+migrated to a database service. At the current stage, GitHub static deployment is
+enough to support TAFFISH app discovery, display, and installation.

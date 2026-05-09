@@ -11,22 +11,66 @@ discover, install, and manage TAFFISH apps.
 
 ## Table of Contents
 
-- [Start Here](#start-here)
+- [Recommended Reading Paths](#recommended-reading-paths)
+- [Document Roles](#document-roles)
+- [Core Concepts](#core-concepts)
+- [User Guides](#user-guides)
 - [Developer Guides](#developer-guides)
 - [Specifications](#specifications)
+- [How The Documents Overlap](#how-the-documents-overlap)
 - [Repository Layout](#repository-layout)
 - [Online Hub](#online-hub)
 - [Documentation Policy](#documentation-policy)
 - [Status](#status)
 
-## Start Here
+## Recommended Reading Paths
+
+Choose a path based on what you want to do.
+
+| Goal | Recommended order |
+| --- | --- |
+| Use existing TAFFISH apps | [Quick Start](en/quick-start.en.md) -> [Troubleshooting](en/troubleshooting.en.md) when needed -> [What Is TAFFISH Hub](en/taffish-hub.en.md) for background |
+| Learn the TAFFISH language | [What Is TAFFISH](en/taffish.en.md) -> [TAF Script Tutorial](en/taf-script-tutorial.en.md) |
+| Write a simple tool app | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [App Developer Guide](en/app-developer-guide.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
+| Package a containerized bioinformatics tool | [App Developer Guide](en/app-developer-guide.en.md) -> [Containerized App Best Practices](en/container-apps.en.md) -> [Troubleshooting](en/troubleshooting.en.md) |
+| Write a flow app with dependencies | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [Flow And Dependencies Guide](en/flow-dependencies.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
+| Understand Hub and index internals | [What Is TAFFISH Hub](en/taffish-hub.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
+
+If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
+[What Is TAFFISH](en/taffish.en.md).
+
+## Document Roles
+
+| Document | Role |
+| --- | --- |
+| [Quick Start](en/quick-start.en.md) | User onboarding. It intentionally repeats install, update, search, install, run, list, locate, and uninstall basics. |
+| [What Is TAFFISH](en/taffish.en.md) | Conceptual language and CLI manual. It explains the design, syntax, tags, parameters, project structure, and CLI surface. |
+| [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Hands-on `.taf` writing path. It teaches by building up from small scripts to app wrappers and flows. |
+| [App Developer Guide](en/app-developer-guide.en.md) | Practical app release workflow. It focuses on `taf new`, project editing, check, run, build, publish, and maintenance. |
+| [Containerized App Best Practices](en/container-apps.en.md) | Focused container guide. It covers Dockerfile design, GHCR, Docker/Podman testing, and backend consistency. |
+| [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Focused flow guide. It covers `[[taf: ...]]`, `@:` blocks, exact app versions, and dependency semantics. |
+| [`taffish.toml` Specification](en/taffish-toml-spec.en.md) | Metadata reference for app authors, Hub maintainers, and validators. |
+| [TAFFISH Index JSON Specification](en/index-json-spec.en.md) | Machine-readable index reference for `taf`, Hub automation, and index consumers. |
+| [Troubleshooting](en/troubleshooting.en.md) | Problem-oriented reference. Start here when commands, containers, GHCR, GitHub, or wrappers fail. |
+
+## Core Concepts
 
 | Document | Purpose |
 | --- | --- |
 | [What Is TAFFISH](en/taffish.en.md) | Language, compiler, CLI, app project structure, parameter system, container tags, and the recommended development workflow. |
 | [What Is TAFFISH Hub](en/taffish-hub.en.md) | Hub architecture, GitHub-based automation, index generation, web registry, dependency handling, and publication policy. |
 
-Read these two documents first if you are new to the project.
+Read these two documents when you want the system-level picture.
+
+## User Guides
+
+| Document | Purpose |
+| --- | --- |
+| [TAFFISH Quick Start](en/quick-start.en.md) | Install TAFFISH, update the Hub index, search, install, run, list, locate, and uninstall apps. |
+| [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Step-by-step `.taf` writing tutorial for app authors, from minimal scripts to parameters, containers, flows, and dependencies. |
+| [TAFFISH Troubleshooting](en/troubleshooting.en.md) | Common installation, index, container, GHCR, Podman, Docker, Apptainer, and wrapper problems. |
+
+Use these guides when you want a practical path from first install to daily use.
 
 ## Developer Guides
 
@@ -47,6 +91,22 @@ Use these guides when you are actively building or maintaining apps.
 
 Use these documents when implementing tools, automation, validators, or Hub
 consumers.
+
+## How The Documents Overlap
+
+Some repetition is intentional:
+
+- Install and basic `taf` commands appear in both Quick Start and What Is
+  TAFFISH so users can start quickly and later understand the full model.
+- `taf run`, `taf build`, and `taf publish` appear in the app developer guide
+  and the language manual because they connect syntax to project lifecycle.
+- Container backend notes appear in Quick Start, container best practices, and
+  troubleshooting because runtime issues are common in real deployments.
+- Flow dependencies appear in the language manual, app developer guide, and the
+  focused flow guide; the focused guide is the most detailed source.
+
+As a rule: use tutorials to learn, guides to work, specifications to check exact
+fields, and troubleshooting to diagnose failures.
 
 ## Repository Layout
 

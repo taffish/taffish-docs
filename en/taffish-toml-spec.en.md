@@ -2,9 +2,13 @@
 
 `taffish.toml` is the core metadata file for a TAFFISH app. `taf check`, `taf build`, `taf publish`, `taffish-index`, and TAFFISH Hub all depend on it to understand an app.
 
+This document describes the currently recommended fields. Fields not listed here
+may be ignored by current tools and are not guaranteed to remain compatible in
+the future.
+
 ## Table Of Contents
 
-- [Format](#format)
+- [Basic Principles](#basic-principles)
 - [`[package]`](#package)
 - [`[repository]`](#repository)
 - [`[command]`](#command)
@@ -15,18 +19,24 @@
 - [`[upstream]`](#upstream)
 - [Tool Example](#tool-example)
 - [Flow Example](#flow-example)
+- [Version And Tag Rules](#version-and-tag-rules)
 - [Common Errors](#common-errors)
 
-## Format
+## Basic Principles
 
 `taffish.toml` uses a small TOML subset:
 
-- Tables use `[section]`.
-- Values are strings, integers, booleans, or string arrays.
-- Table arrays are not required for current official app metadata.
-- Field names are lowercase with underscores where needed.
+- Sections use `[section]`.
+- Strings use double quotes.
+- Booleans use `true` / `false`.
+- Integers are used for release, CPU, memory, and similar fields.
+- String arrays are used for multi-version dependencies and similar fields.
 
-Example:
+Apps should keep metadata simple, stable, and machine-parseable.
+
+## `[package]`
+
+Required.
 
 ```toml
 [package]
@@ -38,43 +48,17 @@ license = "Apache-2.0"
 main = "src/main.taf"
 ```
 
-## `[package]`
-
-Required.
-
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
-| `name` | string | yes | Package name. Usually lowercase with hyphens. |
+| `name` | string | yes | Package name. Must not start with `-` or `.`; recommended characters are letters, digits, `-`, and `_`. |
 | `kind` | string | yes | `tool` or `flow`. |
-| `version` | string | yes | Upstream or app version, without release suffix. |
-| `release` | integer | yes | TAFFISH packaging release number. |
-| `license` | string | yes | License identifier or license description. |
-| `main` | string | yes | Project-relative `.taf` source path. |
+| `version` | string | yes | Upstream or flow version. Must not be empty and must not contain spaces or tabs. |
+| `release` | integer | yes | TAFFISH packaging release. Must be a positive integer. |
+| `license` | string | no | App wrapper license. Current `taf new` default is `Apache-2.0`. |
+| `main` | string | yes | Main `.taf` path. Must be a project-relative path. |
 
-Version id is derived from:
-
-```text
-<version>-r<release>
-```
-
-Example:
-
-```toml
-version = "2.16.0"
-release = 1
-```
-
-Version id:
-
-```text
-2.16.0-r1
-```
-
-Git tag:
-
-```text
-v2.16.0-r1
-```
+`name` is the package name. It does not have to equal the command name, which is
+defined by `[command].name`.
 
 `kind` rules:
 
@@ -166,14 +150,6 @@ Use `command_mode = true` for wrappers that should behave like ordinary tool com
 
 Optional. Mainly used by containerized tool apps.
 
-| Field | Type | Required | Description |
-| --- | --- | --- | --- |
-| `image` | string | yes, if `[container]` exists | Container image reference. |
-| `dockerfile` | string | no | Project-relative Dockerfile path. |
-| `build_platforms` | string | no | Comma-separated platform list. |
-
-Example:
-
 ```toml
 [container]
 image = "ghcr.io/taffish/my-tool:0.1.0-r1"
@@ -181,11 +157,17 @@ dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
 ```
 
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `image` | string | no | Container image used by the app. |
+| `dockerfile` | string | no | Dockerfile path. Must be project-relative. |
+| `build_platforms` | string | no | Image build platform list, commonly `linux/amd64,linux/arm64`. |
+
 Rules:
 
+- If `dockerfile` is set, the file must exist.
 - `image` tag should match `<version>-r<release>`.
-- `dockerfile` should point to a file in the repository.
-- `build_platforms` should use OCI platform names such as `linux/amd64`.
+- `taffish-index` currently exports `image` and `dockerfile`; `build_platforms` is mainly used by local builds and GitHub Actions.
 
 `[container]` describes the image metadata. The actual runtime tag still lives in `src/main.taf`, for example:
 
@@ -202,62 +184,84 @@ Single dependency version:
 
 ```toml
 [dependencies]
-taf-fastqc = "0.12.1-r1"
-```
-
-Multiple required versions of the same dependency:
-
-```toml
-[dependencies]
-taf-align = ["2.0.0-r1", "2.1.0-r1"]
+taf-dep-tool = "0.1.0-r1"
+taf-align = ["1.0.0-r1", "1.1.0-r1"]
 ```
 
 Rules:
 
-- Key is the base command name, such as `taf-fastqc`.
-- Value is a version id string or an array of version id strings.
-- Array means every listed version is required. It does not mean alternatives.
-- Official flow releases should use exact versions.
+- Key must be a taf command and must start with `taf-`.
+- Value may be a string or a string array.
+- Strings must not be empty.
+- Arrays must not be empty.
+- An app must not depend on itself.
+
+Semantics:
+
+```toml
+taf-align = ["1.0.0-r1", "1.1.0-r1"]
+```
+
+means this flow needs both versions of `taf-align` to be installable. It does
+not mean one of them can be chosen as an alternative.
+
+Dependency values should normally use version ids without a leading `v`:
+
+```text
+1.0.0-r1
+```
 
 `taf build` can sync dependencies from versioned `[[taf: ...]]` calls in `src/main.taf`.
 
 ## `[platform]`
 
-Optional. Describes platform constraints for the app.
+Optional. Describes platform constraints, mainly for Hub display and future
+installation decisions.
 
 Example:
 
 ```toml
 [platform]
-os = "linux"
-arch = "x86_64"
-container = true
+os = "linux,darwin"
+arch = "amd64,arm64"
+container = "required"
+min_cpus = 2
+min_memory_mb = 4096
 ```
 
-Recommended fields:
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `os` | string | no | Comma-separated operating system list. |
+| `arch` | string | no | Comma-separated architecture list. |
+| `container` | string | no | `optional`, `required`, or `forbidden`. Default is `optional`. |
+| `min_cpus` | integer | no | Suggested minimum CPU count; positive integer. |
+| `min_memory_mb` | integer | no | Suggested minimum memory in MB; positive integer. |
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `os` | string | Operating system constraint, such as `linux`, `macos`, or `any`. |
-| `arch` | string | Architecture constraint, such as `x86_64`, `arm64`, or `any`. |
-| `container` | boolean | Whether the app expects a container backend. |
+Current `container` meanings:
 
-When absent, the app is treated as having no declared platform constraint.
+- `optional`: can run in a container, but may also run locally.
+- `required`: requires a container environment.
+- `forbidden`: should not run inside a container.
 
 ## `[upstream]`
 
-Optional. Describes the original software, database, workflow, or project being wrapped by the TAFFISH app.
+Optional. Describes the original source of the wrapped software.
 
 Example:
 
 ```toml
 [upstream]
-name = "BLAST"
-version = "2.16.0"
-url = "https://blast.ncbi.nlm.nih.gov/"
-repository = "https://github.com/ncbi/blast_plus_docs"
-license = "Public Domain"
-description = "NCBI BLAST+ sequence alignment tools."
+name = "CD-HIT"
+type = "github"
+homepage = "https://github.com/weizhongli/cdhit"
+repository = "weizhongli/cdhit"
+release_url = "https://github.com/weizhongli/cdhit/releases"
+docker_image = "docker.io/example/cdhit:4.8.1"
+version = "4.8.1"
+license = "GPL-2.0"
+citation = "Fu et al. 2012"
+doi = "10.1093/bioinformatics/bts565"
+pmid = "23060610"
 ```
 
 Supported fields:
@@ -265,13 +269,19 @@ Supported fields:
 | Field | Type | Description |
 | --- | --- | --- |
 | `name` | string | Upstream project name. |
+| `type` | string | Source type. Recommended values: `official`, `github`, `gitlab`, `archive`, `docker`, `apt`, `conda`, `other`. |
+| `homepage` | string | Upstream homepage. |
+| `repository` | string | Upstream repository, for example `weizhongli/cdhit`. |
+| `release_url` | string | Upstream release page. |
+| `docker_image` | string | Existing upstream Docker image. |
 | `version` | string | Upstream version. |
-| `url` | string | Upstream homepage or download page. |
-| `repository` | string | Upstream source repository. |
 | `license` | string | Upstream license. |
-| `description` | string | Short upstream description. |
+| `citation` | string | Citation text. |
+| `doi` | string | DOI. |
+| `pmid` | string | PubMed ID. |
 
-`[upstream]` describes the original software being wrapped. It is not the TAFFISH app repository. If the fields are absent, TAFFISH Hub simply omits upstream metadata.
+If `[upstream]` is absent, or no valid fields exist, the index omits the
+`upstream` field.
 
 ## Tool Example
 
@@ -281,7 +291,7 @@ name = "blast"
 kind = "tool"
 version = "2.16.0"
 release = 1
-license = "Public Domain"
+license = "Apache-2.0"
 main = "src/main.taf"
 
 [repository]
@@ -300,9 +310,10 @@ dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
 
 [upstream]
-name = "BLAST"
+name = "BLAST+"
+type = "official"
+homepage = "https://blast.ncbi.nlm.nih.gov/"
 version = "2.16.0"
-url = "https://blast.ncbi.nlm.nih.gov/"
 ```
 
 ## Flow Example
@@ -331,30 +342,40 @@ taf-fastqc = "0.12.1-r1"
 taf-multiqc = "1.19-r1"
 ```
 
+## Version And Tag Rules
+
+`version` and `release` combine into a version id:
+
+```text
+<version>-r<release>
+```
+
+For example:
+
+```text
+2.16.0-r1
+```
+
+Git tags must add a leading `v`:
+
+```text
+v2.16.0-r1
+```
+
+Image tags should normally not add the leading `v`:
+
+```text
+ghcr.io/taffish/blast:2.16.0-r1
+```
+
 ## Common Errors
 
-Missing required field:
-
-- Check `[package]`, `[repository]`, `[command]`, and `[runtime]`.
-
-Wrong version id:
-
-- `version` should not include `-r1`.
-- `release` should be an integer.
-- The derived version id is `version + "-r" + release`.
-
-Image mismatch:
-
-- `[container].image` tag should match the derived version id.
-- `src/main.taf` should use the same image tag.
-
-Flow dependency mismatch:
-
-- `src/main.taf` uses `[[taf: ...]]`, but `[dependencies]` is missing or out of sync.
-- Run `taf build` to sync dependencies.
-
-Wrong dependency array semantics:
-
-- Arrays mean all listed versions are required.
-- Arrays are not alternatives.
-
+- `command.name` does not start with `taf-`.
+- `repository.url` points to an old organization or wrong repository.
+- `release` is written as a string instead of an integer.
+- `main` is not a `.taf` file.
+- `docs/help.md` is missing.
+- Dockerfile path is wrong.
+- Container image tag does not match `version-release`.
+- A flow uses `[[taf: ...]]`, but `[dependencies]` is missing or version-mismatched.
+- `[upstream]` is used for the app's own GitHub repository instead of the original wrapped software.

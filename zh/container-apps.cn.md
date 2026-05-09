@@ -40,6 +40,8 @@ my-tool/
   taffish.toml
   src/
     main.taf
+  docs/
+    help.md
   docker/
     Dockerfile
   .github/

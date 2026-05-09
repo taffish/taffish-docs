@@ -6,6 +6,7 @@ Containerized apps are the recommended way to package tools with complex system 
 
 - [When To Use Containers](#when-to-use-containers)
 - [Project Structure](#project-structure)
+- [Image Naming And Tags](#image-naming-and-tags)
 - [`taffish.toml`](#taffishtoml)
 - [`src/main.taf`](#srcmaintaf)
 - [Dockerfile Advice](#dockerfile-advice)
@@ -50,6 +51,27 @@ my-tool/
     workflows/
       build-image.yml
 ```
+
+## Image Naming And Tags
+
+Recommended image format:
+
+```text
+ghcr.io/taffish/<app-name>:<version>-r<release>
+```
+
+Example:
+
+```text
+ghcr.io/taffish/blast:2.16.0-r1
+```
+
+Principles:
+
+- The image tag should match the TAFFISH version id.
+- Do not use `latest` as the official app reference.
+- Do not overwrite published tags.
+- If the Dockerfile is fixed but the upstream version is unchanged, increase the release, for example `2.16.0-r2`.
 
 ## `taffish.toml`
 
@@ -294,4 +316,3 @@ Multi-platform build fails:
 - First confirm that `linux/amd64` builds successfully.
 - Check whether the upstream tool supports `linux/arm64`.
 - Temporarily publish only `linux/amd64` when needed.
-

@@ -54,14 +54,54 @@ taffish --version
 taf doctor
 ```
 
+Installed commands:
+
+```text
+taffish
+taf
+```
+
+Default user paths:
+
+```text
+bin  = ~/.local/bin
+home = ~/.local/share/taffish
+```
+
+Default system paths:
+
+```text
+bin  = /usr/local/bin
+home = /opt/taffish
+```
+
+The installer attempts to run `taf update` to initialize the local index. If the
+network is unavailable, the installer prints a warning but does not roll back
+the installed binaries.
+
 `taf doctor` checks common local dependencies such as `git`, `gh`, `docker`, `podman`, `apptainer`, `sbcl`, and shell tools.
 
 ## The `taffish` Compiler
 
-The compiler accepts a `.taf` file and command arguments:
+The direct responsibility of `taffish` is to compile `.taf` code to shell.
+
+It accepts a `.taf` file and command arguments:
 
 ```sh
 taffish path/to/main.taf [ARGS...]
+```
+
+It can also read source code from standard input:
+
+```sh
+cat path/to/main.taf | taffish --
+```
+
+Check version and help:
+
+```sh
+taffish --version
+taffish --help
 ```
 
 A minimal `.taf` file:
@@ -81,7 +121,15 @@ taffish hello.taf
 
 ## `.taf` File Structure
 
-A `.taf` file is divided into optional `ARGS` and required `RUN` sections.
+A `.taf` file is made of lines. Each line is interpreted as one of:
+
+- blank line
+- comment line: after leading whitespace, starts with `#`
+- primary tag: `ARGS` or `RUN`
+- subtag: `<...>`
+- ordinary code line
+
+The full structure is usually:
 
 ```taf
 ARGS
@@ -97,6 +145,14 @@ Tags:
 
 - Primary tags: `ARGS` or `RUN`
 - Subtags: `<shell>`, `<container:...>`, `<taffish>`, `<taf-app:...>`
+
+If the first effective line is ordinary code, TAFFISH automatically wraps it as:
+
+```taf
+RUN
+<taffish>
+...
+```
 
 If the first effective line is a subtag, TAFFISH automatically inserts `RUN`. Therefore the shortest form can be:
 
@@ -643,4 +699,3 @@ Current practical boundaries:
 - Container image builds are handled by each app repository's GitHub Actions workflow, not by `taffish-index`.
 - TAFFISH Hub is currently GitHub-based. A standalone server can be considered later.
 - Users in regions with unstable GitHub connectivity may need mirrors or network configuration in the future.
-
