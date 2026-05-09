@@ -176,6 +176,11 @@ pipe = false
 command_mode = false
 ```
 
+`[repository].url` should be the canonical GitHub repository for the TAFFISH app.
+Do not put a Gitee or internal mirror URL here for official Hub packages.
+TAFFISH `0.2.0` handles mirrors through local `taf` runtime config, where
+`[[source.rewrite]]` can rewrite the canonical URL during install.
+
 Recommended upstream metadata:
 
 ```toml

@@ -16,7 +16,8 @@ assume that you want to write `.taf` scripts or maintain app repositories.
 - [Run An Installed App](#run-an-installed-app)
 - [List, Locate, And Remove Apps](#list-locate-and-remove-apps)
 - [Container Backends](#container-backends)
-- [Network And Mirror Notes](#network-and-mirror-notes)
+- [Runtime Config And Mirrors](#runtime-config-and-mirrors)
+- [Network Notes](#network-notes)
 - [Where To Read Next](#where-to-read-next)
 
 ## What You Install
@@ -45,13 +46,33 @@ taf-augustus -- --help
 User install, recommended for normal users:
 
 ```sh
-curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sh -s -- --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
 ```
 
 System install, useful on shared servers:
 
 ```sh
-curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sudo sh -s -- --system
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sudo sh -s -- --system
+```
+
+Pinned version install:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.2.0 --user
+```
+
+For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
+downloads files from the Gitee mirror and initializes the China mirror config
+when no config exists:
+
+```sh
+curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user
+```
+
+To replace an existing config with the Gitee/China mirror profile:
+
+```sh
+curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user --force-config
 ```
 
 After installation, check:
@@ -107,6 +128,60 @@ taf update --url <INDEX-URL>
 ```
 
 `TAFFISH_INDEX_URL` can also override the default URL.
+
+## Runtime Config And Mirrors
+
+TAFFISH `0.2.0` adds a small runtime config file for stable mirror and custom
+source support.
+
+Default config paths:
+
+```text
+user   = ~/.local/share/taffish/config.toml
+system = /opt/taffish/config.toml
+```
+
+Inspect the effective config:
+
+```sh
+taf config
+taf config path
+```
+
+Initialize the default GitHub profile:
+
+```sh
+taf config init --github
+```
+
+Initialize the China mirror profile:
+
+```sh
+taf config init --china --force
+taf update
+```
+
+The China profile is a template:
+
+```toml
+schema_version = "taffish.config/v1"
+profile = "china"
+language = "en"
+
+[index]
+url = "https://gitee.com/taffish-org/taffish-index/raw/main/index/index.json"
+
+[[source.rewrite]]
+from = "https://github.com/taffish/"
+to = "https://gitee.com/taffish-org/"
+enabled = true
+```
+
+`[index].url` controls where `taf update` downloads the static index from.
+`[[source.rewrite]]` rewrites canonical app repository URLs when `taf install`
+clones apps. This also makes internal mirrors possible: mirror the app
+repositories and index schema, then edit `config.toml` so `from` points to the
+canonical GitHub prefix and `to` points to the internal Git service prefix.
 
 ## Find Apps
 
@@ -249,18 +324,19 @@ podman machine stop
 podman machine start
 ```
 
-## Network And Mirror Notes
+TAFFISH still uses container images from the locations declared by app packages,
+often GHCR. Mirror configuration currently covers index download and app
+repository cloning; container image access must still be available from the
+machine that runs apps.
 
-TAFFISH currently uses GitHub, GitHub Releases, GitHub raw content, and GHCR.
+## Network Notes
+
 If GitHub is slow or blocked in your environment:
 
 - retry `taf update` later;
 - configure your system proxy or Git proxy;
-- use `taf update --url <INDEX-URL>` when a mirror index is available;
+- initialize the China profile or use `taf update --url <INDEX-URL>` for a one-off index override;
 - confirm that GHCR images are reachable from the machine that will run apps.
-
-The index model is static, so it can be mirrored in the future without changing
-the local `taf` workflow.
 
 ## Where To Read Next
 

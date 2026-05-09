@@ -16,7 +16,8 @@
 - [运行已安装 app](#运行已安装-app)
 - [列出、定位和卸载 app](#列出定位和卸载-app)
 - [容器后端](#容器后端)
-- [网络与镜像说明](#网络与镜像说明)
+- [运行时配置与镜像源](#运行时配置与镜像源)
+- [网络说明](#网络说明)
 - [继续阅读](#继续阅读)
 
 ## 你会安装什么
@@ -45,13 +46,32 @@ taf-augustus -- --help
 用户级安装，推荐普通用户使用：
 
 ```sh
-curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sh -s -- --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
 ```
 
 系统级安装，适合共享服务器：
 
 ```sh
-curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sudo sh -s -- --system
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sudo sh -s -- --system
+```
+
+固定安装某个版本：
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.2.0 --user
+```
+
+中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
+文件，并在没有配置文件时自动初始化中国镜像配置：
+
+```sh
+curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user
+```
+
+如果需要把已有配置替换为 Gitee/中国镜像 profile：
+
+```sh
+curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user --force-config
 ```
 
 安装后检查：
@@ -105,6 +125,59 @@ taf update --url <INDEX-URL>
 ```
 
 也可以用 `TAFFISH_INDEX_URL` 覆盖默认 index URL。
+
+## 运行时配置与镜像源
+
+TAFFISH `0.2.0` 新增了一个很小的运行时配置文件，用来稳定支持镜像源和自定义
+来源。
+
+默认配置路径：
+
+```text
+用户级 = ~/.local/share/taffish/config.toml
+系统级 = /opt/taffish/config.toml
+```
+
+查看当前生效配置：
+
+```sh
+taf config
+taf config path
+```
+
+初始化默认 GitHub profile：
+
+```sh
+taf config init --github
+```
+
+初始化中国镜像 profile：
+
+```sh
+taf config init --china --force
+taf update
+```
+
+中国镜像 profile 是一个模板：
+
+```toml
+schema_version = "taffish.config/v1"
+profile = "china"
+language = "en"
+
+[index]
+url = "https://gitee.com/taffish-org/taffish-index/raw/main/index/index.json"
+
+[[source.rewrite]]
+from = "https://github.com/taffish/"
+to = "https://gitee.com/taffish-org/"
+enabled = true
+```
+
+`[index].url` 控制 `taf update` 从哪里下载静态 index。`[[source.rewrite]]`
+会在 `taf install` clone app 仓库时重写 canonical app 仓库 URL。这也让内部镜像
+成为可能：同步 app 仓库和 index schema 后，直接编辑 `config.toml`，让 `from`
+指向 canonical GitHub 前缀，让 `to` 指向内部 Git 服务前缀。
 
 ## 查找 app
 
@@ -242,17 +315,17 @@ podman machine stop
 podman machine start
 ```
 
-## 网络与镜像说明
+TAFFISH 仍然会使用 app package 中声明的容器镜像，通常是 GHCR。镜像配置目前
+覆盖 index 下载和 app 仓库 clone；运行 app 的机器仍然需要能访问对应容器镜像。
 
-TAFFISH 当前依赖 GitHub、GitHub Releases、GitHub raw content 和 GHCR。如果
-你的环境访问 GitHub 不稳定：
+## 网络说明
+
+如果你的环境访问 GitHub 不稳定：
 
 - 稍后重试 `taf update`；
 - 配置系统代理或 Git 代理；
-- 有镜像 index 时使用 `taf update --url <INDEX-URL>`；
+- 初始化中国镜像 profile，或用 `taf update --url <INDEX-URL>` 做一次性 index 覆盖；
 - 确认运行 app 的机器可以访问 GHCR 镜像。
-
-TAFFISH 的 index 是静态文件，因此未来可以镜像，而不需要改变本地 `taf` 的使用方式。
 
 ## 继续阅读
 

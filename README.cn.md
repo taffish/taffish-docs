@@ -41,7 +41,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 
 | 文档 | 分工 |
 | --- | --- |
-| [快速开始](zh/quick-start.cn.md) | 用户上手入口。它会有意重复安装、更新、搜索、安装、运行、列出、定位和卸载等基础操作。 |
+| [快速开始](zh/quick-start.cn.md) | 用户上手入口。它会有意重复安装、镜像配置、更新、搜索、安装、运行、列出、定位和卸载等基础操作。 |
 | [什么是 TAFFISH](zh/taffish.cn.md) | 概念型语言与 CLI 手册。解释设计目标、语法、标签、参数、项目结构和 CLI 表面。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 动手写 `.taf` 的学习路径。从小脚本逐步过渡到 app wrapper 和 flow。 |
 | [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 实际 app 发布流程。重点是 `taf new`、项目编辑、检查、运行、构建、发布和维护。 |
@@ -66,7 +66,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | --- | --- |
 | [TAFFISH 快速开始](zh/quick-start.cn.md) | 安装 TAFFISH，更新 Hub 索引，搜索、安装、运行、列出、定位和卸载 app。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 面向 app 作者的 `.taf` 分步教程，从最小脚本到参数、容器、flow 和依赖。 |
-| [TAFFISH 故障排查](zh/troubleshooting.cn.md) | 常见安装、索引、容器、GHCR、Podman、Docker、Apptainer 和 wrapper 问题。 |
+| [TAFFISH 故障排查](zh/troubleshooting.cn.md) | 常见安装、索引、镜像配置、容器、GHCR、Podman、Docker、Apptainer 和 wrapper 问题。 |
 
 当你需要从第一次安装走到日常使用时，优先参考这些文档。
 
@@ -94,6 +94,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 有些重复是有意保留的：
 
 - 安装和基础 `taf` 命令会同时出现在快速开始和“什么是 TAFFISH”里，因为用户需要先能快速上手，之后再理解完整模型。
+- 运行时镜像配置会出现在快速开始、什么是 TAFFISH、什么是 TAFFISH Hub 和故障排查里，因为它同时影响网络访问和 package 安装。
 - `taf run`、`taf build`、`taf publish` 会同时出现在 app 开发指南和语言手册里，因为它们连接了语法和项目生命周期。
 - 容器 backend 说明会出现在快速开始、容器最佳实践和故障排查里，因为真实部署中容器问题最常见。
 - Flow 依赖会出现在语言手册、app 开发指南和 Flow 专题里；其中 Flow 专题是最详细来源。

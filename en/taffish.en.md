@@ -16,6 +16,7 @@ In other words, a `.taf` file describes how a tool or workflow should run. `taff
 - [Parameter Syntax](#parameter-syntax)
 - [Built-In Runtime Tags](#built-in-runtime-tags)
 - [The `taf` CLI](#the-taf-cli)
+- [Runtime Config And Mirrors](#runtime-config-and-mirrors)
 - [TAFFISH App Project Structure](#taffish-app-project-structure)
 - [Recommended Development Workflow](#recommended-development-workflow)
 - [Tool Versus Flow](#tool-versus-flow)
@@ -34,16 +35,31 @@ TAFFISH does not try to replace shell, Docker, Conda, or workflow engines. It pu
 
 ## Installation
 
-The public `taffish` repository currently provides binary releases. The recommended user installation uses the release installer:
+The public `taffish` repository currently provides binary releases. The
+recommended user installation uses the installer from the canonical
+`taffish/taffish` repository:
 
 ```sh
-curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sh -s -- --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
 ```
 
 System-wide installation:
 
 ```sh
-curl -fsSL https://github.com/taffish/taffish/releases/latest/download/install-taffish.sh | sudo sh -s -- --system
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sudo sh -s -- --system
+```
+
+Pinned version installation:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.2.0 --user
+```
+
+For users in China, the Gitee installer can avoid GitHub raw content during
+installation and initialize the China mirror config:
+
+```sh
+curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user
 ```
 
 After installation:
@@ -439,6 +455,9 @@ taf config
 taf history
 ```
 
+`doctor` checks or initializes the local TAFFISH environment. `config` shows or
+initializes runtime configuration. `history` shows or clears local run history.
+
 Common usage:
 
 Create a flow project:
@@ -507,6 +526,58 @@ List installed apps:
 ```sh
 taf list
 ```
+
+## Runtime Config And Mirrors
+
+TAFFISH `0.2.0` introduced runtime configuration for mirror and custom source
+support. The default config paths are:
+
+```text
+user   = ~/.local/share/taffish/config.toml
+system = /opt/taffish/config.toml
+```
+
+Inspect the effective config:
+
+```sh
+taf config
+taf config path
+```
+
+Initialize the default GitHub profile:
+
+```sh
+taf config init --github
+```
+
+Initialize the China mirror profile:
+
+```sh
+taf config init --china --force
+taf update
+```
+
+The China profile is a simple template:
+
+```toml
+schema_version = "taffish.config/v1"
+profile = "china"
+language = "en"
+
+[index]
+url = "https://gitee.com/taffish-org/taffish-index/raw/main/index/index.json"
+
+[[source.rewrite]]
+from = "https://github.com/taffish/"
+to = "https://gitee.com/taffish-org/"
+enabled = true
+```
+
+`[index].url` controls the default index used by `taf update`.
+`[[source.rewrite]]` rewrites canonical app repository URLs when `taf install`
+clones apps. Users or maintainers can adapt the same mechanism for internal Git
+services, as long as the mirror provides compatible repositories, tags, and the
+same TAFFISH index schema.
 
 ## TAFFISH App Project Structure
 
@@ -694,8 +765,9 @@ A flow app combines multiple taf apps into an analysis workflow. It usually:
 
 Current practical boundaries:
 
-- TAFFISH app publishing currently targets the official `taffish` GitHub organization.
-- The official Hub is not an open self-service publishing platform.
+- TAFFISH is not a general-purpose programming language; it is an app description language that compiles to shell.
+- TAFFISH does not directly replace Docker, Podman, or Apptainer; it selects and calls them as container backends.
+- The official Hub currently publishes through the `taffish` GitHub organization and is not an open self-service publishing platform.
 - Container image builds are handled by each app repository's GitHub Actions workflow, not by `taffish-index`.
-- TAFFISH Hub is currently GitHub-based. A standalone server can be considered later.
-- Users in regions with unstable GitHub connectivity may need mirrors or network configuration in the future.
+- Runtime mirror config can rewrite index and app repository access, but it does not automatically mirror container registries.
+- The public `taffish` repository currently focuses on binary distribution; core source code is not public yet.

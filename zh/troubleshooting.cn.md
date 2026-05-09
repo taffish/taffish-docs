@@ -68,7 +68,23 @@ taf update
 taf update --url <INDEX-URL>
 ```
 
+如果使用 TAFFISH `0.2.0` 或更新版本，需要持久使用镜像源，可以查看并初始化运行时配置：
+
+```sh
+taf config
+taf config path
+taf config init --china --force
+taf update
+```
+
+生成的中国镜像 profile 会改变 index URL，并在 `taf install` clone app 仓库时把
+canonical GitHub 仓库 URL 重写为配置的镜像地址。如果使用内部 Git 服务，可以直接
+编辑 `config.toml`，把 `[index].url` 和 `[[source.rewrite]].to` 指向内部镜像。
+
 如果你的网络需要代理，需要在 TAFFISH 外部配置 shell、Git 或系统代理。
+
+镜像配置不会自动镜像容器 registry。如果某个 app 使用 GHCR，运行 app 的机器仍然
+需要能访问这个镜像来源。
 
 安装器运行 `taf update` 失败时可能会给出 warning，但不会回滚已经安装的二进制。
 

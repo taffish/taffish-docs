@@ -175,6 +175,10 @@ pipe = false
 command_mode = false
 ```
 
+`[repository].url` 应该填写 TAFFISH app 的 canonical GitHub 仓库地址。官方 Hub
+package 不要在这里填写 Gitee 或内部镜像 URL。TAFFISH `0.2.0` 通过本地 `taf`
+运行时配置处理镜像，`[[source.rewrite]]` 会在 install 时重写 canonical URL。
+
 推荐补充 upstream：
 
 ```toml

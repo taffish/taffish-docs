@@ -36,6 +36,7 @@ taf install <app>
 - [app 镜像构建](#app-镜像构建)
 - [用户如何被服务](#用户如何被服务)
 - [开发者如何发布 app](#开发者如何发布-app)
+- [镜像与内部来源支持](#镜像与内部来源支持)
 - [当前边界](#当前边界)
 
 ## 为什么需要 Hub
@@ -531,6 +532,47 @@ GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
 
 当 `taffish-index` 的自动化下一次运行后，该 app 会被写入 index。用户随后运行 `taf update` 即可安装。
 
+## 镜像与内部来源支持
+
+TAFFISH Hub 仍然是 GitHub 优先的静态 index，但 TAFFISH `0.2.0` 在本地 `taf`
+侧加入了运行时镜像配置。因此用户不需要修改官方 index schema，也可以使用镜像源。
+
+默认 GitHub 路径是：
+
+```text
+taf update -> 官方 index URL
+taf install -> index 中的 canonical app 仓库 URL
+```
+
+对于中国大陆用户或内部网络用户，`config.toml` 可以覆盖这两条访问路径：
+
+```toml
+schema_version = "taffish.config/v1"
+profile = "china"
+language = "en"
+
+[index]
+url = "https://gitee.com/taffish-org/taffish-index/raw/main/index/index.json"
+
+[[source.rewrite]]
+from = "https://github.com/taffish/"
+to = "https://gitee.com/taffish-org/"
+enabled = true
+```
+
+`[index].url` 会改变 `taf update` 读取静态 index 的位置。`[[source.rewrite]]`
+会让官方 index 继续保留 canonical GitHub URL，同时允许 `taf install` 从镜像或
+内部 Git 服务 clone app。
+
+这带来两个实际结果：
+
+- 官方 Hub 可以继续把 GitHub 作为 canonical 发布来源。
+- 镜像维护者可以同步 index 和 app 仓库，而不需要改 app 元数据；前提是镜像端保留
+  兼容的仓库、tag 和相同的 TAFFISH index schema。
+
+容器镜像是另一条链路。如果某个 app version 指向 GHCR 或其他 OCI registry，运行
+app 的机器仍然需要能访问该镜像地址，或者 app 元数据需要指向用户可访问的镜像来源。
+
 ## 当前边界
 
 当前 TAFFISH Hub 的边界是：
@@ -539,6 +581,6 @@ GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
 - 它依赖 GitHub 仓库、release tag、GitHub Actions 和 GitHub Pages。
 - 它不负责长期保存用户本地状态，用户状态由本机 `taf` 管理。
 - 它不负责 app 镜像构建，镜像构建由各 app 仓库管理。
-- 它不解决所有网络问题，但 index URL 和安装源未来可以支持镜像或替代地址。
+- 它可以通过本地 `taf` 运行时配置支持 index 和仓库来源镜像，但不会自动镜像容器 registry。
 
 未来如果需要独立服务器，可以把现在的静态 index 模型迁移到数据库服务；但在当前阶段，GitHub 静态部署已经足够支撑 TAFFISH app 的发现、展示和安装。

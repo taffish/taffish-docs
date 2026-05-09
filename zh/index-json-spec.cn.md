@@ -38,6 +38,11 @@ index/commands/<command>.json
 https://raw.githubusercontent.com/taffish/taffish-index/main/index/index.json
 ```
 
+TAFFISH `0.2.0` 可以从运行时配置读取其他 index URL，也可以用
+`taf update --url <INDEX-URL>` 做一次性覆盖。镜像 index 应该保留相同 schema 和
+canonical source records。仓库 URL 重写属于本地 `taf` 配置，不属于 index schema
+本身。
+
 `index/index.json` 是完整索引，拆分文件用于更细粒度访问。
 
 ## 顶层结构
@@ -299,4 +304,3 @@ Index JSON 消费者应该：
 - 不把依赖数组解释成 alternatives。
 - 使用 `source.ref` 和 `source.commit` 追踪 app 自身来源。
 - 使用 `upstream` 追踪被包装软件来源。
-

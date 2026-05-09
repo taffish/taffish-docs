@@ -41,6 +41,7 @@ the app repository itself and is not centrally handled by `taffish-hub`.
 - [App Image Builds](#app-image-builds)
 - [How Users Are Served](#how-users-are-served)
 - [How Developers Publish Apps](#how-developers-publish-apps)
+- [Mirror And Internal Source Support](#mirror-and-internal-source-support)
 - [Current Boundaries](#current-boundaries)
 
 ## Why Hub Exists
@@ -567,6 +568,51 @@ GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
 When the next `taffish-index` automation run completes, the app is written into
 the index. Users can then run `taf update` and install it.
 
+## Mirror And Internal Source Support
+
+TAFFISH Hub remains a GitHub-first static index, but TAFFISH `0.2.0` adds
+runtime mirror configuration on the local `taf` side. This means users do not
+have to change the official index schema to use a mirror.
+
+The default GitHub path is:
+
+```text
+taf update -> official index URL
+taf install -> canonical app repository URLs from the index
+```
+
+For users in China or in an internal network, `config.toml` can override those
+two access paths:
+
+```toml
+schema_version = "taffish.config/v1"
+profile = "china"
+language = "en"
+
+[index]
+url = "https://gitee.com/taffish-org/taffish-index/raw/main/index/index.json"
+
+[[source.rewrite]]
+from = "https://github.com/taffish/"
+to = "https://gitee.com/taffish-org/"
+enabled = true
+```
+
+`[index].url` changes where `taf update` reads the static index from.
+`[[source.rewrite]]` keeps canonical GitHub URLs in the official index while
+allowing `taf install` to clone from a mirror or an internal Git service.
+
+This has two practical consequences:
+
+- The official Hub can keep GitHub as the canonical publishing source.
+- Mirror operators can sync the index and app repositories without changing app
+  metadata, as long as the mirror preserves compatible repositories, tags, and
+  the same TAFFISH index schema.
+
+Container images are separate. If an app version points to GHCR or another OCI
+registry, the machine running the app still needs access to that image location,
+or the app metadata needs to point to an image source that the user can access.
+
 ## Current Boundaries
 
 Current TAFFISH Hub boundaries:
@@ -575,7 +621,8 @@ Current TAFFISH Hub boundaries:
 - It depends on GitHub repositories, release tags, GitHub Actions, and GitHub Pages.
 - It does not store long-term user-local state; user state is managed by local `taf`.
 - It does not build app images; image builds are managed by app repositories.
-- It does not solve all network problems, but index URLs and install sources can support mirrors or alternative endpoints in the future.
+- It supports mirror-friendly index and repository access through local `taf`
+  runtime config, but it does not automatically mirror container registries.
 
 If an independent server is needed later, the current static index model can be
 migrated to a database service. At the current stage, GitHub static deployment is

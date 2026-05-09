@@ -68,8 +68,26 @@ taf update
 taf update --url <INDEX-URL>
 ```
 
+For persistent mirror use in TAFFISH `0.2.0` or later, inspect and initialize
+runtime config:
+
+```sh
+taf config
+taf config path
+taf config init --china --force
+taf update
+```
+
+The generated China profile changes the index URL and rewrites canonical GitHub
+app repository URLs to the configured mirror when `taf install` clones apps.
+For an internal Git service, edit `config.toml` and point `[index].url` and
+`[[source.rewrite]].to` at the internal mirror.
+
 If your network requires a proxy, configure your shell, Git, or system proxy
 outside TAFFISH.
+
+Mirror config does not automatically mirror container registries. If an app
+uses GHCR, the machine running the app still needs access to that image source.
 
 The installer may warn if `taf update` fails, but it does not roll back the
 installed binaries.

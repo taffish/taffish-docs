@@ -74,7 +74,11 @@ url = "https://github.com/taffish/my-tool"
 | --- | --- | --- | --- |
 | `url` | string | 是 | app 自己的 GitHub 仓库 URL。 |
 
-官方 Hub 扫描时会检查该 URL 是否匹配被扫描的仓库。也就是说，`taffish/my-tool` 仓库中的 `repository.url` 应该指向 `https://github.com/taffish/my-tool`。
+官方 Hub 扫描时会检查该 URL 是否匹配被扫描的仓库。也就是说，`taffish/my-tool`
+仓库中的 `repository.url` 应该指向 canonical GitHub 地址
+`https://github.com/taffish/my-tool`。普通 package 不应该把这里改成镜像 URL。
+TAFFISH `0.2.0` 的镜像支持由本地 `taf` 运行时配置处理，`[[source.rewrite]]`
+会在 `taf install` 时重写这个 canonical URL。
 
 ## `[command]`
 
@@ -358,4 +362,3 @@ ghcr.io/taffish/blast:2.16.0-r1
 - 容器镜像 tag 与 `version-release` 不一致。
 - flow 使用了 `[[taf: ...]]`，但 `[dependencies]` 缺失或版本不一致。
 - 把 `[upstream]` 当成 app 自己的 GitHub 仓库信息。
-

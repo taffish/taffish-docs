@@ -94,7 +94,11 @@ The repository URL is used by:
 - TAFFISH Hub
 - `taf install`
 
-For official Hub packages, this should normally be under the `taffish` GitHub organization.
+For official Hub packages, this should normally be the canonical GitHub
+repository under the `taffish` organization. Do not replace this field with a
+mirror URL for normal packages. TAFFISH `0.2.0` mirror support is handled by
+local `taf` runtime config, where `[[source.rewrite]]` can rewrite this
+canonical URL during `taf install`.
 
 ## `[command]`
 
