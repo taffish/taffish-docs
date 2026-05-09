@@ -236,6 +236,23 @@ App-level container wrapper:
 my-tool ::*ARGV*::
 ```
 
+At compile time, a generic container tag becomes a backend command such as
+Docker, Podman, or Apptainer. In simplified Docker/Podman form:
+
+```sh
+podman run --rm -i \
+  -w "$PWD" \
+  -v "$HOME:$HOME" \
+  -v "$PWD:$PWD" \
+  ghcr.io/taffish/my-tool:0.1.0-r1 \
+  my-tool ::*ARGV*::
+```
+
+This automatic working-directory mount is why local input and output paths work.
+It also means you should run containerized apps from project or data
+directories, not from host system directories such as `/usr/bin`, because the
+mount can hide the image's own `/usr/bin`.
+
 Force a backend during local testing:
 
 ```sh

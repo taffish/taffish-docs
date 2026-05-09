@@ -334,6 +334,11 @@ Other backslash sequences are preserved as text. For example, `\@` is not a `.ta
 
 ## Built-In Runtime Tags
 
+Runtime tags are compile-time dispatch markers. They decide how the body below
+the tag is emitted into shell. The examples in this section show the source
+`.taf` code and the simplified shape of the generated shell. Real generated
+output also includes comments, checks, temporary paths, and backend detection.
+
 ### `<shell>`
 
 `<shell>` means the following body is shell code:
@@ -344,6 +349,17 @@ echo "hello"
 pwd
 ```
 
+Compiled shape:
+
+```sh
+#!/bin/sh
+echo "hello"
+pwd
+```
+
+`<shell>` does not enter a container. It runs on the host shell, so host
+commands, host `PATH`, and host working directory semantics apply.
+
 ### `<container:IMAGE>`
 
 `<container:IMAGE>` runs the following shell code through an available container backend. The generic `container` backend chooses from `apptainer`, `podman`, or `docker` according to the environment.
@@ -352,6 +368,41 @@ pwd
 <container:ghcr.io/taffish/blast:2.16.0>
 blastp -query ::query:: -db ::db::
 ```
+
+Simplified compiled shape:
+
+```sh
+# choose a backend, for example podman
+podman pull ghcr.io/taffish/blast:2.16.0
+podman run --rm -i \
+  -w "$PWD" \
+  -v "$HOME:$HOME" \
+  -v "$PWD:$PWD" \
+  -e "HOME=$HOME" \
+  -e "USER=$USER" \
+  ghcr.io/taffish/blast:2.16.0 \
+  blastp -query "$query" -db "$db"
+```
+
+The exact backend command differs between Docker, Podman, and Apptainer, but the
+important model is the same:
+
+- TAFFISH chooses a container backend.
+- TAFFISH checks or pulls the image when needed.
+- TAFFISH sets the container working directory to the current TAFFISH workdir.
+- TAFFISH bind-mounts the user home path and the current workdir into the same
+  paths inside the container.
+- TAFFISH passes common environment variables such as `HOME` and `USER`.
+- The command body is executed inside the container image.
+
+Because the current workdir is mounted into the container at the same path, do
+not run containerized taf apps from host paths that collide with important
+container paths such as `/bin`, `/usr/bin`, `/usr/local/bin`, `/lib`, `/opt`, or
+the directory where the wrapped tool is installed. A host bind mount can hide
+the image's original directory at that path. For example, running a containerized
+app while the host current directory is `/usr/bin` can hide the container's own
+`/usr/bin`, making tools that are installed there appear to be missing. Run taf
+apps from a project directory, data directory, or scratch directory instead.
 
 You can also request a specific backend:
 
@@ -400,6 +451,17 @@ Embedding syntax:
 
 At compile time, TAFFISH compiles those taf apps into temporary shell steps, then executes them inside the current workflow. This makes it possible for flow apps to compose existing tools while preserving explicit dependency relationships.
 
+Simplified compiled shape:
+
+```sh
+taffish_tmpdir=$(mktemp -d)
+taf-fastqc-v0.12.1-r1 --compile sample.fq > "$taffish_tmpdir/step-1.sh"
+taf-multiqc-v1.19-r1 --compile . > "$taffish_tmpdir/step-2.sh"
+chmod +x "$taffish_tmpdir"/step-*.sh
+"$taffish_tmpdir/step-1.sh"
+"$taffish_tmpdir/step-2.sh"
+```
+
 To print a literal `[[taf: ...]]` inside a `<taffish>` block, escape the bracket with `\[` or `\]`:
 
 ```taf
@@ -419,6 +481,44 @@ my-tool --input ::input:: --output ::output::
 ```
 
 The built command compiles the `.taf` file into shell and runs it. Users see an ordinary command, while the internals are still compiled and dispatched by TAFFISH.
+
+For a shell tool app:
+
+```taf
+<taf-app:shell>
+my-tool ::*ARGV*::
+```
+
+Compiled shape when the user runs `taf-my-tool -- --alpha 1`:
+
+```sh
+#!/bin/sh
+my-tool --alpha 1
+```
+
+For a containerized tool app:
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
+my-tool ::*ARGV*::
+```
+
+Compiled shape when the user runs `taf-my-tool -- --alpha 1`:
+
+```sh
+#!/bin/sh
+# choose/pull/run container as described above
+podman run --rm -i \
+  -w "$PWD" \
+  -v "$HOME:$HOME" \
+  -v "$PWD:$PWD" \
+  ghcr.io/taffish/my-tool:0.1.0-r1 \
+  my-tool --alpha 1
+```
+
+`<taf-app:...>` is therefore a user-facing app wrapper around the lower-level
+runtime tags. It also preserves app command semantics such as `::*ARGV*::`,
+`--compile`, and package-manager integration.
 
 ## The `taf` CLI
 

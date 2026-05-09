@@ -315,6 +315,10 @@ podman machine stop
 podman machine start
 ```
 
+容器化 app 建议从项目目录、数据目录或临时工作目录运行。不要从 `/usr/bin` 或
+`/usr/local/bin` 这类宿主机系统目录运行：TAFFISH 会把当前 workdir 挂载进容器，
+这个挂载可能遮住镜像内部的重要目录。
+
 TAFFISH 仍然会使用 app package 中声明的容器镜像，通常是 GHCR。镜像配置目前
 覆盖 index 下载和 app 仓库 clone；运行 app 的机器仍然需要能访问对应容器镜像。
 

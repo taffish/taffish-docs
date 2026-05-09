@@ -19,6 +19,7 @@ from the error message, then check the relevant section.
 - [Build Backend Rejects Apptainer](#build-backend-rejects-apptainer)
 - [Option Is Handled By The Wrapper Instead Of The Tool](#option-is-handled-by-the-wrapper-instead-of-the-tool)
 - [`exec`: Executable File Not Found](#exec-executable-file-not-found)
+- [Tool Exists In The Image But Is Not Found](#tool-exists-in-the-image-but-is-not-found)
 - [Container Image Exists In One Backend But Not Another](#container-image-exists-in-one-backend-but-not-another)
 - [Where To Get More Context](#where-to-get-more-context)
 
@@ -301,6 +302,54 @@ Use:
 <taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
 my-tool ::*ARGV*::
 ```
+
+## Tool Exists In The Image But Is Not Found
+
+Symptom:
+
+```text
+my-tool: executable file not found in $PATH
+```
+
+or, for a concrete app:
+
+```text
+augustus: executable file not found in $PATH
+```
+
+If the image is correct and the tool is installed inside the image, check the
+host current directory. TAFFISH container tags normally bind-mount the current
+workdir into the same path inside the container and set that path as the
+container workdir. This is useful for input and output files, but it can hide
+important image directories when the host path has the same name.
+
+Risky host working directories include:
+
+```text
+/bin
+/usr/bin
+/usr/local/bin
+/lib
+/usr/lib
+/opt
+```
+
+For example, if the image installs `augustus` under `/usr/bin`, and you run
+`taf-augustus` while the host current directory is `/usr/bin`, the bind mount may
+cover the container's original `/usr/bin`. The container then starts, but the
+tool that used to be in `/usr/bin` is hidden.
+
+Fix:
+
+```sh
+mkdir -p ~/work/taffish-runs/augustus-test
+cd ~/work/taffish-runs/augustus-test
+taf-augustus -- --help
+```
+
+As a rule, run TAFFISH apps from a project directory, data directory, or scratch
+directory. Avoid running them from system directories that are also meaningful
+inside containers.
 
 ## Container Image Exists In One Backend But Not Another
 

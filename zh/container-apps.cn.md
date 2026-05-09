@@ -7,6 +7,7 @@
 - [什么时候使用容器](#什么时候使用容器)
 - [基本结构](#基本结构)
 - [镜像命名与 tag](#镜像命名与-tag)
+- [运行时挂载与工作目录](#运行时挂载与工作目录)
 - [Dockerfile 建议](#dockerfile-建议)
 - [多阶段构建](#多阶段构建)
 - [APT 安装建议](#apt-安装建议)
@@ -85,6 +86,55 @@ ghcr.io/taffish/blast:2.16.0-r1
 - 不要用 `latest` 作为 app 的正式引用。
 - 不要覆盖已发布 tag。
 - 如果 Dockerfile 修复但上游版本不变，增加 release，例如 `2.16.0-r2`。
+
+## 运行时挂载与工作目录
+
+容器化 TAFFISH app 并不是完全脱离用户工作目录运行。运行时，TAFFISH 通常会：
+
+- 把容器内工作目录设置为当前 TAFFISH workdir；
+- 把用户 home 目录按相同路径 bind mount 进容器；
+- 把当前 workdir 按相同路径 bind mount 进容器；
+- 传入 `HOME`、`USER` 等常见环境变量。
+
+用简化的 Docker/Podman 形式表示，大致是：
+
+```sh
+podman run --rm -i \
+  -w "$PWD" \
+  -v "$HOME:$HOME" \
+  -v "$PWD:$PWD" \
+  -e "HOME=$HOME" \
+  -e "USER=$USER" \
+  ghcr.io/taffish/my-tool:0.1.0-r1 \
+  my-tool ::*ARGV*::
+```
+
+这让本地输入输出路径可以自然工作，但也意味着宿主机目录可能遮住容器镜像里的同名
+目录。不要在容器内部重要路径对应的宿主机系统目录下运行容器化 taf app，尤其是：
+
+```text
+/bin
+/usr/bin
+/usr/local/bin
+/lib
+/usr/lib
+/opt
+```
+
+例如某个镜像把 `augustus` 安装在 `/usr/bin`，如果用户在宿主机 `/usr/bin` 下运行
+`taf-augustus`，bind mount 可能遮住容器原本的 `/usr/bin`，最后看起来就像：
+
+```text
+augustus: executable file not found in $PATH
+```
+
+建议在项目目录、数据目录或临时工作目录中运行 TAFFISH app，例如：
+
+```sh
+mkdir -p ~/work/taffish-runs/augustus-test
+cd ~/work/taffish-runs/augustus-test
+taf-augustus -- --help
+```
 
 ## Dockerfile 建议
 

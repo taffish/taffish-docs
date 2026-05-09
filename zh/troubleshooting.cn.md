@@ -19,6 +19,7 @@
 - [构建镜像时 backend 不接受 Apptainer](#构建镜像时-backend-不接受-apptainer)
 - [参数被 wrapper 处理而不是传给上游工具](#参数被-wrapper-处理而不是传给上游工具)
 - [`exec`: executable file not found](#exec-executable-file-not-found)
+- [镜像里有工具但运行时找不到](#镜像里有工具但运行时找不到)
 - [镜像存在于一个后端但另一个后端找不到](#镜像存在于一个后端但另一个后端找不到)
 - [获取更多上下文](#获取更多上下文)
 
@@ -296,6 +297,51 @@ exec: "exec": executable file not found in $PATH
 <taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
 my-tool ::*ARGV*::
 ```
+
+## 镜像里有工具但运行时找不到
+
+现象：
+
+```text
+my-tool: executable file not found in $PATH
+```
+
+或者对于具体 app：
+
+```text
+augustus: executable file not found in $PATH
+```
+
+如果镜像本身正确，并且工具确实安装在镜像里，需要检查宿主机当前目录。TAFFISH
+容器标签通常会把当前 workdir 按相同路径 bind mount 进容器，并把该路径设为容器
+工作目录。这让输入输出文件路径更自然，但如果宿主机路径和容器内部关键目录同名，
+就可能遮住镜像里的原始目录。
+
+高风险宿主机工作目录包括：
+
+```text
+/bin
+/usr/bin
+/usr/local/bin
+/lib
+/usr/lib
+/opt
+```
+
+例如镜像把 `augustus` 安装在 `/usr/bin`，而你在宿主机 `/usr/bin` 下运行
+`taf-augustus`，bind mount 可能覆盖容器原本的 `/usr/bin`。容器可以启动，但原本
+在 `/usr/bin` 里的工具被遮住了。
+
+修复方式：
+
+```sh
+mkdir -p ~/work/taffish-runs/augustus-test
+cd ~/work/taffish-runs/augustus-test
+taf-augustus -- --help
+```
+
+原则上，从项目目录、数据目录或临时工作目录运行 TAFFISH app。避免从系统目录运行，
+尤其是这些目录在容器内部也有重要含义时。
 
 ## 镜像存在于一个后端但另一个后端找不到
 

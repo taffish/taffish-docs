@@ -324,6 +324,11 @@ podman machine stop
 podman machine start
 ```
 
+Run containerized apps from a project directory, data directory, or scratch
+directory. Avoid running them from host system directories such as `/usr/bin` or
+`/usr/local/bin`: TAFFISH mounts the current workdir into the container, and that
+mount can hide important directories inside the image.
+
 TAFFISH still uses container images from the locations declared by app packages,
 often GHCR. Mirror configuration currently covers index download and app
 repository cloning; container image access must still be available from the

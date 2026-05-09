@@ -230,6 +230,22 @@ app 层容器 wrapper：
 my-tool ::*ARGV*::
 ```
 
+编译时，泛化容器标签会变成 Docker、Podman 或 Apptainer 之类的后端命令。用简化的
+Docker/Podman 形式表示：
+
+```sh
+podman run --rm -i \
+  -w "$PWD" \
+  -v "$HOME:$HOME" \
+  -v "$PWD:$PWD" \
+  ghcr.io/taffish/my-tool:0.1.0-r1 \
+  my-tool ::*ARGV*::
+```
+
+这种自动工作目录挂载是本地输入输出路径能够自然工作的原因。它也意味着容器化 app
+应该从项目目录或数据目录运行，不要从 `/usr/bin` 这类宿主机系统目录运行，因为挂载
+可能遮住镜像自己的 `/usr/bin`。
+
 本地测试时强制后端：
 
 ```sh

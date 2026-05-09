@@ -9,6 +9,7 @@ Containerized apps are the recommended way to package tools with complex system 
 - [Image Naming And Tags](#image-naming-and-tags)
 - [`taffish.toml`](#taffishtoml)
 - [`src/main.taf`](#srcmaintaf)
+- [Runtime Mounts And Working Directory](#runtime-mounts-and-working-directory)
 - [Dockerfile Advice](#dockerfile-advice)
 - [Multi-Stage Builds](#multi-stage-builds)
 - [APT Hygiene](#apt-hygiene)
@@ -109,6 +110,61 @@ my-tool --input ::input::
 ```
 
 Prefer the generic `container` tag for published apps when the image is portable across supported backends. Use explicit `docker` or `podman` tags when a tool or local development setup depends on one backend.
+
+## Runtime Mounts And Working Directory
+
+Containerized TAFFISH apps are not isolated from the user's working directory.
+At runtime, TAFFISH normally:
+
+- sets the container working directory to the current TAFFISH workdir;
+- bind-mounts the user's home directory into the same path inside the container;
+- bind-mounts the current workdir into the same path inside the container;
+- passes common environment variables such as `HOME` and `USER`.
+
+In simplified Docker/Podman form, this looks like:
+
+```sh
+podman run --rm -i \
+  -w "$PWD" \
+  -v "$HOME:$HOME" \
+  -v "$PWD:$PWD" \
+  -e "HOME=$HOME" \
+  -e "USER=$USER" \
+  ghcr.io/taffish/my-tool:0.1.0-r1 \
+  my-tool ::*ARGV*::
+```
+
+This makes local input and output paths work naturally, but it also means that a
+host directory can hide an image directory with the same path. Avoid running
+containerized taf apps from host system paths that are important inside images,
+especially:
+
+```text
+/bin
+/usr/bin
+/usr/local/bin
+/lib
+/usr/lib
+/opt
+```
+
+For example, if a container image installs `augustus` under `/usr/bin`, and the
+user runs `taf-augustus` while the host current directory is also `/usr/bin`, the
+bind mount may hide the container's original `/usr/bin`. The result can look
+like:
+
+```text
+augustus: executable file not found in $PATH
+```
+
+Run TAFFISH apps from a project directory, data directory, or scratch directory
+instead, such as:
+
+```sh
+mkdir -p ~/work/taffish-runs/augustus-test
+cd ~/work/taffish-runs/augustus-test
+taf-augustus -- --help
+```
 
 ## Dockerfile Advice
 
