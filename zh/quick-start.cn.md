@@ -58,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.2.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.3.0 --user
 ```
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
@@ -128,7 +128,7 @@ taf update --url <INDEX-URL>
 
 ## 运行时配置与镜像源
 
-TAFFISH `0.2.0` 新增了一个很小的运行时配置文件，用来稳定支持镜像源和自定义
+TAFFISH `0.3.0` 新增了一个很小的运行时配置文件，用来稳定支持镜像源和自定义
 来源。
 
 默认配置路径：

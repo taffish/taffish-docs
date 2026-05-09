@@ -99,6 +99,7 @@ taf new my-tool --tool --docker \
 
 ```text
 my-tool/
+  release.md
   taffish.toml
   src/
     main.taf
@@ -128,6 +129,10 @@ my-tool/
 - `docs/help.md`：构建后命令的 `--help` 输出来源。
 - `target/`：本地构建产物目录，不应作为源码手工维护。
 - `docker/Dockerfile`：容器化 tool app 的镜像定义。
+- `release.md`：被 ignore 的本地发布说明草稿，用于 publish message 和 GitHub Release notes。
+
+`taf new` 会创建 `release.md` 并把它加入 `.gitignore`。它由
+`taf publish --release` 使用，不应该作为 app 源码提交。
 
 ## 编写 `taffish.toml`
 
@@ -176,7 +181,7 @@ command_mode = false
 ```
 
 `[repository].url` 应该填写 TAFFISH app 的 canonical GitHub 仓库地址。官方 Hub
-package 不要在这里填写 Gitee 或内部镜像 URL。TAFFISH `0.2.0` 通过本地 `taf`
+package 不要在这里填写 Gitee 或内部镜像 URL。TAFFISH `0.3.0` 通过本地 `taf`
 运行时配置处理镜像，`[[source.rewrite]]` 会在 install 时重写 canonical URL。
 
 推荐补充 upstream：
@@ -488,22 +493,26 @@ target/.taf-my-tool-v0.1.0-r1/
 
 ## 发布
 
-发布前预览：
+发布前，先编辑被 ignore 的 `release.md` 草稿。使用 `taf publish --release`
+时，`release.md` 第一行会成为 publish commit/tag message，整个文件会成为
+GitHub Release notes。正式发布前应替换默认的 `TODO` 摘要。
+
+带 release notes 预览：
 
 ```sh
-taf publish --dry-run
+taf publish --release --dry-run
 ```
 
-构建并发布：
+带 release notes 构建并发布：
 
 ```sh
-taf publish --yes --build
+taf publish --release --yes --build
 ```
 
 如果远端仓库不存在，可以请求创建：
 
 ```sh
-taf publish --yes --build --create-repo --public
+taf publish --release --yes --build --create-repo --public
 ```
 
 发布会：
@@ -512,15 +521,25 @@ taf publish --yes --build --create-repo --public
 2. 读取 `[repository].url`。
 3. 检查远端是否已有目标 tag。
 4. 检查当前 tag 是否符合 latest 策略。
-5. commit 当前项目。
-6. 创建 tag `v<version>-r<release>`。
-7. push commit 和 tag。
+5. 从 `release.md` 准备发布 message 和 GitHub Release notes。
+6. commit 当前项目。
+7. 创建 tag `v<version>-r<release>`。
+8. push commit 和 tag，并创建或更新 GitHub Release。
 
 默认发布策略要求当前版本是远端最新版本。如果需要发布非最新预发布版本，可以使用：
 
 ```sh
-taf publish --yes --pre
+taf publish --release --yes --pre
 ```
+
+不要直接发布以下项目：
+
+- 仓库 URL 不正确。
+- 镜像 tag 尚未构建。
+- `taf check` 失败。
+- `docs/help.md` 缺失。
+- `release.md` 仍然是默认 `TODO` 摘要。
+- release tag 已经存在。
 
 ## 发布后检查
 
@@ -583,5 +602,6 @@ tag = "v0.1.0-r1"
 - [ ] 如果是 flow app，`[dependencies]` 与 `[[taf: ...]]` 一致。
 - [ ] `taf run` 在本地通过。
 - [ ] `taf build` 或 `taf build --all` 通过。
-- [ ] `taf publish --dry-run` 输出符合预期。
+- [ ] `release.md` 第一行和 release notes 已经整理好。
+- [ ] `taf publish --release --dry-run` 输出符合预期。
 - [ ] 发布后检查 GitHub Actions 和 Hub index。

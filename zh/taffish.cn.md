@@ -51,7 +51,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.2.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.3.0 --user
 ```
 
 中国大陆用户可以使用 Gitee 安装器，减少安装阶段对 GitHub raw content 的依赖，
@@ -553,11 +553,16 @@ target/taf-my-tool-v0.1.0-r1
 发布项目：
 
 ```sh
-taf publish --dry-run
-taf publish --yes --build
+taf publish --release --dry-run
+taf publish --release --yes --build
 ```
 
-发布会检查项目、读取 `taffish.toml` 中的仓库地址、检查远端 tag，并在确认后 commit、tag、push。
+`taf new` 会创建一个被 ignore 的 `release.md` 草稿。使用
+`taf publish --release` 时，第一行会成为 publish message，整个文件会成为
+GitHub Release notes。
+
+发布会检查项目、读取 `taffish.toml` 中的仓库地址、检查远端 tag，并在确认后
+commit、tag、push，并创建或更新 GitHub Release。
 
 ### Hub 命令
 
@@ -623,7 +628,7 @@ taf history
 
 ## 运行时配置与镜像源
 
-TAFFISH `0.2.0` 引入了运行时配置，用于支持镜像源和自定义来源。默认配置路径是：
+TAFFISH `0.3.0` 提供运行时配置，用于支持镜像源和自定义来源。默认配置路径是：
 
 ```text
 用户级 = ~/.local/share/taffish/config.toml
@@ -815,14 +820,17 @@ taf build --all --backend docker
 发布前预览：
 
 ```sh
-taf publish --dry-run
+taf publish --release --dry-run
 ```
 
-发布：
+带 release notes 发布：
 
 ```sh
-taf publish --yes --build
+taf publish --release --yes --build
 ```
+
+发布前应编辑被 ignore 的 `release.md` 草稿。它的第一行会成为 publish message，
+整个文件会成为 GitHub Release notes。
 
 发布完成后，GitHub 上的 app 仓库会有 release tag，例如：
 

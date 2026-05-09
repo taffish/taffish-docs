@@ -545,9 +545,13 @@ cd my-tool
 taf check
 taf run -- --help
 taf build --all
-taf publish --dry-run
-taf publish --yes --build
+taf publish --release --dry-run
+taf publish --release --yes --build
 ```
+
+Before publishing, maintainers should edit the ignored `release.md` draft
+created by `taf new`. With `taf publish --release`, its first line becomes the
+publish message and the full file becomes the GitHub Release notes.
 
 After publication, the app repository should have:
 
@@ -570,7 +574,7 @@ the index. Users can then run `taf update` and install it.
 
 ## Mirror And Internal Source Support
 
-TAFFISH Hub remains a GitHub-first static index, but TAFFISH `0.2.0` adds
+TAFFISH Hub remains a GitHub-first static index, but TAFFISH `0.3.0` adds
 runtime mirror configuration on the local `taf` side. This means users do not
 have to change the official index schema to use a mirror.
 

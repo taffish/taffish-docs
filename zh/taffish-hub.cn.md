@@ -510,9 +510,13 @@ cd my-tool
 taf check
 taf run -- --help
 taf build --all
-taf publish --dry-run
-taf publish --yes --build
+taf publish --release --dry-run
+taf publish --release --yes --build
 ```
+
+发布前，维护者应编辑 `taf new` 创建的、被 ignore 的 `release.md` 草稿。使用
+`taf publish --release` 时，它的第一行会成为 publish message，整个文件会成为
+GitHub Release notes。
 
 发布后，app 仓库应该有：
 
@@ -534,7 +538,7 @@ GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
 
 ## 镜像与内部来源支持
 
-TAFFISH Hub 仍然是 GitHub 优先的静态 index，但 TAFFISH `0.2.0` 在本地 `taf`
+TAFFISH Hub 仍然是 GitHub 优先的静态 index，但 TAFFISH `0.3.0` 在本地 `taf`
 侧加入了运行时镜像配置。因此用户不需要修改官方 index schema，也可以使用镜像源。
 
 默认 GitHub 路径是：

@@ -69,7 +69,7 @@ taf update
 taf update --url <INDEX-URL>
 ```
 
-如果使用 TAFFISH `0.2.0` 或更新版本，需要持久使用镜像源，可以查看并初始化运行时配置：
+如果使用 TAFFISH `0.3.0` 或更新版本，需要持久使用镜像源，可以查看并初始化运行时配置：
 
 ```sh
 taf config
@@ -131,15 +131,26 @@ gh auth status
 如果远端 Git 操作需要在终端里询问凭据，使用：
 
 ```sh
-taf publish --dry-run --prompt
-taf publish --yes --prompt
+taf publish --release --dry-run --prompt
+taf publish --release --yes --prompt
 ```
 
 如果远端仓库不存在，并且希望 `taf` 创建：
 
 ```sh
-taf publish --yes --build --create-repo --public
+taf publish --release --yes --build --create-repo --public
 ```
+
+正式发布时，推荐使用 release notes 工作流：
+
+```sh
+taf publish --release --dry-run
+taf publish --release --yes --build
+```
+
+`taf publish --release` 会读取被 ignore 的 `release.md` 草稿。如果 GitHub
+Release 标题或说明不对，编辑 `release.md`：第一行会成为 publish message，整个
+文件会成为 GitHub Release notes。
 
 ## GHCR 镜像拉取失败
 

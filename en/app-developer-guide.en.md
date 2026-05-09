@@ -107,6 +107,7 @@ Typical structure:
 ```text
 my-tool/
   README.md
+  release.md
   taffish.toml
   src/
     main.taf
@@ -129,6 +130,11 @@ Important files:
 - `target/`: generated command wrappers and frozen snapshots.
 - `docker/Dockerfile`: container image definition for containerized tool apps.
 - `.github/workflows/build-image.yml`: image build automation for app repositories.
+- `release.md`: ignored local draft for publish message and GitHub Release notes.
+
+`taf new` creates `release.md` as a local draft and adds it to `.gitignore`.
+It is used by `taf publish --release`; it should not be committed as app
+source.
 
 ## Writing `taffish.toml`
 
@@ -178,7 +184,7 @@ command_mode = false
 
 `[repository].url` should be the canonical GitHub repository for the TAFFISH app.
 Do not put a Gitee or internal mirror URL here for official Hub packages.
-TAFFISH `0.2.0` handles mirrors through local `taf` runtime config, where
+TAFFISH `0.3.0` handles mirrors through local `taf` runtime config, where
 `[[source.rewrite]]` can rewrite the canonical URL during install.
 
 Recommended upstream metadata:
@@ -488,25 +494,33 @@ The built command uses the frozen source snapshot, not the live `src/` directory
 
 ## Publish
 
-Publish preview:
+Before publishing, edit the ignored `release.md` draft. With
+`taf publish --release`, the first line of `release.md` becomes the publish
+commit/tag message, and the whole file becomes the GitHub Release notes. Replace
+the default `TODO` summary before a real release.
+
+Publish preview with release notes:
 
 ```sh
-taf publish --dry-run
+taf publish --release --dry-run
 ```
 
-Publish:
+Publish with release notes:
 
 ```sh
-taf publish --yes --build
+taf publish --release --yes --build
 ```
 
 Create a repository during publish when supported:
 
 ```sh
-taf publish --yes --build --create-repo --public
+taf publish --release --yes --build --create-repo --public
 ```
 
-Publishing checks the project, reads the repository URL from `taffish.toml`, checks remote tags, and then commits, tags, and pushes after confirmation.
+Publishing checks the project, reads the repository URL from `taffish.toml`,
+checks remote tags, prepares the release message and release notes, and then
+commits, tags, pushes, and creates or updates the GitHub Release after
+confirmation.
 
 Do not publish directly if:
 
@@ -514,6 +528,7 @@ Do not publish directly if:
 - The image tag has not been built yet.
 - `taf check` fails.
 - `docs/help.md` is missing.
+- `release.md` still contains a placeholder `TODO` summary.
 - The release tag already exists.
 
 ## Post-Publish Checks
@@ -583,5 +598,6 @@ Before publishing, confirm:
 - [ ] For a flow app, `[dependencies]` matches `[[taf: ...]]`.
 - [ ] `taf run` passes locally.
 - [ ] `taf build` or `taf build --all` passes.
-- [ ] `taf publish --dry-run` output is as expected.
+- [ ] `release.md` has a real first-line summary and release notes.
+- [ ] `taf publish --release --dry-run` output is as expected.
 - [ ] After publishing, GitHub Actions and Hub index are checked.

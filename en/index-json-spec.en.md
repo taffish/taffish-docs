@@ -40,7 +40,7 @@ Users download this by default:
 https://raw.githubusercontent.com/taffish/taffish-index/main/index/index.json
 ```
 
-TAFFISH `0.2.0` can read a different index URL from runtime config or a one-off
+TAFFISH `0.3.0` can read a different index URL from runtime config or a one-off
 `taf update --url <INDEX-URL>` override. A mirrored index should keep the same
 schema and canonical source records. Repository URL rewriting belongs to local
 `taf` config, not to the index schema itself.

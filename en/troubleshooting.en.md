@@ -69,7 +69,7 @@ taf update
 taf update --url <INDEX-URL>
 ```
 
-For persistent mirror use in TAFFISH `0.2.0` or later, inspect and initialize
+For persistent mirror use in TAFFISH `0.3.0` or later, inspect and initialize
 runtime config:
 
 ```sh
@@ -135,15 +135,26 @@ gh auth status
 If remote Git operations should ask for credentials, use:
 
 ```sh
-taf publish --dry-run --prompt
-taf publish --yes --prompt
+taf publish --release --dry-run --prompt
+taf publish --release --yes --prompt
 ```
 
 If the repository does not exist and you want `taf` to create it:
 
 ```sh
-taf publish --yes --build --create-repo --public
+taf publish --release --yes --build --create-repo --public
 ```
+
+For real releases, prefer the release-note workflow:
+
+```sh
+taf publish --release --dry-run
+taf publish --release --yes --build
+```
+
+`taf publish --release` reads the ignored `release.md` draft. If the GitHub
+Release title or notes look wrong, edit `release.md`: the first line becomes the
+publish message, and the whole file becomes the GitHub Release notes.
 
 ## GHCR Image Pull Fails
 

@@ -58,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.2.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.3.0 --user
 ```
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
@@ -131,7 +131,7 @@ taf update --url <INDEX-URL>
 
 ## Runtime Config And Mirrors
 
-TAFFISH `0.2.0` adds a small runtime config file for stable mirror and custom
+TAFFISH `0.3.0` adds a small runtime config file for stable mirror and custom
 source support.
 
 Default config paths:

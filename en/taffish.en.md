@@ -52,7 +52,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.2.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.3.0 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -597,17 +597,21 @@ Build a versioned command:
 taf build
 ```
 
-Publish preview:
+Publish preview with release notes:
 
 ```sh
-taf publish --dry-run
+taf publish --release --dry-run
 ```
 
-Publish:
+Publish with release notes:
 
 ```sh
-taf publish --yes --build
+taf publish --release --yes --build
 ```
+
+`taf new` creates an ignored `release.md` draft. With
+`taf publish --release`, the first line becomes the publish message and the
+whole file becomes the GitHub Release notes.
 
 Update the Hub index:
 
@@ -629,7 +633,7 @@ taf list
 
 ## Runtime Config And Mirrors
 
-TAFFISH `0.2.0` introduced runtime configuration for mirror and custom source
+TAFFISH `0.3.0` provides runtime configuration for mirror and custom source
 support. The default config paths are:
 
 ```text
@@ -820,17 +824,20 @@ To build image and command wrapper together:
 taf build --all --backend docker
 ```
 
-Preview publishing:
+Preview publishing with release notes:
 
 ```sh
-taf publish --dry-run
+taf publish --release --dry-run
 ```
 
-Publish:
+Publish with release notes:
 
 ```sh
-taf publish --yes --build
+taf publish --release --yes --build
 ```
+
+Before publishing, edit the ignored `release.md` draft. Its first line becomes
+the publish message, and the full file is used as the GitHub Release notes.
 
 After publishing, the app repository has a release tag such as:
 

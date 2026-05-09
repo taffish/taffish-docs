@@ -289,7 +289,7 @@ The app repository owns this automation. Hub does not build images for apps. Hub
 
 After publishing an image, confirm that the GHCR package is public. Otherwise users may install the app but fail to pull the image at runtime.
 
-TAFFISH `0.2.0` mirror config can rewrite index and app repository access, but
+TAFFISH `0.3.0` mirror config can rewrite index and app repository access, but
 it does not automatically rewrite container image registries. If users cannot
 access GHCR, the app must publish or declare an image source that those users can
 reach.

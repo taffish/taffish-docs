@@ -44,7 +44,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | [快速开始](zh/quick-start.cn.md) | 用户上手入口。它会有意重复安装、镜像配置、更新、搜索、安装、运行、列出、定位和卸载等基础操作。 |
 | [什么是 TAFFISH](zh/taffish.cn.md) | 概念型语言与 CLI 手册。解释设计目标、语法、标签、参数、项目结构和 CLI 表面。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 动手写 `.taf` 的学习路径。从小脚本逐步过渡到 app wrapper 和 flow。 |
-| [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 实际 app 发布流程。重点是 `taf new`、项目编辑、检查、运行、构建、发布和维护。 |
+| [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 实际 app 发布流程。重点是 `taf new`、项目编辑、检查、运行、构建、`release.md`、发布和维护。 |
 | [容器化 app 最佳实践](zh/container-apps.cn.md) | 容器专题。覆盖 Dockerfile 设计、运行时挂载、GHCR、Docker/Podman 测试和 backend 一致性。 |
 | [Flow 与依赖指南](zh/flow-dependencies.cn.md) | Flow 专题。覆盖 `[[taf: ...]]`、`@:` 块、精确 app 版本和依赖语义。 |
 | [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) | 元数据参考。面向 app 作者、Hub 维护者和校验器。 |
@@ -74,7 +74,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 
 | 文档 | 简介 |
 | --- | --- |
-| [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 从创建、检查、运行、构建、发布到维护 TAFFISH app 的完整实践流程。 |
+| [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 从创建、检查、运行、构建、准备 `release.md`、发布到维护 TAFFISH app 的完整实践流程。 |
 | [容器化 app 最佳实践](zh/container-apps.cn.md) | Dockerfile 设计、多阶段构建、运行时挂载、GHCR 可见性、本地 Docker/Podman 测试和 backend 一致性。 |
 | [Flow 与依赖指南](zh/flow-dependencies.cn.md) | Flow app 结构、`[[taf: ...]]`、`@:` 参数块、依赖声明、多版本依赖和安装语义。 |
 
