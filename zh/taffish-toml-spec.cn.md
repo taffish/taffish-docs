@@ -77,7 +77,7 @@ url = "https://github.com/taffish/my-tool"
 官方 Hub 扫描时会检查该 URL 是否匹配被扫描的仓库。也就是说，`taffish/my-tool`
 仓库中的 `repository.url` 应该指向 canonical GitHub 地址
 `https://github.com/taffish/my-tool`。普通 package 不应该把这里改成镜像 URL。
-TAFFISH `0.3.0` 的镜像支持由本地 `taf` 运行时配置处理，`[[source.rewrite]]`
+从 TAFFISH `0.2.0` 开始，镜像支持由本地 `taf` 运行时配置处理，`[[source.rewrite]]`
 会在 `taf install` 时重写这个 canonical URL。
 
 ## `[command]`

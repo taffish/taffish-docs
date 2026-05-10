@@ -131,8 +131,8 @@ taf update --url <INDEX-URL>
 
 ## Runtime Config And Mirrors
 
-TAFFISH `0.3.0` adds a small runtime config file for stable mirror and custom
-source support.
+Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
+mirror and custom source support. The current recommended release is `0.3.0`.
 
 Default config paths:
 

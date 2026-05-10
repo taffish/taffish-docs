@@ -574,8 +574,8 @@ the index. Users can then run `taf update` and install it.
 
 ## Mirror And Internal Source Support
 
-TAFFISH Hub remains a GitHub-first static index, but TAFFISH `0.3.0` adds
-runtime mirror configuration on the local `taf` side. This means users do not
+TAFFISH Hub remains a GitHub-first static index, while local `taf` runtime mirror
+configuration has been supported since TAFFISH `0.2.0`. This means users do not
 have to change the official index schema to use a mirror.
 
 The default GitHub path is:

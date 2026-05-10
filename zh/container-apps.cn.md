@@ -275,7 +275,7 @@ Hub 不负责替 app 构建镜像。Hub 只读取 `taffish.toml` 和 release tag
 
 镜像发布后，需要确认 GHCR package 是 public。否则用户安装后运行 app 时可能无法拉取镜像。
 
-TAFFISH `0.3.0` 的镜像配置可以重写 index 和 app 仓库访问路径，但不会自动重写
+TAFFISH 镜像配置从 `0.2.0` 开始支持，可以重写 index 和 app 仓库访问路径，但不会自动重写
 容器镜像 registry。如果用户无法访问 GHCR，app 需要发布或声明这些用户可访问的镜像来源。
 
 检查项：

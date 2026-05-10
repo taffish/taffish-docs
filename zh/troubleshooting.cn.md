@@ -69,7 +69,7 @@ taf update
 taf update --url <INDEX-URL>
 ```
 
-如果使用 TAFFISH `0.3.0` 或更新版本，需要持久使用镜像源，可以查看并初始化运行时配置：
+如果使用 TAFFISH `0.2.0` 或更新版本，需要持久使用镜像源，可以查看并初始化运行时配置：
 
 ```sh
 taf config

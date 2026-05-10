@@ -69,7 +69,7 @@ taf update
 taf update --url <INDEX-URL>
 ```
 
-For persistent mirror use in TAFFISH `0.3.0` or later, inspect and initialize
+For persistent mirror use in TAFFISH `0.2.0` or later, inspect and initialize
 runtime config:
 
 ```sh

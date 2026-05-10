@@ -633,8 +633,9 @@ taf list
 
 ## Runtime Config And Mirrors
 
-TAFFISH `0.3.0` provides runtime configuration for mirror and custom source
-support. The default config paths are:
+Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
+custom source support. The current recommended release is `0.3.0`. The default
+config paths are:
 
 ```text
 user   = ~/.local/share/taffish/config.toml
