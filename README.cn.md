@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README.cn.md)
 
-这个仓库用于存放 TAFFISH 和 TAFFISH Hub 的开发者文档。
+这个仓库用于存放 TAFFISH、TAFFISH Hub，以及本地 `taffish-mcp` AI 集成入口的开发者文档。
 
 TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAFFISH Hub 是
 `taf` 用来发现、安装和管理 TAFFISH app 的官方索引与注册层。
@@ -33,6 +33,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | 封装一个容器化生信工具 | [App 开发者指南](zh/app-developer-guide.cn.md) -> [容器化 app 最佳实践](zh/container-apps.cn.md) -> [故障排查](zh/troubleshooting.cn.md) |
 | 写一个带依赖的 flow app | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) -> [Flow 与依赖指南](zh/flow-dependencies.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
 | 理解 Hub 和 index 内部逻辑 | [什么是 TAFFISH Hub](zh/taffish-hub.cn.md) -> [TAFFISH Index JSON 规范](zh/index-json-spec.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
+| 连接 TAFFISH 到 AI 客户端 | [什么是 TAFFISH](zh/taffish.cn.md#mcp--ai-集成) |
 
 如果你完全不了解 TAFFISH，建议先读 [快速开始](zh/quick-start.cn.md)，再读
 [什么是 TAFFISH](zh/taffish.cn.md)。
@@ -42,7 +43,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | 文档 | 分工 |
 | --- | --- |
 | [快速开始](zh/quick-start.cn.md) | 用户上手入口。它会有意重复安装、镜像配置、更新、搜索、安装、运行、列出、定位和卸载等基础操作。 |
-| [什么是 TAFFISH](zh/taffish.cn.md) | 概念型语言与 CLI 手册。解释设计目标、语法、标签、参数、项目结构和 CLI 表面。 |
+| [什么是 TAFFISH](zh/taffish.cn.md) | 概念型语言与 CLI 手册。解释设计目标、语法、标签、参数、项目结构、CLI 表面和 MCP/AI 集成入口。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 动手写 `.taf` 的学习路径。从小脚本逐步过渡到 app wrapper 和 flow。 |
 | [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 实际 app 发布流程。重点是 `taf new`、项目编辑、检查、运行、构建、`release.md`、发布和维护。 |
 | [容器化 app 最佳实践](zh/container-apps.cn.md) | 容器专题。覆盖 Dockerfile 设计、运行时挂载、GHCR、Docker/Podman 测试和 backend 一致性。 |
@@ -55,7 +56,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 
 | 文档 | 简介 |
 | --- | --- |
-| [什么是 TAFFISH](zh/taffish.cn.md) | 介绍 TAFFISH 语言、编译器、CLI、app 项目结构、参数系统、容器标签和推荐开发流程。 |
+| [什么是 TAFFISH](zh/taffish.cn.md) | 介绍 TAFFISH 语言、编译器、CLI、`taffish-mcp`、app 项目结构、参数系统、容器标签和推荐开发流程。 |
 | [什么是 TAFFISH Hub](zh/taffish-hub.cn.md) | 介绍 Hub 架构、GitHub 自动化、index 构建、网页版 registry、依赖处理和发布策略。 |
 
 当你需要理解整个系统的结构时，主要阅读这两份。

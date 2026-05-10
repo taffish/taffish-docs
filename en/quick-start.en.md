@@ -58,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.3.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
 ```
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
@@ -80,6 +80,7 @@ After installation, check:
 ```sh
 taf --version
 taffish --version
+taffish-mcp --version
 ```
 
 If `taf` is not found, add the user install bin directory to `PATH`:
@@ -132,7 +133,7 @@ taf update --url <INDEX-URL>
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current recommended release is `0.3.0`.
+mirror and custom source support. The current recommended release is `0.4.0`.
 
 Default config paths:
 

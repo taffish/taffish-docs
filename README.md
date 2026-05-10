@@ -2,8 +2,8 @@
 
 [English](README.md) | [中文](README.cn.md)
 
-This repository contains the developer-facing documentation for TAFFISH and
-TAFFISH Hub.
+This repository contains the developer-facing documentation for TAFFISH,
+TAFFISH Hub, and the local `taffish-mcp` AI integration entry point.
 
 TAFFISH is a lightweight command delivery system for bioinformatics tools and
 workflows. TAFFISH Hub is the curated registry and index layer used by `taf` to
@@ -35,6 +35,7 @@ Choose a path based on what you want to do.
 | Package a containerized bioinformatics tool | [App Developer Guide](en/app-developer-guide.en.md) -> [Containerized App Best Practices](en/container-apps.en.md) -> [Troubleshooting](en/troubleshooting.en.md) |
 | Write a flow app with dependencies | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [Flow And Dependencies Guide](en/flow-dependencies.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
 | Understand Hub and index internals | [What Is TAFFISH Hub](en/taffish-hub.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
+| Connect TAFFISH to an AI client | [What Is TAFFISH](en/taffish.en.md#mcp--ai-integration) |
 
 If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 [What Is TAFFISH](en/taffish.en.md).
@@ -44,7 +45,7 @@ If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 | Document | Role |
 | --- | --- |
 | [Quick Start](en/quick-start.en.md) | User onboarding. It intentionally repeats install, mirror config, update, search, install, run, list, locate, and uninstall basics. |
-| [What Is TAFFISH](en/taffish.en.md) | Conceptual language and CLI manual. It explains the design, syntax, tags, parameters, project structure, and CLI surface. |
+| [What Is TAFFISH](en/taffish.en.md) | Conceptual language and CLI manual. It explains the design, syntax, tags, parameters, project structure, CLI surface, and MCP/AI integration entry point. |
 | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Hands-on `.taf` writing path. It teaches by building up from small scripts to app wrappers and flows. |
 | [App Developer Guide](en/app-developer-guide.en.md) | Practical app release workflow. It focuses on `taf new`, project editing, check, run, build, `release.md`, publish, and maintenance. |
 | [Containerized App Best Practices](en/container-apps.en.md) | Focused container guide. It covers Dockerfile design, runtime mounts, GHCR, Docker/Podman testing, and backend consistency. |
@@ -57,7 +58,7 @@ If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 
 | Document | Purpose |
 | --- | --- |
-| [What Is TAFFISH](en/taffish.en.md) | Language, compiler, CLI, app project structure, parameter system, container tags, and the recommended development workflow. |
+| [What Is TAFFISH](en/taffish.en.md) | Language, compiler, CLI, `taffish-mcp`, app project structure, parameter system, container tags, and the recommended development workflow. |
 | [What Is TAFFISH Hub](en/taffish-hub.en.md) | Hub architecture, GitHub-based automation, index generation, web registry, dependency handling, and publication policy. |
 
 Read these two documents when you want the system-level picture.

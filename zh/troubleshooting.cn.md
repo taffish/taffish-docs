@@ -40,6 +40,8 @@ export PATH="$HOME/.local/bin:$PATH"
 ```sh
 which taf
 taf --version
+taffish --version
+taffish-mcp --version
 ```
 
 ## macOS 上 `taffish` 找不到运行库
@@ -54,6 +56,7 @@ brew install zstd
 
 ```sh
 taffish --version
+taffish-mcp --version
 taf doctor
 ```
 

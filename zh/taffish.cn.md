@@ -1,11 +1,12 @@
 # 什么是 TAFFISH
 
-TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。它包含两个层次：
+TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。它目前有三个本地入口：
 
 - `taffish`：TAFFISH 语言编译器，把 `.taf` 文件编译成 POSIX shell 脚本。
 - `taf`：面向开发者和用户的 CLI，负责创建项目、检查项目、构建命令、发布 app，以及从 TAFFISH Hub 安装 app。
+- `taffish-mcp`：一个保守的 stdio MCP server，用于向 AI 客户端暴露安全的 TAFFISH tools、resources 和 prompts。
 
-换句话说，`.taf` 是描述“这个工具或流程应该如何运行”的源代码；`taffish` 负责把它变成 shell；`taf` 负责把这种代码组织成可发布、可索引、可安装的 TAFFISH app。
+换句话说，`.taf` 是描述“这个工具或流程应该如何运行”的源代码；`taffish` 负责把它变成 shell；`taf` 负责把这种代码组织成可发布、可索引、可安装的 TAFFISH app；`taffish-mcp` 则让 AI 客户端可以通过结构化接口检查 TAFFISH 项目和 Hub 状态。
 
 ## 目录
 
@@ -16,6 +17,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。它
 - [参数语法](#参数语法)
 - [内置运行标签](#内置运行标签)
 - [`taf` CLI](#taf-cli)
+- [MCP / AI 集成](#mcp--ai-集成)
 - [运行时配置与镜像源](#运行时配置与镜像源)
 - [TAFFISH app 项目结构](#taffish-app-项目结构)
 - [推荐开发流程](#推荐开发流程)
@@ -51,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.3.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
 ```
 
 中国大陆用户可以使用 Gitee 安装器，减少安装阶段对 GitHub raw content 的依赖，
@@ -61,11 +63,12 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user
 ```
 
-安装后会得到两个命令：
+安装后会得到三个命令：
 
 ```text
 taffish
 taf
+taffish-mcp
 ```
 
 默认用户路径：
@@ -626,9 +629,31 @@ taf history
 
 `doctor` 用于检查或初始化本地 TAFFISH 环境；`config` 显示当前配置；`history` 显示或清理本地运行历史。
 
+## MCP / AI 集成
+
+TAFFISH `0.4.0` 新增了 `taffish-mcp`，这是一个保守的 stdio MCP server，面向
+AI 客户端暴露 TAFFISH 能力。第一版 MCP 接口提供相对安全的 project、Hub、config、
+history、resource 和 prompt 操作，不暴露 `taf run`、`taf publish` 或镜像构建动作。
+
+MCP 客户端配置示例：
+
+```json
+{
+  "mcpServers": {
+    "taffish": {
+      "command": "taffish-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+这样 AI 客户端可以先通过结构化接口检查 TAFFISH 项目、搜索本地 index、读取项目资源，
+并准备安全的项目操作，而不是一开始就依赖非结构化终端文本。
+
 ## 运行时配置与镜像源
 
-从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前推荐版本是 `0.3.0`。默认配置路径是：
+从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前推荐版本是 `0.4.0`。默认配置路径是：
 
 ```text
 用户级 = ~/.local/share/taffish/config.toml

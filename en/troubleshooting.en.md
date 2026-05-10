@@ -40,6 +40,8 @@ Check:
 ```sh
 which taf
 taf --version
+taffish --version
+taffish-mcp --version
 ```
 
 ## `taffish` Cannot Find Runtime Libraries On macOS
@@ -54,6 +56,7 @@ Then retry:
 
 ```sh
 taffish --version
+taffish-mcp --version
 taf doctor
 ```
 

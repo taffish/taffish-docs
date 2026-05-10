@@ -38,7 +38,7 @@ index/commands/<command>.json
 https://raw.githubusercontent.com/taffish/taffish-index/main/index/index.json
 ```
 
-TAFFISH `0.3.0` 可以从运行时配置读取其他 index URL，也可以用
+从 TAFFISH `0.2.0` 开始，`taf` 可以从运行时配置读取其他 index URL，也可以用
 `taf update --url <INDEX-URL>` 做一次性覆盖。镜像 index 应该保留相同 schema 和
 canonical source records。仓库 URL 重写属于本地 `taf` 配置，不属于 index schema
 本身。

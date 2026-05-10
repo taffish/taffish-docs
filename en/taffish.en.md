@@ -1,11 +1,12 @@
 # What Is TAFFISH
 
-TAFFISH is a lightweight command delivery system for bioinformatics tools and workflows. It has two layers:
+TAFFISH is a lightweight command delivery system for bioinformatics tools and workflows. It currently has three local entry points:
 
 - `taffish`: the TAFFISH language compiler, which compiles `.taf` files into POSIX shell scripts.
 - `taf`: the developer and user CLI, used to create projects, check projects, build commands, publish apps, and install apps from TAFFISH Hub.
+- `taffish-mcp`: a conservative stdio MCP server that exposes safe TAFFISH tools, resources, and prompts to AI clients.
 
-In other words, a `.taf` file describes how a tool or workflow should run. `taffish` turns that description into shell code. `taf` organizes that code into versioned, publishable, indexable, installable TAFFISH apps.
+In other words, a `.taf` file describes how a tool or workflow should run. `taffish` turns that description into shell code. `taf` organizes that code into versioned, publishable, indexable, installable TAFFISH apps. `taffish-mcp` lets AI clients inspect TAFFISH projects and Hub state through a structured interface.
 
 ## Table Of Contents
 
@@ -16,6 +17,7 @@ In other words, a `.taf` file describes how a tool or workflow should run. `taff
 - [Parameter Syntax](#parameter-syntax)
 - [Built-In Runtime Tags](#built-in-runtime-tags)
 - [The `taf` CLI](#the-taf-cli)
+- [MCP / AI Integration](#mcp--ai-integration)
 - [Runtime Config And Mirrors](#runtime-config-and-mirrors)
 - [TAFFISH App Project Structure](#taffish-app-project-structure)
 - [Recommended Development Workflow](#recommended-development-workflow)
@@ -52,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.3.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -67,6 +69,7 @@ After installation:
 ```sh
 taf --version
 taffish --version
+taffish-mcp --version
 taf doctor
 ```
 
@@ -75,6 +78,7 @@ Installed commands:
 ```text
 taffish
 taf
+taffish-mcp
 ```
 
 Default user paths:
@@ -631,10 +635,34 @@ List installed apps:
 taf list
 ```
 
+## MCP / AI Integration
+
+TAFFISH `0.4.0` adds `taffish-mcp`, a conservative MCP stdio server for AI
+clients. The first interface exposes safe project, Hub, config, history,
+resource, and prompt operations. It does not expose `taf run`, `taf publish`, or
+image-building actions.
+
+Example MCP client configuration:
+
+```json
+{
+  "mcpServers": {
+    "taffish": {
+      "command": "taffish-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+This lets an AI client inspect TAFFISH projects, search the local index, read
+project resources, and prepare safe project actions without relying first on
+unstructured terminal text.
+
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current recommended release is `0.3.0`. The default
+custom source support. The current recommended release is `0.4.0`. The default
 config paths are:
 
 ```text
