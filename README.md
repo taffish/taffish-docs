@@ -35,7 +35,7 @@ Choose a path based on what you want to do.
 | Package a containerized bioinformatics tool | [App Developer Guide](en/app-developer-guide.en.md) -> [Containerized App Best Practices](en/container-apps.en.md) -> [Troubleshooting](en/troubleshooting.en.md) |
 | Write a flow app with dependencies | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [Flow And Dependencies Guide](en/flow-dependencies.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
 | Understand Hub and index internals | [What Is TAFFISH Hub](en/taffish-hub.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
-| Connect TAFFISH to an AI client | [What Is TAFFISH](en/taffish.en.md#mcp--ai-integration) |
+| Connect TAFFISH to an AI client | [TAFFISH MCP Guide](en/taffish-mcp.en.md) -> [What Is TAFFISH](en/taffish.en.md#mcp--ai-integration) for background |
 
 If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 [What Is TAFFISH](en/taffish.en.md).
@@ -47,6 +47,7 @@ If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 | [Quick Start](en/quick-start.en.md) | User onboarding. It intentionally repeats install, mirror config, update, search, install, run, list, locate, and uninstall basics. |
 | [What Is TAFFISH](en/taffish.en.md) | Conceptual language and CLI manual. It explains the design, syntax, tags, parameters, project structure, CLI surface, and MCP/AI integration entry point. |
 | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Hands-on `.taf` writing path. It teaches by building up from small scripts to app wrappers and flows. |
+| [TAFFISH MCP Guide](en/taffish-mcp.en.md) | AI-client integration guide for `taffish-mcp`, including client config, tools, resources, prompts, safety boundaries, and troubleshooting. |
 | [App Developer Guide](en/app-developer-guide.en.md) | Practical app release workflow. It focuses on `taf new`, project editing, check, run, build, `release.md`, publish, and maintenance. |
 | [Containerized App Best Practices](en/container-apps.en.md) | Focused container guide. It covers Dockerfile design, runtime mounts, GHCR, Docker/Podman testing, and backend consistency. |
 | [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Focused flow guide. It covers `[[taf: ...]]`, `@:` blocks, exact app versions, and dependency semantics. |
@@ -68,6 +69,7 @@ Read these two documents when you want the system-level picture.
 | Document | Purpose |
 | --- | --- |
 | [TAFFISH Quick Start](en/quick-start.en.md) | Install TAFFISH, update the Hub index, search, install, run, list, locate, and uninstall apps. |
+| [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Configure `taffish-mcp` for AI clients and understand its safety model. |
 | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Step-by-step `.taf` writing tutorial for app authors, from minimal scripts to parameters, containers, flows, and dependencies. |
 | [TAFFISH Troubleshooting](en/troubleshooting.en.md) | Common installation, index, mirror config, container, GHCR, Podman, Docker, Apptainer, and wrapper problems. |
 
@@ -102,6 +104,8 @@ Some repetition is intentional:
 - Runtime mirror configuration appears in Quick Start, What Is TAFFISH, What Is
   TAFFISH Hub, and troubleshooting because it affects both network access and
   package installation.
+- `taffish-mcp` appears briefly in What Is TAFFISH, while the MCP guide is the
+  focused source for AI-client configuration and safety boundaries.
 - `taf run`, `taf build`, and `taf publish` appear in the app developer guide
   and the language manual because they connect syntax to project lifecycle.
 - Container backend notes appear in Quick Start, container best practices, and

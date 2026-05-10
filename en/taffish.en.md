@@ -659,6 +659,9 @@ This lets an AI client inspect TAFFISH projects, search the local index, read
 project resources, and prepare safe project actions without relying first on
 unstructured terminal text.
 
+For the focused guide to tools, resources, prompts, and safety boundaries, see
+[TAFFISH MCP Guide](taffish-mcp.en.md).
+
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and

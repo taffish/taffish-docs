@@ -33,7 +33,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | 封装一个容器化生信工具 | [App 开发者指南](zh/app-developer-guide.cn.md) -> [容器化 app 最佳实践](zh/container-apps.cn.md) -> [故障排查](zh/troubleshooting.cn.md) |
 | 写一个带依赖的 flow app | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) -> [Flow 与依赖指南](zh/flow-dependencies.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
 | 理解 Hub 和 index 内部逻辑 | [什么是 TAFFISH Hub](zh/taffish-hub.cn.md) -> [TAFFISH Index JSON 规范](zh/index-json-spec.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
-| 连接 TAFFISH 到 AI 客户端 | [什么是 TAFFISH](zh/taffish.cn.md#mcp--ai-集成) |
+| 连接 TAFFISH 到 AI 客户端 | [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) -> 需要背景再看 [什么是 TAFFISH](zh/taffish.cn.md#mcp--ai-集成) |
 
 如果你完全不了解 TAFFISH，建议先读 [快速开始](zh/quick-start.cn.md)，再读
 [什么是 TAFFISH](zh/taffish.cn.md)。
@@ -45,6 +45,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | [快速开始](zh/quick-start.cn.md) | 用户上手入口。它会有意重复安装、镜像配置、更新、搜索、安装、运行、列出、定位和卸载等基础操作。 |
 | [什么是 TAFFISH](zh/taffish.cn.md) | 概念型语言与 CLI 手册。解释设计目标、语法、标签、参数、项目结构、CLI 表面和 MCP/AI 集成入口。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 动手写 `.taf` 的学习路径。从小脚本逐步过渡到 app wrapper 和 flow。 |
+| [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) | 面向 AI 客户端的 `taffish-mcp` 集成指南，覆盖客户端配置、tools、resources、prompts、安全边界和故障排查。 |
 | [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 实际 app 发布流程。重点是 `taf new`、项目编辑、检查、运行、构建、`release.md`、发布和维护。 |
 | [容器化 app 最佳实践](zh/container-apps.cn.md) | 容器专题。覆盖 Dockerfile 设计、运行时挂载、GHCR、Docker/Podman 测试和 backend 一致性。 |
 | [Flow 与依赖指南](zh/flow-dependencies.cn.md) | Flow 专题。覆盖 `[[taf: ...]]`、`@:` 块、精确 app 版本和依赖语义。 |
@@ -66,6 +67,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | 文档 | 简介 |
 | --- | --- |
 | [TAFFISH 快速开始](zh/quick-start.cn.md) | 安装 TAFFISH，更新 Hub 索引，搜索、安装、运行、列出、定位和卸载 app。 |
+| [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) | 为 AI 客户端配置 `taffish-mcp`，并理解它的安全模型。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 面向 app 作者的 `.taf` 分步教程，从最小脚本到参数、容器、flow 和依赖。 |
 | [TAFFISH 故障排查](zh/troubleshooting.cn.md) | 常见安装、索引、镜像配置、容器、GHCR、Podman、Docker、Apptainer 和 wrapper 问题。 |
 
@@ -96,6 +98,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 
 - 安装和基础 `taf` 命令会同时出现在快速开始和“什么是 TAFFISH”里，因为用户需要先能快速上手，之后再理解完整模型。
 - 运行时镜像配置会出现在快速开始、什么是 TAFFISH、什么是 TAFFISH Hub 和故障排查里，因为它同时影响网络访问和 package 安装。
+- `taffish-mcp` 会在“什么是 TAFFISH”中简要出现，而 MCP 指南是 AI 客户端配置和安全边界的集中入口。
 - `taf run`、`taf build`、`taf publish` 会同时出现在 app 开发指南和语言手册里，因为它们连接了语法和项目生命周期。
 - 容器 backend 说明会出现在快速开始、容器最佳实践和故障排查里，因为真实部署中容器问题最常见。
 - Flow 依赖会出现在语言手册、app 开发指南和 Flow 专题里；其中 Flow 专题是最详细来源。
