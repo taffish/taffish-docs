@@ -4,9 +4,13 @@
 
 `taffish-mcp` is the MCP stdio server distributed with TAFFISH `0.4.0` and later.
 It gives AI clients a structured way to inspect TAFFISH projects, query local Hub
-state, read selected resources, and prepare safe project actions.
+state, read selected resources, validate or compile `.taf` source without
+executing it, and prepare safe project actions.
 
-It is intentionally conservative. The first interface is designed for inspection,
+TAFFISH `0.5.0` is the current recommended release for MCP use. It extends the
+initial MCP surface with read-only TAF source/file compiler helpers.
+
+It is intentionally conservative. The interface is designed for inspection,
 planning, and low-risk project maintenance. It does not expose `taf run`,
 `taf publish`, container image builds, or other high-impact execution paths.
 
@@ -49,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
 ```
 
 Verify:
@@ -123,9 +127,22 @@ Environment and config:
 
 | Tool | Purpose |
 | --- | --- |
+| `taffish_get_version` | Return the installed `taffish-mcp` version. |
+| `taffish_get_help` | Return concise help for the MCP server. |
 | `taffish_doctor_check` | Check local TAFFISH directories, `PATH`, and related executables without initializing or modifying the system. |
 | `taffish_config_get` | Return the effective TAFFISH runtime config. |
 | `taffish_config_path` | Return TAFFISH config file paths. |
+
+TAF source/file compiler helpers:
+
+| Tool | Purpose |
+| --- | --- |
+| `taffish_validate_source` | Validate a provided `.taf` source string without executing generated shell. |
+| `taffish_validate_file` | Validate a `.taf` file path without executing generated shell. |
+| `taffish_compile_source` | Compile a provided `.taf` source string and return shell code without running it. |
+| `taffish_compile_file` | Compile a `.taf` file path and return shell code without running it. |
+| `taffish_summarize_source` | Summarize a provided `.taf` source string for quick inspection. |
+| `taffish_summarize_file` | Summarize a `.taf` file path for quick inspection. |
 
 Hub and index:
 
@@ -186,7 +203,7 @@ The server also provides reusable prompts for common TAFFISH work:
 
 ## Safety Model
 
-The first MCP interface is deliberately narrow.
+The MCP interface is deliberately narrow.
 
 It does not expose:
 
@@ -196,6 +213,10 @@ It does not expose:
 - direct shell execution
 - arbitrary file deletion
 - arbitrary command execution
+
+TAF source/file compiler tools are read-only. They may parse, validate,
+summarize, or compile source to shell text, but they do not execute the compiled
+shell.
 
 Some tools still write local files when explicitly called, such as
 `taffish_update_index`, `taffish_new_project`, and `taffish_build_project`.
@@ -223,6 +244,13 @@ Debug a project:
 2. Read `taffish://project/current/taffish.toml`.
 3. Read `taffish://project/current/src/main.taf`.
 4. Suggest minimal changes before editing files.
+
+Inspect a TAF source file:
+
+1. Call `taffish_validate_file`.
+2. Call `taffish_summarize_file` to explain the structure.
+3. Call `taffish_compile_file` if shell output is needed for review.
+4. Review the generated shell without executing it.
 
 ## Troubleshooting
 

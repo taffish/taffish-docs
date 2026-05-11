@@ -10,6 +10,7 @@
 - [你会安装什么](#你会安装什么)
 - [安装 TAFFISH](#安装-taffish)
 - [检查环境](#检查环境)
+- [Shell 自动补全和 Vim 文件](#shell-自动补全和-vim-文件)
 - [更新 Hub 索引](#更新-hub-索引)
 - [查找 app](#查找-app)
 - [安装 app](#安装-app)
@@ -22,14 +23,16 @@
 
 ## 你会安装什么
 
-TAFFISH 在本地提供两个命令：
+TAFFISH 在本地提供三个命令：
 
 ```text
-taffish   将 .taf 程序编译为 shell
-taf       管理 app 项目和 TAFFISH Hub 包
+taffish     将 .taf 程序编译为 shell
+taf         管理 app 项目和 TAFFISH Hub 包
+taffish-mcp 通过 MCP 向 AI 客户端暴露安全的 TAFFISH tools/resources/prompts
 ```
 
-普通用户主要使用 `taf` 和安装后的 `taf-*` app 命令。
+普通用户主要使用 `taf` 和安装后的 `taf-*` app 命令。安装器也会把 shell
+自动补全文件和 Vim 语法文件复制到 TAFFISH home。
 
 典型流程是：
 
@@ -58,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
 ```
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
@@ -99,7 +102,7 @@ export PATH="$HOME/.local/bin:$PATH"
 taf doctor
 ```
 
-如果是全新的用户级安装，可以初始化缺失目录：
+当前安装器通常会在安装时初始化标准 TAFFISH 目录。如果是手动安装或修复安装，可以初始化缺失目录：
 
 ```sh
 taf doctor --init
@@ -108,6 +111,37 @@ taf doctor --init
 `taf doctor` 会检查路径和常见命令，例如 `git`、`docker`、`podman`、
 `apptainer` 和 `taffish`。不是所有可选工具都必须安装。如果你只使用 Docker，
 就不需要同时安装 Podman。
+
+## Shell 自动补全和 Vim 文件
+
+TAFFISH `0.5.0` 会把 shell 自动补全文件和 Vim 语法文件安装到 TAFFISH home。
+
+用户级安装时，补全文件通常位于：
+
+```text
+~/.local/share/taffish/share/completions
+```
+
+Bash 示例：
+
+```sh
+source ~/.local/share/taffish/share/completions/bash/taf
+source ~/.local/share/taffish/share/completions/bash/taffish
+```
+
+Zsh 示例：
+
+```sh
+fpath=(~/.local/share/taffish/share/completions/zsh $fpath)
+autoload -Uz compinit
+compinit
+```
+
+Vim 语法文件通常位于：
+
+```text
+~/.local/share/taffish/share/vim
+```
 
 ## 更新 Hub 索引
 
@@ -130,7 +164,7 @@ taf update --url <INDEX-URL>
 ## 运行时配置与镜像源
 
 从 TAFFISH `0.2.0` 开始，`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义
-来源。当前推荐版本是 `0.4.0`。
+来源。当前推荐版本是 `0.5.0`。
 
 默认配置路径：
 

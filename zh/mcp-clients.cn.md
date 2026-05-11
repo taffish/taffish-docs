@@ -23,7 +23,7 @@ tools、resources、prompts 和安全模型，请阅读 [TAFFISH MCP 指南](taf
 
 ## 前置条件
 
-安装 TAFFISH `0.4.0` 或后续版本：
+安装 TAFFISH `0.5.0` 或后续版本，以获得当前 MCP 工具接口：
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -208,9 +208,12 @@ cline mcp add taffish -- taffish-mcp
 
 正常配置通常可以看到这些 tools：
 
+- `taffish_get_version`
 - `taffish_doctor_check`
 - `taffish_search_apps`
 - `taffish_get_app_info`
+- `taffish_validate_file`
+- `taffish_compile_file`
 - `taffish_check_project`
 - `taffish_compile_project`
 

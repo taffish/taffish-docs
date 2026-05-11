@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -81,6 +81,10 @@ taf
 taffish-mcp
 ```
 
+TAFFISH `0.5.0` also installs shell completion files and Vim syntax files under
+TAFFISH home, usually `~/.local/share/taffish/share/completions` and
+`~/.local/share/taffish/share/vim` for a user install.
+
 Default user paths:
 
 ```text
@@ -95,9 +99,9 @@ bin  = /usr/local/bin
 home = /opt/taffish
 ```
 
-The installer attempts to run `taf update` to initialize the local index. If the
-network is unavailable, the installer prints a warning but does not roll back
-the installed binaries.
+The installer attempts to run `taf doctor --init` and `taf update` to initialize
+the local environment and index. If the network is unavailable, the installer
+prints a warning but does not roll back the installed binaries.
 
 `taf doctor` checks common local dependencies such as `git`, `gh`, `docker`, `podman`, `apptainer`, `sbcl`, and shell tools.
 
@@ -637,10 +641,11 @@ taf list
 
 ## MCP / AI Integration
 
-TAFFISH `0.4.0` adds `taffish-mcp`, a conservative MCP stdio server for AI
-clients. The first interface exposes safe project, Hub, config, history,
-resource, and prompt operations. It does not expose `taf run`, `taf publish`, or
-image-building actions.
+TAFFISH `0.4.0` added `taffish-mcp`, a conservative MCP stdio server for AI
+clients. TAFFISH `0.5.0` extends it with read-only TAF source/file compiler
+helpers. The interface exposes safe project, Hub, config, history, resource,
+prompt, validation, compilation, and summarization operations. It does not
+expose `taf run`, `taf publish`, or image-building actions.
 
 Example MCP client configuration:
 
@@ -656,8 +661,9 @@ Example MCP client configuration:
 ```
 
 This lets an AI client inspect TAFFISH projects, search the local index, read
-project resources, and prepare safe project actions without relying first on
-unstructured terminal text.
+project resources, validate or compile `.taf` source without executing it, and
+prepare safe project actions without relying first on unstructured terminal
+text.
 
 For the focused guide to tools, resources, prompts, and safety boundaries, see
 [TAFFISH MCP Guide](taffish-mcp.en.md). For Codex, Claude Code, Cursor, Cline,
@@ -667,7 +673,7 @@ and generic MCP client configuration examples, see
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current recommended release is `0.4.0`. The default
+custom source support. The current recommended release is `0.5.0`. The default
 config paths are:
 
 ```text

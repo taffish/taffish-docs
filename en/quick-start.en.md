@@ -10,6 +10,7 @@ assume that you want to write `.taf` scripts or maintain app repositories.
 - [What You Install](#what-you-install)
 - [Install TAFFISH](#install-taffish)
 - [Check The Environment](#check-the-environment)
+- [Shell Completion And Vim Files](#shell-completion-and-vim-files)
 - [Update The Hub Index](#update-the-hub-index)
 - [Find Apps](#find-apps)
 - [Install An App](#install-an-app)
@@ -22,14 +23,17 @@ assume that you want to write `.taf` scripts or maintain app repositories.
 
 ## What You Install
 
-TAFFISH provides two local commands:
+TAFFISH provides three local commands:
 
 ```text
 taffish   compile .taf programs to shell
 taf       manage app projects and TAFFISH Hub packages
+taffish-mcp
+          expose safe TAFFISH tools/resources/prompts to AI clients through MCP
 ```
 
-Most users mainly use `taf` and installed `taf-*` app commands.
+Most users mainly use `taf` and installed `taf-*` app commands. The installer
+also copies shell completion files and Vim syntax files into TAFFISH home.
 
 Typical user flow:
 
@@ -58,7 +62,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
 ```
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
@@ -100,7 +104,9 @@ Run:
 taf doctor
 ```
 
-If this is a fresh user install, you can initialize missing directories with:
+The current installer normally initializes the standard TAFFISH directories
+during installation. If this is a manual or repaired install, you can initialize
+missing directories with:
 
 ```sh
 taf doctor --init
@@ -109,6 +115,38 @@ taf doctor --init
 `taf doctor` checks paths and common executables such as `git`, `docker`,
 `podman`, `apptainer`, and `taffish`. Not every optional tool is required for
 every use case. For example, if you only use Docker, you do not need Podman.
+
+## Shell Completion And Vim Files
+
+TAFFISH `0.5.0` installs shell completion files and Vim syntax files under
+TAFFISH home.
+
+For a user install, completion files are usually under:
+
+```text
+~/.local/share/taffish/share/completions
+```
+
+Example Bash setup:
+
+```sh
+source ~/.local/share/taffish/share/completions/bash/taf
+source ~/.local/share/taffish/share/completions/bash/taffish
+```
+
+Example Zsh setup:
+
+```sh
+fpath=(~/.local/share/taffish/share/completions/zsh $fpath)
+autoload -Uz compinit
+compinit
+```
+
+Vim syntax files are usually under:
+
+```text
+~/.local/share/taffish/share/vim
+```
 
 ## Update The Hub Index
 
@@ -133,7 +171,7 @@ taf update --url <INDEX-URL>
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current recommended release is `0.4.0`.
+mirror and custom source support. The current recommended release is `0.5.0`.
 
 Default config paths:
 

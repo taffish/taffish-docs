@@ -26,7 +26,7 @@ new machine or a new client version.
 
 ## Prerequisites
 
-Install TAFFISH `0.4.0` or later:
+Install TAFFISH `0.5.0` or later for the current MCP tool surface:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -224,9 +224,12 @@ resources, and prompts.
 
 A healthy setup should expose tools such as:
 
+- `taffish_get_version`
 - `taffish_doctor_check`
 - `taffish_search_apps`
 - `taffish_get_app_info`
+- `taffish_validate_file`
+- `taffish_compile_file`
 - `taffish_check_project`
 - `taffish_compile_project`
 

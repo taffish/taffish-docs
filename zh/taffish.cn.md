@@ -53,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
 ```
 
 中国大陆用户可以使用 Gitee 安装器，减少安装阶段对 GitHub raw content 的依赖，
@@ -71,6 +71,10 @@ taf
 taffish-mcp
 ```
 
+TAFFISH `0.5.0` 还会把 shell 自动补全文件和 Vim 语法文件安装到 TAFFISH home。
+用户级安装时通常位于 `~/.local/share/taffish/share/completions` 和
+`~/.local/share/taffish/share/vim`。
+
 默认用户路径：
 
 ```text
@@ -85,7 +89,8 @@ bin  = /usr/local/bin
 home = /opt/taffish
 ```
 
-安装器默认会尝试运行 `taf update` 初始化本地索引。如果网络不可用，安装器会给出警告，但不会回滚已经安装的二进制文件。
+安装器默认会尝试运行 `taf doctor --init` 和 `taf update`，用于初始化本地环境和索引。
+如果网络不可用，安装器会给出警告，但不会回滚已经安装的二进制文件。
 
 ## `taffish` 编译器
 
@@ -632,8 +637,10 @@ taf history
 ## MCP / AI 集成
 
 TAFFISH `0.4.0` 新增了 `taffish-mcp`，这是一个保守的 stdio MCP server，面向
-AI 客户端暴露 TAFFISH 能力。第一版 MCP 接口提供相对安全的 project、Hub、config、
-history、resource 和 prompt 操作，不暴露 `taf run`、`taf publish` 或镜像构建动作。
+AI 客户端暴露 TAFFISH 能力。TAFFISH `0.5.0` 进一步为它增加了只读 TAF
+源码/文件编译器辅助工具。当前 MCP 接口提供相对安全的 project、Hub、config、
+history、resource、prompt、验证、编译和摘要操作，不暴露 `taf run`、`taf publish`
+或镜像构建动作。
 
 MCP 客户端配置示例：
 
@@ -649,7 +656,7 @@ MCP 客户端配置示例：
 ```
 
 这样 AI 客户端可以先通过结构化接口检查 TAFFISH 项目、搜索本地 index、读取项目资源，
-并准备安全的项目操作，而不是一开始就依赖非结构化终端文本。
+验证或编译 `.taf` 源码但不执行它，并准备安全的项目操作，而不是一开始就依赖非结构化终端文本。
 
 关于 tools、resources、prompts 和安全边界的集中说明，见
 [TAFFISH MCP 指南](taffish-mcp.cn.md)。Codex、Claude Code、Cursor、Cline
@@ -657,7 +664,7 @@ MCP 客户端配置示例：
 
 ## 运行时配置与镜像源
 
-从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前推荐版本是 `0.4.0`。默认配置路径是：
+从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前推荐版本是 `0.5.0`。默认配置路径是：
 
 ```text
 用户级 = ~/.local/share/taffish/config.toml

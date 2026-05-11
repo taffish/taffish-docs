@@ -3,9 +3,13 @@
 [English](../en/taffish-mcp.en.md) | [中文](taffish-mcp.cn.md)
 
 `taffish-mcp` 是 TAFFISH `0.4.0` 及后续版本随安装器分发的 MCP stdio server。它让
-AI 客户端可以用结构化方式检查 TAFFISH 项目、查询本地 Hub 状态、读取部分资源，并准备相对安全的项目操作。
+AI 客户端可以用结构化方式检查 TAFFISH 项目、查询本地 Hub 状态、读取部分资源，
+验证或编译 `.taf` 源码但不执行它，并准备相对安全的项目操作。
 
-它的设计是保守的。第一版接口主要服务于检查、规划和低风险项目维护，不暴露
+TAFFISH `0.5.0` 是当前推荐的 MCP 使用版本。它在最初 MCP 接口基础上增加了只读的
+TAF 源码/文件编译器辅助工具。
+
+它的设计是保守的。接口主要服务于检查、规划和低风险项目维护，不暴露
 `taf run`、`taf publish`、容器镜像构建或其他高影响执行路径。
 
 ## 目录
@@ -46,7 +50,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定版本安装：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.4.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
 ```
 
 验证：
@@ -114,9 +118,22 @@ Codex、Claude Code、Cursor、Cline 和通用 MCP 客户端示例见
 
 | Tool | 作用 |
 | --- | --- |
+| `taffish_get_version` | 返回已安装的 `taffish-mcp` 版本。 |
+| `taffish_get_help` | 返回 MCP server 的简短帮助信息。 |
 | `taffish_doctor_check` | 检查本地 TAFFISH 目录、`PATH` 和相关可执行文件，不初始化或修改系统。 |
 | `taffish_config_get` | 返回当前生效的 TAFFISH 运行时配置。 |
 | `taffish_config_path` | 返回 TAFFISH 配置文件路径。 |
+
+TAF 源码/文件编译器辅助工具：
+
+| Tool | 作用 |
+| --- | --- |
+| `taffish_validate_source` | 验证给定 `.taf` 源码字符串，不执行生成的 shell。 |
+| `taffish_validate_file` | 验证 `.taf` 文件路径，不执行生成的 shell。 |
+| `taffish_compile_source` | 编译给定 `.taf` 源码字符串并返回 shell 代码，但不运行。 |
+| `taffish_compile_file` | 编译 `.taf` 文件路径并返回 shell 代码，但不运行。 |
+| `taffish_summarize_source` | 对给定 `.taf` 源码字符串做结构摘要。 |
+| `taffish_summarize_file` | 对 `.taf` 文件路径做结构摘要。 |
 
 Hub 与 index：
 
@@ -177,7 +194,7 @@ server 也提供一些可复用 prompts：
 
 ## 安全模型
 
-第一版 MCP 接口刻意保持较窄。
+MCP 接口刻意保持较窄。
 
 它不暴露：
 
@@ -187,6 +204,9 @@ server 也提供一些可复用 prompts：
 - 直接 shell 执行
 - 任意文件删除
 - 任意命令执行
+
+TAF 源码/文件编译器工具是只读工具。它们可以解析、验证、摘要或把源码编译为 shell
+文本，但不会执行编译后的 shell。
 
 部分工具被显式调用时仍然会写入本地文件，例如 `taffish_update_index`、`taffish_new_project`
 和 `taffish_build_project`。安装和卸载工具默认 `dryRun=true`。AI 客户端在调用会写入文件的工具前，仍应该请求用户确认。
@@ -212,6 +232,13 @@ server 也提供一些可复用 prompts：
 2. 读取 `taffish://project/current/taffish.toml`。
 3. 读取 `taffish://project/current/src/main.taf`。
 4. 在编辑文件前提出最小修改建议。
+
+检查 TAF 源文件：
+
+1. 调用 `taffish_validate_file`。
+2. 调用 `taffish_summarize_file` 解释结构。
+3. 如果需要审阅 shell 输出，调用 `taffish_compile_file`。
+4. 人工查看生成的 shell，但不执行它。
 
 ## 故障排查
 
