@@ -28,7 +28,7 @@ TAFFISH 在本地提供三个命令：
 ```text
 taffish     将 .taf 程序编译为 shell
 taf         管理 app 项目和 TAFFISH Hub 包
-taffish-mcp 通过 MCP 向 AI 客户端暴露安全的 TAFFISH tools/resources/prompts
+taffish-mcp 向 AI 客户端暴露安全 tools/resources/prompts 和 app/project inspection
 ```
 
 普通用户主要使用 `taf` 和安装后的 `taf-*` app 命令。安装器也会把 shell
@@ -61,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
 ```
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
@@ -114,7 +114,7 @@ taf doctor --init
 
 ## Shell 自动补全和 Vim 文件
 
-TAFFISH `0.5.0` 会把 shell 自动补全文件和 Vim 语法文件安装到 TAFFISH home。
+TAFFISH `0.5.0` 及后续版本会把 shell 自动补全文件和 Vim 语法文件安装到 TAFFISH home。
 
 用户级安装时，补全文件通常位于：
 
@@ -164,7 +164,7 @@ taf update --url <INDEX-URL>
 ## 运行时配置与镜像源
 
 从 TAFFISH `0.2.0` 开始，`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义
-来源。当前推荐版本是 `0.5.0`。
+来源。当前公开版本是 `0.6.0`。
 
 默认配置路径：
 

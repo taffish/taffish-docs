@@ -7,8 +7,10 @@ It gives AI clients a structured way to inspect TAFFISH projects, query local Hu
 state, read selected resources, validate or compile `.taf` source without
 executing it, and prepare safe project actions.
 
-TAFFISH `0.5.0` is the current recommended release for MCP use. It extends the
-initial MCP surface with read-only TAF source/file compiler helpers.
+TAFFISH `0.6.0` is the current recommended release for MCP use. It keeps the
+read-only TAF source/file compiler helpers introduced in `0.5.0` and adds
+app/project inspection, AI-oriented usage summaries, safe app invocation
+compilation, current project resources, and publish-preparation prompts.
 
 It is intentionally conservative. The interface is designed for inspection,
 planning, and low-risk project maintenance. It does not expose `taf run`,
@@ -35,7 +37,10 @@ Use `taffish-mcp` when an AI client needs structured access to TAFFISH context:
 - inspect the local TAFFISH environment and config
 - search the local TAFFISH index
 - resolve app metadata before suggesting an install
+- inspect installed or indexed app source, help, containers, and dependencies
+- compile a candidate app invocation without running it
 - read the current project's `taffish.toml` and `src/main.taf`
+- summarize current project usage, help, release notes, and local artifacts
 - prepare a tool or flow project plan
 - debug a TAFFISH project before editing files
 
@@ -53,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
 ```
 
 Verify:
@@ -120,8 +125,8 @@ Official MCP configuration references:
 
 ## Current Tool Surface
 
-The current MCP tool surface mirrors safe parts of `taf` and selected project
-lifecycle operations.
+The current MCP tool surface mirrors safe parts of `taf`, selected app
+inspection operations, and selected project lifecycle operations.
 
 Environment and config:
 
@@ -129,9 +134,9 @@ Environment and config:
 | --- | --- |
 | `taffish_get_version` | Return the installed `taffish-mcp` version. |
 | `taffish_get_help` | Return concise help for the MCP server. |
-| `taffish_doctor_check` | Check local TAFFISH directories, `PATH`, and related executables without initializing or modifying the system. |
-| `taffish_config_get` | Return the effective TAFFISH runtime config. |
-| `taffish_config_path` | Return TAFFISH config file paths. |
+| `taffish_check_environment` | Check local TAFFISH directories, `PATH`, and related executables without initializing or modifying the system. |
+| `taffish_get_config` | Return the effective TAFFISH runtime config. |
+| `taffish_get_config_paths` | Return TAFFISH config file paths. |
 
 TAF source/file compiler helpers:
 
@@ -152,8 +157,17 @@ Hub and index:
 | `taffish_search_apps` | Search apps from the local TAFFISH index. |
 | `taffish_get_app_info` | Resolve an app, command, or artifact from the local index and return its version record. |
 | `taffish_list_apps` | List installed apps or indexed online apps. |
-| `taffish_which` | Show local install paths and metadata for an installed app or command. |
-| `taffish_history_list` | Read local TAFFISH run history without clearing it. |
+| `taffish_locate_app` | Show local install paths and metadata for an installed app or command. |
+| `taffish_list_history` | Read local TAFFISH run history without clearing it. |
+
+App inspection and invocation planning:
+
+| Tool | Purpose |
+| --- | --- |
+| `taffish_resolve_app` | Resolve an app, command alias, or version-pinned artifact command using local index and install metadata. |
+| `taffish_inspect_app` | Inspect index metadata plus installed `taffish.toml`, `src/main.taf`, and `docs/help.md` when local source is installed. |
+| `taffish_summarize_app_usage` | Return AI-oriented usage data for an app: command, args, help, containers, and dependencies. |
+| `taffish_compile_app_invocation` | Validate candidate app arguments and compile the installed app's `main.taf` to shell without running it. |
 
 Install and uninstall planning:
 
@@ -166,8 +180,10 @@ Project work:
 
 | Tool | Purpose |
 | --- | --- |
-| `taffish_new_project` | Create a new TAFFISH app project in the current working directory. This writes files. |
+| `taffish_create_project` | Create a new TAFFISH app project in the current working directory. This writes files. |
 | `taffish_check_project` | Check the current TAFFISH app project. Read-only. |
+| `taffish_inspect_project` | Inspect the current project manifest, `src/main.taf` summary, `docs/help.md`, `release.md`, and local artifacts. Read-only. |
+| `taffish_summarize_project_usage` | Return AI-oriented usage data for the current project: command, args, help, containers, and dependencies. Read-only. |
 | `taffish_compile_project` | Compile the current project and return generated shell. It does not execute it. |
 | `taffish_build_project` | Build the current project command wrapper. Container image builds are intentionally not exposed. |
 
@@ -183,8 +199,20 @@ Project work:
 | `taffish://history` | Recent local TAFFISH execution history. |
 | `taffish://project/current/taffish.toml` | Current project manifest, if the working directory is inside a TAFFISH project. |
 | `taffish://project/current/src/main.taf` | Current project main `.taf` script, if available. |
+| `taffish://project/current/docs/help.md` | Current project help document, if available. |
+| `taffish://project/current/release.md` | Current project release notes draft, if available. |
+| `taffish://project/current/summary` | Structured summary of the current TAFFISH project. |
 | `taffish://docs/taf-language` | Local TAFFISH language documentation when a source checkout is available. |
 | `taffish://docs/project` | Local TAFFISH project documentation when a source checkout is available. |
+| `taffish://mcp/help` | Summary of TAFFISH MCP tools, resources, and safe usage. |
+| `taffish://mcp/tools` | Machine-readable MCP tool schemas exposed by the server. |
+| `taffish://mcp/tool-groups` | Concise grouping and intended use of MCP tools. |
+| `taffish://mcp/safety` | Safety policy and boundaries for TAFFISH MCP tools. |
+| `taffish://compiler/help` | How to use source/file compiler tools exposed by TAFFISH MCP. |
+| `taffish://language/taf-examples` | Small TAF examples useful for AI clients. |
+| `taffish://hub/install-model` | How TAFFISH MCP treats index, install, uninstall, and local commands. |
+| `taffish://mcp/app-inspection-model` | How AI clients should inspect, understand, and safely compile taf-app invocations. |
+| `taffish://mcp/project-inspection-model` | How AI clients should inspect, debug, and safely compile current TAFFISH projects. |
 
 For local documentation resources, set `TAFFISH_SOURCE_DIR` to a TAFFISH source
 checkout if the client is not launched from that checkout.
@@ -199,6 +227,9 @@ The server also provides reusable prompts for common TAFFISH work:
 | `create-taffish-flow` | Guide composing installed TAFFISH apps into a flow project. |
 | `debug-taffish-project` | Analyze a TAFFISH project using project checks and source files before suggesting fixes. |
 | `explain-taf-script` | Explain a TAF script in terms of tags, arguments, containers, and dependencies. |
+| `explain-taf-source` | Explain a TAF source string or local `.taf` path through validate/summarize/compile helpers. |
+| `write-safe-taf-source` | Draft TAF source and validate or compile it without executing generated shell. |
+| `inspect-taffish-app` | Inspect an indexed or installed taf-app before suggesting usage, install, or flow composition. |
 | `prepare-taffish-publish` | Prepare a project for publishing without running `taf publish`. |
 
 ## Safety Model
@@ -219,7 +250,7 @@ summarize, or compile source to shell text, but they do not execute the compiled
 shell.
 
 Some tools still write local files when explicitly called, such as
-`taffish_update_index`, `taffish_new_project`, and `taffish_build_project`.
+`taffish_update_index`, `taffish_create_project`, and `taffish_build_project`.
 Install and uninstall tools default to `dryRun=true`. An AI client should still
 ask for user confirmation before calling write-capable tools.
 
@@ -227,23 +258,36 @@ ask for user confirmation before calling write-capable tools.
 
 Inspect the local setup:
 
-1. Call `taffish_doctor_check`.
+1. Call `taffish_check_environment`.
 2. Read `taffish://config`.
-3. If needed, call `taffish_config_path`.
+3. If needed, call `taffish_get_config_paths`.
 
 Search and explain an app:
 
 1. Call `taffish_update_index` if the index is missing or stale.
 2. Call `taffish_search_apps`.
-3. Call `taffish_get_app_info` for the selected app.
-4. Explain versions, dependencies, source, and container image metadata.
+3. Call `taffish_resolve_app` for the selected app.
+4. Call `taffish_summarize_app_usage` for command, args, help, containers, and dependencies.
+5. Use `taffish_inspect_app` when raw `taffish.toml`, `src/main.taf`, or `docs/help.md` context is needed.
+6. Use `taffish_compile_app_invocation` to validate candidate arguments without running the app.
 
 Debug a project:
 
-1. Call `taffish_check_project`.
+1. Call `taffish_inspect_project`.
 2. Read `taffish://project/current/taffish.toml`.
 3. Read `taffish://project/current/src/main.taf`.
-4. Suggest minimal changes before editing files.
+4. Read `taffish://project/current/docs/help.md` or `taffish://project/current/release.md` when relevant.
+5. Call `taffish_check_project` for strict validation.
+6. Call `taffish_compile_project` to review generated shell without executing it.
+7. Suggest minimal changes before editing files.
+
+Prepare a project for publish:
+
+1. Call `taffish_summarize_project_usage`.
+2. Call `taffish_inspect_project` to review manifest, source, help, release notes, artifacts, Dockerfile, and workflow state.
+3. Call `taffish_check_project`.
+4. Call `taffish_build_project` only if the user approves local writes.
+5. Do not run `taf publish` through MCP.
 
 Inspect a TAF source file:
 

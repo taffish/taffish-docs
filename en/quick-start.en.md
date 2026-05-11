@@ -29,7 +29,7 @@ TAFFISH provides three local commands:
 taffish   compile .taf programs to shell
 taf       manage app projects and TAFFISH Hub packages
 taffish-mcp
-          expose safe TAFFISH tools/resources/prompts to AI clients through MCP
+          expose safe tools/resources/prompts plus app/project inspection to AI clients
 ```
 
 Most users mainly use `taf` and installed `taf-*` app commands. The installer
@@ -62,7 +62,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
 ```
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
@@ -118,8 +118,8 @@ every use case. For example, if you only use Docker, you do not need Podman.
 
 ## Shell Completion And Vim Files
 
-TAFFISH `0.5.0` installs shell completion files and Vim syntax files under
-TAFFISH home.
+Starting with TAFFISH `0.5.0`, the installer also installs shell completion
+files and Vim syntax files under TAFFISH home.
 
 For a user install, completion files are usually under:
 
@@ -171,7 +171,7 @@ taf update --url <INDEX-URL>
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current recommended release is `0.5.0`.
+mirror and custom source support. The current public release is `0.6.0`.
 
 Default config paths:
 

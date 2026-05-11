@@ -46,7 +46,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | [快速开始](zh/quick-start.cn.md) | 用户上手入口。它会有意重复安装、镜像配置、更新、搜索、安装、运行、列出、定位和卸载等基础操作。 |
 | [什么是 TAFFISH](zh/taffish.cn.md) | 概念型语言与 CLI 手册。解释设计目标、语法、标签、参数、项目结构、CLI 表面和 MCP/AI 集成入口。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 动手写 `.taf` 的学习路径。从小脚本逐步过渡到 app wrapper 和 flow。 |
-| [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) | `taffish-mcp` 能力参考，覆盖 tools、只读 TAF 编译器辅助工具、resources、prompts、安全边界和故障排查。 |
+| [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) | `taffish-mcp` 能力参考，覆盖 tools、只读编译器辅助工具、app/project inspection、resources、prompts、安全边界和故障排查。 |
 | [在 AI 客户端中使用 TAFFISH MCP](zh/mcp-clients.cn.md) | 面向 Codex、Claude Code、Cursor、Cline 和通用 stdio MCP 客户端的配置教程。 |
 | [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 实际 app 发布流程。重点是 `taf new`、项目编辑、检查、运行、构建、`release.md`、发布和维护。 |
 | [容器化 app 最佳实践](zh/container-apps.cn.md) | 容器专题。覆盖 Dockerfile 设计、运行时挂载、GHCR、Docker/Podman 测试和 backend 一致性。 |
@@ -70,7 +70,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | --- | --- |
 | [TAFFISH 快速开始](zh/quick-start.cn.md) | 安装 TAFFISH，更新 Hub 索引，搜索、安装、运行、列出、定位和卸载 app。 |
 | [在 AI 客户端中使用 TAFFISH MCP](zh/mcp-clients.cn.md) | 在 Codex、Claude Code、Cursor、Cline 或通用 stdio MCP 客户端中配置 `taffish-mcp`。 |
-| [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) | 理解 `taffish-mcp` 的 tools、只读 TAF 编译器辅助工具、resources、prompts 和安全模型。 |
+| [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) | 理解 `taffish-mcp` 的 tools、只读编译器辅助工具、app/project inspection、resources、prompts 和安全模型。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 面向 app 作者的 `.taf` 分步教程，从最小脚本到参数、容器、flow 和依赖。 |
 | [TAFFISH 故障排查](zh/troubleshooting.cn.md) | 常见安装、索引、镜像配置、容器、GHCR、Podman、Docker、Apptainer 和 wrapper 问题。 |
 
@@ -101,7 +101,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 
 - 安装和基础 `taf` 命令会同时出现在快速开始和“什么是 TAFFISH”里，因为用户需要先能快速上手，之后再理解完整模型。
 - 运行时镜像配置会出现在快速开始、什么是 TAFFISH、什么是 TAFFISH Hub 和故障排查里，因为它同时影响网络访问和 package 安装。
-- `taffish-mcp` 会在“什么是 TAFFISH”中简要出现。MCP 指南说明 server 能力、只读 TAF 编译器辅助工具和安全边界，
+- `taffish-mcp` 会在“什么是 TAFFISH”中简要出现。MCP 指南说明 server 能力、只读编译器辅助工具、app/project inspection、安全编译预览和安全边界，
   客户端接入教程则说明 Codex、Claude Code、Cursor、Cline 和通用 MCP 配置示例。
 - `taf run`、`taf build`、`taf publish` 会同时出现在 app 开发指南和语言手册里，因为它们连接了语法和项目生命周期。
 - 容器 backend 说明会出现在快速开始、容器最佳实践和故障排查里，因为真实部署中容器问题最常见。

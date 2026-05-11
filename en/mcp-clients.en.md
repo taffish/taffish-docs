@@ -26,7 +26,7 @@ new machine or a new client version.
 
 ## Prerequisites
 
-Install TAFFISH `0.5.0` or later for the current MCP tool surface:
+Install the current TAFFISH release, `0.6.0` or later, for the current MCP tool surface:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -225,12 +225,18 @@ resources, and prompts.
 A healthy setup should expose tools such as:
 
 - `taffish_get_version`
-- `taffish_doctor_check`
+- `taffish_check_environment`
 - `taffish_search_apps`
 - `taffish_get_app_info`
+- `taffish_resolve_app`
+- `taffish_inspect_app`
+- `taffish_summarize_app_usage`
+- `taffish_compile_app_invocation`
 - `taffish_validate_file`
 - `taffish_compile_file`
 - `taffish_check_project`
+- `taffish_inspect_project`
+- `taffish_summarize_project_usage`
 - `taffish_compile_project`
 
 It may also expose resources such as:
@@ -240,6 +246,11 @@ It may also expose resources such as:
 - `taffish://installed`
 - `taffish://project/current/taffish.toml`
 - `taffish://project/current/src/main.taf`
+- `taffish://project/current/docs/help.md`
+- `taffish://project/current/release.md`
+- `taffish://project/current/summary`
+- `taffish://mcp/app-inspection-model`
+- `taffish://mcp/project-inspection-model`
 
 Not every client displays resources and prompts in the same way. If tools work
 but resources or prompts are hidden, check the client UI and official docs before
@@ -283,6 +294,6 @@ export TAFFISH_SOURCE_DIR=/path/to/taffish
 deletion, or arbitrary command execution.
 
 Some tools can still write local files when explicitly called, such as
-`taffish_update_index`, `taffish_new_project`, and `taffish_build_project`.
+`taffish_update_index`, `taffish_create_project`, and `taffish_build_project`.
 Install and uninstall tools default to `dryRun=true`. Treat write-capable MCP
 tool calls as actions that should be reviewed before execution.

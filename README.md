@@ -48,7 +48,7 @@ If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 | [Quick Start](en/quick-start.en.md) | User onboarding. It intentionally repeats install, mirror config, update, search, install, run, list, locate, and uninstall basics. |
 | [What Is TAFFISH](en/taffish.en.md) | Conceptual language and CLI manual. It explains the design, syntax, tags, parameters, project structure, CLI surface, and MCP/AI integration entry point. |
 | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Hands-on `.taf` writing path. It teaches by building up from small scripts to app wrappers and flows. |
-| [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Capability reference for `taffish-mcp`, including tools, read-only TAF compiler helpers, resources, prompts, safety boundaries, and troubleshooting. |
+| [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Capability reference for `taffish-mcp`, including tools, read-only compiler helpers, app/project inspection, resources, prompts, safety boundaries, and troubleshooting. |
 | [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) | Client setup guide for Codex, Claude Code, Cursor, Cline, and generic stdio MCP clients. |
 | [App Developer Guide](en/app-developer-guide.en.md) | Practical app release workflow. It focuses on `taf new`, project editing, check, run, build, `release.md`, publish, and maintenance. |
 | [Containerized App Best Practices](en/container-apps.en.md) | Focused container guide. It covers Dockerfile design, runtime mounts, GHCR, Docker/Podman testing, and backend consistency. |
@@ -72,7 +72,7 @@ Read these two documents when you want the system-level picture.
 | --- | --- |
 | [TAFFISH Quick Start](en/quick-start.en.md) | Install TAFFISH, update the Hub index, search, install, run, list, locate, and uninstall apps. |
 | [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) | Configure `taffish-mcp` in Codex, Claude Code, Cursor, Cline, or a generic stdio MCP client. |
-| [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Understand `taffish-mcp` tools, read-only TAF compiler helpers, resources, prompts, and safety model. |
+| [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Understand `taffish-mcp` tools, read-only compiler helpers, app/project inspection, resources, prompts, and safety model. |
 | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Step-by-step `.taf` writing tutorial for app authors, from minimal scripts to parameters, containers, flows, and dependencies. |
 | [TAFFISH Troubleshooting](en/troubleshooting.en.md) | Common installation, index, mirror config, container, GHCR, Podman, Docker, Apptainer, and wrapper problems. |
 
@@ -108,7 +108,7 @@ Some repetition is intentional:
   TAFFISH Hub, and troubleshooting because it affects both network access and
   package installation.
 - `taffish-mcp` appears briefly in What Is TAFFISH. The MCP guide documents
-  the server capability surface, read-only TAF compiler helpers, and safety boundaries, while the client setup
+  the server capability surface, read-only compiler helpers, app/project inspection, safe compile previews, and safety boundaries, while the client setup
   guide documents Codex, Claude Code, Cursor, Cline, and generic MCP
   configuration examples.
 - `taf run`, `taf build`, and `taf publish` appear in the app developer guide

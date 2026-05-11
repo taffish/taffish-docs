@@ -4,9 +4,9 @@ TAFFISH is a lightweight command delivery system for bioinformatics tools and wo
 
 - `taffish`: the TAFFISH language compiler, which compiles `.taf` files into POSIX shell scripts.
 - `taf`: the developer and user CLI, used to create projects, check projects, build commands, publish apps, and install apps from TAFFISH Hub.
-- `taffish-mcp`: a conservative stdio MCP server that exposes safe TAFFISH tools, resources, and prompts to AI clients.
+- `taffish-mcp`: a conservative stdio MCP server that exposes safe TAFFISH tools, resources, prompts, app inspection, and project inspection to AI clients.
 
-In other words, a `.taf` file describes how a tool or workflow should run. `taffish` turns that description into shell code. `taf` organizes that code into versioned, publishable, indexable, installable TAFFISH apps. `taffish-mcp` lets AI clients inspect TAFFISH projects and Hub state through a structured interface.
+In other words, a `.taf` file describes how a tool or workflow should run. `taffish` turns that description into shell code. `taf` organizes that code into versioned, publishable, indexable, installable TAFFISH apps. `taffish-mcp` lets AI clients inspect TAFFISH projects, apps, and Hub state through a structured interface.
 
 ## Table Of Contents
 
@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.5.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -81,8 +81,9 @@ taf
 taffish-mcp
 ```
 
-TAFFISH `0.5.0` also installs shell completion files and Vim syntax files under
-TAFFISH home, usually `~/.local/share/taffish/share/completions` and
+Starting with TAFFISH `0.5.0`, the installer also installs shell completion
+files and Vim syntax files under TAFFISH home, usually
+`~/.local/share/taffish/share/completions` and
 `~/.local/share/taffish/share/vim` for a user install.
 
 Default user paths:
@@ -642,10 +643,13 @@ taf list
 ## MCP / AI Integration
 
 TAFFISH `0.4.0` added `taffish-mcp`, a conservative MCP stdio server for AI
-clients. TAFFISH `0.5.0` extends it with read-only TAF source/file compiler
-helpers. The interface exposes safe project, Hub, config, history, resource,
-prompt, validation, compilation, and summarization operations. It does not
-expose `taf run`, `taf publish`, or image-building actions.
+clients. TAFFISH `0.5.0` extended it with read-only TAF source/file compiler
+helpers, and TAFFISH `0.6.0` adds app/project inspection, AI-oriented usage
+summaries, safe app invocation compilation, current project resources, and
+publish-preparation prompts. The interface exposes safe project, app, Hub,
+config, history, resource, prompt, validation, compilation, and summarization
+operations. It does not expose `taf run`, `taf publish`, or image-building
+actions.
 
 Example MCP client configuration:
 
@@ -660,10 +664,10 @@ Example MCP client configuration:
 }
 ```
 
-This lets an AI client inspect TAFFISH projects, search the local index, read
-project resources, validate or compile `.taf` source without executing it, and
-prepare safe project actions without relying first on unstructured terminal
-text.
+This lets an AI client inspect TAFFISH projects and installed/indexed apps,
+search the local index, read project resources, validate or compile `.taf`
+source without executing it, preview app/project shell compilation, and prepare
+safe project actions without relying first on unstructured terminal text.
 
 For the focused guide to tools, resources, prompts, and safety boundaries, see
 [TAFFISH MCP Guide](taffish-mcp.en.md). For Codex, Claude Code, Cursor, Cline,
@@ -673,7 +677,7 @@ and generic MCP client configuration examples, see
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current recommended release is `0.5.0`. The default
+custom source support. The current public release is `0.6.0`. The default
 config paths are:
 
 ```text

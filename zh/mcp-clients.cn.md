@@ -23,7 +23,7 @@ tools、resources、prompts 和安全模型，请阅读 [TAFFISH MCP 指南](taf
 
 ## 前置条件
 
-安装 TAFFISH `0.5.0` 或后续版本，以获得当前 MCP 工具接口：
+安装当前 TAFFISH 版本，即 `0.6.0` 或后续版本，以获得当前 MCP 工具接口：
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -209,12 +209,18 @@ cline mcp add taffish -- taffish-mcp
 正常配置通常可以看到这些 tools：
 
 - `taffish_get_version`
-- `taffish_doctor_check`
+- `taffish_check_environment`
 - `taffish_search_apps`
 - `taffish_get_app_info`
+- `taffish_resolve_app`
+- `taffish_inspect_app`
+- `taffish_summarize_app_usage`
+- `taffish_compile_app_invocation`
 - `taffish_validate_file`
 - `taffish_compile_file`
 - `taffish_check_project`
+- `taffish_inspect_project`
+- `taffish_summarize_project_usage`
 - `taffish_compile_project`
 
 也可能看到这些 resources：
@@ -224,6 +230,11 @@ cline mcp add taffish -- taffish-mcp
 - `taffish://installed`
 - `taffish://project/current/taffish.toml`
 - `taffish://project/current/src/main.taf`
+- `taffish://project/current/docs/help.md`
+- `taffish://project/current/release.md`
+- `taffish://project/current/summary`
+- `taffish://mcp/app-inspection-model`
+- `taffish://mcp/project-inspection-model`
 
 不同客户端展示 resources 和 prompts 的方式不完全相同。如果 tools 可用，但 resources
 或 prompts 不明显，先检查客户端界面和官方文档，不要直接判断 server 出错。
@@ -261,5 +272,5 @@ export TAFFISH_SOURCE_DIR=/path/to/taffish
 直接 shell 执行、任意文件删除或任意命令执行。
 
 部分工具被显式调用时仍然会写入本地文件，例如 `taffish_update_index`、
-`taffish_new_project` 和 `taffish_build_project`。安装和卸载工具默认
+`taffish_create_project` 和 `taffish_build_project`。安装和卸载工具默认
 `dryRun=true`。会写入文件的 MCP tool 调用仍应在执行前经过用户确认。
