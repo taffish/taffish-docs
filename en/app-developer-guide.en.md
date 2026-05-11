@@ -425,6 +425,18 @@ taf run --backend docker -- --input sample.fa
 
 `taf run --backend` forces generic `<container:...>` / `<taf-app:container:...>` tags to use the selected backend. It does not override explicit tags such as `<taf-app:podman:...>` or `<taf-app:docker:...>`.
 
+After a command wrapper is installed, or when compiling directly with
+`taffish`, use `TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` to force
+generic container tags at runtime:
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+```
+
+This does not override explicit backend tags. During local project runs,
+`taf run --backend ...` has priority over the environment variable.
+
 If the image is not portable across all backends, or if it only exists in one local backend store during development, use an explicit backend tag in `src/main.taf`:
 
 ```taf
@@ -557,6 +569,20 @@ taf info my-tool
 taf install --dry-run my-tool
 ```
 
+For private or local testing before a public Hub release, install directly from
+the project tree:
+
+```sh
+taf install --from /path/to/my-tool
+taf list
+taf which taf-my-tool
+```
+
+`taf install --from` checks the local project, copies the working tree into the
+selected TAFFISH home, builds the versioned command wrapper, and records the
+origin as `[local-project] <PROJECT-ROOT>`. It does not require `taf update`
+and does not auto-install dependencies.
+
 ## Version Maintenance
 
 TAFFISH uses:
@@ -595,6 +621,7 @@ Before publishing, confirm:
 - [ ] For a tool app, upstream source is recorded in `[upstream]` where possible.
 - [ ] For a containerized app, image tag matches `version-release`.
 - [ ] For a containerized app, local `taf build --image --backend ...` and `taf run --backend ...` use a consistent backend.
+- [ ] If testing a private app before public release, `taf install --from <PROJECT-DIR>` works from the project root or a child directory.
 - [ ] For a flow app, `[dependencies]` matches `[[taf: ...]]`.
 - [ ] `taf run` passes locally.
 - [ ] `taf build` or `taf build --all` passes.

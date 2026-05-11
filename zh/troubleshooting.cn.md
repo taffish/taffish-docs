@@ -378,6 +378,16 @@ taf run --backend podman -- --help
 如果 app 源码明确写了 `<taf-app:docker:...>` 或 `<taf-app:podman:...>`，
 `taf run --backend` 不会覆盖这种显式标签。
 
+对于已经安装好的 `taf-*` 命令，或者直接使用 `taffish` 编译时，不会经过
+`taf run --backend`。如果需要让泛化 `<container:...>` 标签使用某个指定后端，
+可以设置 `TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`：
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
+```
+
+这仍然不会覆盖显式的 `<docker:...>`、`<podman:...>` 或 `<apptainer:...>` 标签。
+
 ## 获取更多上下文
 
 有用的命令：

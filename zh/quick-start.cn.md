@@ -61,7 +61,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
 ```
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
@@ -164,7 +164,7 @@ taf update --url <INDEX-URL>
 ## 运行时配置与镜像源
 
 从 TAFFISH `0.2.0` 开始，`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义
-来源。当前公开版本是 `0.6.0`。
+来源。当前公开版本是 `0.7.0`。
 
 默认配置路径：
 
@@ -271,6 +271,19 @@ taf install --dry-run augustus
 
 如果目标版本声明了依赖，`taf install` 会先安装依赖。
 
+安装尚未发布到公开 Hub 的私有/本地 TAFFISH app 项目：
+
+```sh
+taf install --from /path/to/my-private-tool
+taf list
+taf which taf-my-private-tool
+```
+
+`taf install --from` 会读取本地项目的 `taffish.toml`、检查项目、把当前工作树
+复制到选定的 TAFFISH home、构建带版本的 command wrapper，并把来源记录为
+`[local-project] <PROJECT-ROOT>`。路径可以是项目根目录，也可以是项目内任意
+子目录。这个模式不需要先运行 `taf update`，也不会自动安装依赖。
+
 ## 运行已安装 app
 
 TAFFISH app 命令就是普通 shell 命令。例如：
@@ -340,6 +353,19 @@ apptainer --version
 
 你只需要安装自己打算使用的后端。在 HPC 或共享 Linux 服务器上，Apptainer
 通常更合适；在个人电脑上，Docker 或 Podman 通常更简单。
+
+对于已经安装好的 `taf-*` 命令，或者直接使用 `taffish` 编译时，可以设置
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`，在运行时强制通用
+`<container:...>` 标签使用指定后端：
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 --compile -- --help
+```
+
+这个环境变量不会覆盖显式的 `<docker:...>`、`<podman:...>` 或
+`<apptainer:...>` 标签。本地项目运行时，`taf run --backend ...` 的优先级
+高于这个环境变量。
 
 如果容器后端在 app 启动前就报错，先检查后端本身。例如：
 

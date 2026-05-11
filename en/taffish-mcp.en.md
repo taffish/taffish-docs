@@ -7,10 +7,10 @@ It gives AI clients a structured way to inspect TAFFISH projects, query local Hu
 state, read selected resources, validate or compile `.taf` source without
 executing it, and prepare safe project actions.
 
-TAFFISH `0.6.0` is the current recommended release for MCP use. It keeps the
-read-only TAF source/file compiler helpers introduced in `0.5.0` and adds
-app/project inspection, AI-oriented usage summaries, safe app invocation
-compilation, current project resources, and publish-preparation prompts.
+TAFFISH `0.7.0` is the current recommended release for MCP use. It keeps the
+read-only TAF source/file compiler helpers introduced in `0.5.0`, the
+app/project inspection and safe app invocation compilation added in `0.6.0`,
+and aligns MCP compile tools with runtime container backend override.
 
 It is intentionally conservative. The interface is designed for inspection,
 planning, and low-risk project maintenance. It does not expose `taf run`,
@@ -58,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
 ```
 
 Verify:
@@ -108,7 +108,7 @@ For Codex, Claude Code, Cursor, Cline, and generic MCP client examples, see
 This document is the reference for what `taffish-mcp` exposes. Client setup
 details are maintained separately in [Using TAFFISH MCP With AI Clients](mcp-clients.en.md).
 
-The client configuration examples were generated and last checked on 2026-05-11. MCP client
+The client configuration examples were generated and last checked on 2026-05-12. MCP client
 configuration formats can change, so always compare the examples with the
 official client documentation when setting up a new machine or a new client
 version.
@@ -149,6 +149,11 @@ TAF source/file compiler helpers:
 | `taffish_summarize_source` | Summarize a provided `.taf` source string for quick inspection. |
 | `taffish_summarize_file` | Summarize a `.taf` file path for quick inspection. |
 
+For compile tools, pass `containerBackend` when backend choice matters. If that
+argument is omitted, `TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` is
+used when set in the MCP server environment. An explicit `containerBackend`
+argument always has priority.
+
 Hub and index:
 
 | Tool | Purpose |
@@ -169,6 +174,10 @@ App inspection and invocation planning:
 | `taffish_summarize_app_usage` | Return AI-oriented usage data for an app: command, args, help, containers, and dependencies. |
 | `taffish_compile_app_invocation` | Validate candidate app arguments and compile the installed app's `main.taf` to shell without running it. |
 
+`taffish_compile_app_invocation` follows the same backend priority model:
+explicit `containerBackend` first, then `TAFFISH_CONTAINER_BACKEND` when set,
+then TAFFISH's normal runtime backend selection.
+
 Install and uninstall planning:
 
 | Tool | Purpose |
@@ -186,6 +195,10 @@ Project work:
 | `taffish_summarize_project_usage` | Return AI-oriented usage data for the current project: command, args, help, containers, and dependencies. Read-only. |
 | `taffish_compile_project` | Compile the current project and return generated shell. It does not execute it. |
 | `taffish_build_project` | Build the current project command wrapper. Container image builds are intentionally not exposed. |
+
+`taffish_compile_project` also accepts explicit backend selection for generic
+container tags. This keeps AI-assisted compile previews consistent with
+installed `taf-*` commands and local `taffish` compilation.
 
 ## Resources
 
@@ -270,6 +283,7 @@ Search and explain an app:
 4. Call `taffish_summarize_app_usage` for command, args, help, containers, and dependencies.
 5. Use `taffish_inspect_app` when raw `taffish.toml`, `src/main.taf`, or `docs/help.md` context is needed.
 6. Use `taffish_compile_app_invocation` to validate candidate arguments without running the app.
+7. Pass `containerBackend` when the user needs a specific Docker, Podman, or Apptainer compile preview.
 
 Debug a project:
 
@@ -278,7 +292,7 @@ Debug a project:
 3. Read `taffish://project/current/src/main.taf`.
 4. Read `taffish://project/current/docs/help.md` or `taffish://project/current/release.md` when relevant.
 5. Call `taffish_check_project` for strict validation.
-6. Call `taffish_compile_project` to review generated shell without executing it.
+6. Call `taffish_compile_project` to review generated shell without executing it. Pass `containerBackend` when backend-specific container code matters.
 7. Suggest minimal changes before editing files.
 
 Prepare a project for publish:

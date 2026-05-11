@@ -339,6 +339,18 @@ my-tool --help
 
 If an image only exists in a local Docker or Podman store, or if runtime arguments depend on one backend, use an explicit backend tag in `src/main.taf` instead of generic `container`.
 
+For installed `taf-*` commands or direct `taffish` compilation, use
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` to force generic
+container tags without editing the app:
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+```
+
+This runtime environment variable does not override explicit backend tags.
+During local project testing, `taf run --backend ...` has priority over it.
+
 You can also test the container directly:
 
 ```sh
@@ -371,6 +383,7 @@ Users cannot pull image:
 - Confirm `taf build --image --backend ...` and `taf run --backend ...` use the same backend.
 - If `src/main.taf` uses `<taf-app:container:...>`, runtime selection may choose a different available backend.
 - During development, use `<taf-app:docker:...>` or `<taf-app:podman:...>`.
+- For installed commands, set `TAFFISH_CONTAINER_BACKEND=...` when you need the same backend outside `taf run`.
 
 Multi-platform build fails:
 

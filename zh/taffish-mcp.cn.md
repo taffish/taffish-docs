@@ -6,9 +6,9 @@
 AI 客户端可以用结构化方式检查 TAFFISH 项目、查询本地 Hub 状态、读取部分资源，
 验证或编译 `.taf` 源码但不执行它，并准备相对安全的项目操作。
 
-TAFFISH `0.6.0` 是当前推荐的 MCP 使用版本。它保留了 `0.5.0` 引入的只读
-TAF 源码/文件编译器辅助工具，并新增 app/project inspection、面向 AI 的用法摘要、
-安全 app invocation 编译、当前项目资源和 publish 准备 prompts。
+TAFFISH `0.7.0` 是当前推荐的 MCP 使用版本。它保留了 `0.5.0` 引入的只读
+TAF 源码/文件编译器辅助工具、`0.6.0` 新增的 app/project inspection 和安全
+app invocation 编译，并让 MCP compile 工具与运行时容器 backend override 保持一致。
 
 它的设计是保守的。接口主要服务于检查、规划和低风险项目维护，不暴露
 `taf run`、`taf publish`、容器镜像构建或其他高影响执行路径。
@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定版本安装：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
 ```
 
 验证：
@@ -101,7 +101,7 @@ Codex、Claude Code、Cursor、Cline 和通用 MCP 客户端示例见
 本文档是 `taffish-mcp` 暴露能力的参考。具体客户端接入说明单独维护在
 [在 AI 客户端中使用 TAFFISH MCP](mcp-clients.cn.md)。
 
-客户端配置示例生成并最后检查于 2026-05-11。MCP 客户端配置格式可能变化，所以在新机器或新客户端版本上配置时，
+客户端配置示例生成并最后检查于 2026-05-12。MCP 客户端配置格式可能变化，所以在新机器或新客户端版本上配置时，
 应始终对照对应客户端的官方文档。
 
 官方 MCP 配置参考：
@@ -139,6 +139,11 @@ TAF 源码/文件编译器辅助工具：
 | `taffish_summarize_source` | 对给定 `.taf` 源码字符串做结构摘要。 |
 | `taffish_summarize_file` | 对 `.taf` 文件路径做结构摘要。 |
 
+对于 compile 工具，如果 backend 选择很重要，优先显式传入 `containerBackend`。
+如果没有传入这个参数，则会在 MCP server 环境中设置时使用
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`。显式 `containerBackend`
+始终具有更高优先级。
+
 Hub 与 index：
 
 | Tool | 作用 |
@@ -159,6 +164,10 @@ App inspection 与调用规划：
 | `taffish_summarize_app_usage` | 返回面向 AI 的 app 用法数据，包括 command、args、help、containers 和 dependencies。 |
 | `taffish_compile_app_invocation` | 验证候选 app 参数，并把已安装 app 的 `main.taf` 编译为 shell，但不运行。 |
 
+`taffish_compile_app_invocation` 使用相同的 backend 优先级：先使用显式
+`containerBackend`，再使用已设置的 `TAFFISH_CONTAINER_BACKEND`，最后使用
+TAFFISH 正常的运行时 backend 选择。
+
 安装与卸载规划：
 
 | Tool | 作用 |
@@ -176,6 +185,9 @@ App inspection 与调用规划：
 | `taffish_summarize_project_usage` | 返回面向 AI 的当前项目用法数据，包括 command、args、help、containers 和 dependencies，只读。 |
 | `taffish_compile_project` | 编译当前项目并返回生成的 shell，不执行它。 |
 | `taffish_build_project` | 构建当前项目的命令 wrapper。容器镜像构建刻意不暴露。 |
+
+`taffish_compile_project` 也支持对泛化容器标签进行显式 backend 选择。这让 AI 辅助
+编译预览与已安装的 `taf-*` 命令和本地 `taffish` 编译保持一致。
 
 ## 资源
 
@@ -257,6 +269,7 @@ TAF 源码/文件编译器工具是只读工具。它们可以解析、验证、
 4. 调用 `taffish_summarize_app_usage` 获取 command、args、help、containers 和 dependencies。
 5. 需要原始 `taffish.toml`、`src/main.taf` 或 `docs/help.md` 时，调用 `taffish_inspect_app`。
 6. 需要验证候选参数时，调用 `taffish_compile_app_invocation`，但不运行 app。
+7. 当用户需要特定 Docker、Podman 或 Apptainer 编译预览时，传入 `containerBackend`。
 
 调试项目：
 
@@ -265,7 +278,7 @@ TAF 源码/文件编译器工具是只读工具。它们可以解析、验证、
 3. 读取 `taffish://project/current/src/main.taf`。
 4. 需要时读取 `taffish://project/current/docs/help.md` 或 `taffish://project/current/release.md`。
 5. 调用 `taffish_check_project` 做严格校验。
-6. 调用 `taffish_compile_project` 检查生成的 shell，但不执行它。
+6. 调用 `taffish_compile_project` 检查生成的 shell，但不执行它。需要后端特异的容器代码时，传入 `containerBackend`。
 7. 在编辑文件前提出最小修改建议。
 
 准备项目发布：

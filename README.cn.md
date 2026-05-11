@@ -68,7 +68,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 
 | 文档 | 简介 |
 | --- | --- |
-| [TAFFISH 快速开始](zh/quick-start.cn.md) | 安装 TAFFISH，更新 Hub 索引，搜索、安装、运行、列出、定位和卸载 app。 |
+| [TAFFISH 快速开始](zh/quick-start.cn.md) | 安装 TAFFISH，更新 Hub 索引，搜索、安装公开 app、用 `taf install --from` 安装私有/本地 app、运行、列出、定位和卸载 app。 |
 | [在 AI 客户端中使用 TAFFISH MCP](zh/mcp-clients.cn.md) | 在 Codex、Claude Code、Cursor、Cline 或通用 stdio MCP 客户端中配置 `taffish-mcp`。 |
 | [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) | 理解 `taffish-mcp` 的 tools、只读编译器辅助工具、app/project inspection、resources、prompts 和安全模型。 |
 | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) | 面向 app 作者的 `.taf` 分步教程，从最小脚本到参数、容器、flow 和依赖。 |
@@ -80,8 +80,8 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 
 | 文档 | 简介 |
 | --- | --- |
-| [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 从创建、检查、运行、构建、准备 `release.md`、发布到维护 TAFFISH app 的完整实践流程。 |
-| [容器化 app 最佳实践](zh/container-apps.cn.md) | Dockerfile 设计、多阶段构建、运行时挂载、GHCR 可见性、本地 Docker/Podman 测试和 backend 一致性。 |
+| [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 从创建、检查、运行、构建、用 `taf install --from` 做私有/本地测试、准备 `release.md`、发布到维护 TAFFISH app 的完整实践流程。 |
+| [容器化 app 最佳实践](zh/container-apps.cn.md) | Dockerfile 设计、多阶段构建、运行时挂载、GHCR 可见性、本地 Docker/Podman 测试、backend 一致性和 `TAFFISH_CONTAINER_BACKEND`。 |
 | [Flow 与依赖指南](zh/flow-dependencies.cn.md) | Flow app 结构、`[[taf: ...]]`、`@:` 参数块、依赖声明、多版本依赖和安装语义。 |
 
 当你正在开发或维护 app 时，主要参考这些文档。

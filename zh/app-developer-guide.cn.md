@@ -424,6 +424,17 @@ taf run --backend docker -- --input sample.fa
 
 `taf run --backend` 会强制泛化 `<container:...>` / `<taf-app:container:...>` 标签选择对应后端。它不会覆盖显式标签，例如 `<taf-app:podman:...>` 或 `<taf-app:docker:...>`。
 
+命令 wrapper 安装后，或者直接使用 `taffish` 编译时，可以用
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` 在运行时强制泛化容器标签：
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+```
+
+这个环境变量不会覆盖显式 backend 标签。本地项目运行时，`taf run --backend ...`
+的优先级高于这个环境变量。
+
 如果这个镜像不是一个对所有后端都普适的镜像，或者开发期只在某个本地后端中存在，建议把 `src/main.taf` 中的泛化标签改成显式后端标签：
 
 ```taf
@@ -561,6 +572,18 @@ taf info my-tool
 taf install --dry-run my-tool
 ```
 
+如果是公开 Hub 发布前的私有/本地测试，也可以直接从项目目录安装：
+
+```sh
+taf install --from /path/to/my-tool
+taf list
+taf which taf-my-tool
+```
+
+`taf install --from` 会检查本地项目、把当前工作树复制到选定的 TAFFISH home、
+构建带版本的 command wrapper，并把来源记录为 `[local-project] <PROJECT-ROOT>`。
+它不需要先运行 `taf update`，也不会自动安装依赖。
+
 ## 维护版本
 
 TAFFISH 使用：
@@ -599,6 +622,7 @@ tag = "v0.1.0-r1"
 - [ ] 如果是 tool app，确认上游软件来源写入 `[upstream]`。
 - [ ] 如果是容器化 app，镜像 tag 与 `version-release` 一致。
 - [ ] 如果是容器化 app，本地 `taf build --image --backend ...` 和 `taf run --backend ...` 使用一致后端。
+- [ ] 如果要在公开发布前测试私有 app，`taf install --from <PROJECT-DIR>` 可以从项目根目录或子目录正常安装。
 - [ ] 如果是 flow app，`[dependencies]` 与 `[[taf: ...]]` 一致。
 - [ ] `taf run` 在本地通过。
 - [ ] `taf build` 或 `taf build --all` 通过。

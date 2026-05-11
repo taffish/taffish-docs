@@ -62,7 +62,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
 ```
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
@@ -171,7 +171,7 @@ taf update --url <INDEX-URL>
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current public release is `0.6.0`.
+mirror and custom source support. The current public release is `0.7.0`.
 
 Default config paths:
 
@@ -280,6 +280,22 @@ taf install --dry-run augustus
 If the selected version declares dependencies, `taf install` installs those
 dependencies first.
 
+Install a private or local TAFFISH app project without publishing it to the
+public Hub:
+
+```sh
+taf install --from /path/to/my-private-tool
+taf list
+taf which taf-my-private-tool
+```
+
+`taf install --from` reads the local project's `taffish.toml`, checks the
+project, copies the working tree into the selected TAFFISH home, builds the
+versioned command wrapper, and records the origin as
+`[local-project] <PROJECT-ROOT>`. The path may be the project root or any child
+directory under it. This mode does not require `taf update` and does not
+auto-install dependencies.
+
 ## Run An Installed App
 
 TAFFISH app commands are normal shell commands. For example:
@@ -352,6 +368,19 @@ apptainer --version
 You only need the backend you plan to use. On HPC or shared Linux servers,
 Apptainer is often the most practical backend. On laptops, Docker or Podman are
 often simpler.
+
+For installed `taf-*` commands or direct `taffish` compilation, set
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` to force generic
+`<container:...>` tags at runtime:
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 --compile -- --help
+```
+
+This does not override explicit `<docker:...>`, `<podman:...>`, or
+`<apptainer:...>` tags. In local project runs, `taf run --backend ...` has
+priority over the environment variable.
 
 If a container backend reports errors before the app starts, first check the
 backend itself. For example:

@@ -254,6 +254,17 @@ taf run --backend podman -- --help
 taf run --backend apptainer -- --help
 ```
 
+对于已经安装好的 `taf-*` 命令，或者直接使用 `taffish` 编译时，可以设置
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`，在运行时强制通用
+`<container:...>` 标签使用指定后端：
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+```
+
+它不会覆盖显式的 `<docker:...>`、`<podman:...>` 或 `<apptainer:...>` 标签。
+
 镜像构建目前使用 Docker 或 Podman：
 
 ```sh

@@ -387,6 +387,18 @@ taf run --backend podman -- --help
 If an app source explicitly uses `<taf-app:docker:...>` or
 `<taf-app:podman:...>`, `taf run --backend` does not override that explicit tag.
 
+For installed `taf-*` commands or direct `taffish` compilation, `taf run
+--backend` is not involved. Set
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` when you need a generic
+`<container:...>` tag to use a specific backend:
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
+```
+
+This still does not override explicit `<docker:...>`, `<podman:...>`, or
+`<apptainer:...>` tags.
+
 ## Where To Get More Context
 
 Useful commands:

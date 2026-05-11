@@ -535,6 +535,17 @@ taf install taf-my-tool v0.1.0-r1
 taf install taf-my-tool-v0.1.0-r1
 ```
 
+For a private or local app project that has not been published to the public
+Hub, users can bypass the index and install directly from the project tree:
+
+```sh
+taf install --from /path/to/my-private-tool
+```
+
+This mode reads the local `taffish.toml`, checks the project, copies the working
+tree into TAFFISH home, and builds the versioned wrapper. It does not require
+`taf update` and does not auto-install dependencies.
+
 ## How Developers Publish Apps
 
 Typical path:

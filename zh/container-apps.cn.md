@@ -323,6 +323,18 @@ my-tool --help
 
 如果一个镜像只在本地 Docker 或 Podman 中存在，或者运行参数依赖某个后端，建议在 `src/main.taf` 中使用显式后端标签，而不是泛化的 `container`。
 
+对于已经安装好的 `taf-*` 命令，或者直接使用 `taffish` 编译时，可以用
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` 强制泛化容器标签，而不需要
+修改 app：
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+```
+
+这个运行时环境变量不会覆盖显式 backend 标签。本地项目测试时，
+`taf run --backend ...` 的优先级高于它。
+
 也可以直接测试容器：
 
 ```sh
@@ -355,6 +367,7 @@ docker run --rm ghcr.io/taffish/my-tool:0.1.0-r1 my-tool --help
 - 确认 `taf build --image --backend ...` 和 `taf run --backend ...` 使用同一个后端。
 - 如果 `src/main.taf` 写的是 `<taf-app:container:...>`，运行时可能自动选择了别的可用后端。
 - 开发期可以显式写 `<taf-app:docker:...>` 或 `<taf-app:podman:...>`。
+- 对于已经安装好的命令，如果需要在 `taf run` 之外固定同一后端，可以设置 `TAFFISH_CONTAINER_BACKEND=...`。
 
 多平台构建失败：
 

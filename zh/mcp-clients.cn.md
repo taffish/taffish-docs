@@ -5,7 +5,7 @@
 这份文档说明如何把 `taffish-mcp` 接入常见 AI 客户端。关于 server 本身暴露的
 tools、resources、prompts 和安全模型，请阅读 [TAFFISH MCP 指南](taffish-mcp.cn.md)。
 
-本文档中的配置示例生成并最后检查于 2026-05-11。MCP 客户端配置格式可能变化。这些示例应当作为实用起点，
+本文档中的配置示例生成并最后检查于 2026-05-12。MCP 客户端配置格式可能变化。这些示例应当作为实用起点，
 在新机器或新客户端版本上配置时，应以对应客户端的官方文档为准。
 
 ## 目录
@@ -23,7 +23,7 @@ tools、resources、prompts 和安全模型，请阅读 [TAFFISH MCP 指南](taf
 
 ## 前置条件
 
-安装当前 TAFFISH 版本，即 `0.6.0` 或后续版本，以获得当前 MCP 工具接口：
+安装当前 TAFFISH 版本，即 `0.7.0` 或后续版本，以获得当前 MCP 工具接口：
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -46,6 +46,11 @@ command -v taffish-mcp
 ```sh
 $HOME/.local/bin/taffish-mcp
 ```
+
+对于 MCP compile 工具，如果 Docker、Podman 或 Apptainer 的选择很重要，AI 客户端
+可以在调用工具时传入 `containerBackend`。如果工具调用没有传入该参数，而 MCP
+server 环境里设置了 `TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`，
+TAFFISH 会使用这个环境变量。这是 TAFFISH 运行时设置，不是某个 MCP 客户端专属功能。
 
 ## 官方配置参考
 

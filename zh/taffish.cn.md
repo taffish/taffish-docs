@@ -53,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.6.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
 ```
 
 中国大陆用户可以使用 Gitee 安装器，减少安装阶段对 GitHub raw content 的依赖，
@@ -389,6 +389,19 @@ taf run --backend docker -- --query test.fa --db nr
 
 `--backend` 只会强制泛化容器标签，例如 `<container:...>` 或 `<taf-app:container:...>`。如果标签已经明确写成 `<docker:...>`、`<podman:...>`、`<taf-app:docker:...>` 或 `<taf-app:podman:...>`，TAFFISH 会尊重标签中的显式后端。
 
+对于已经安装好的 `taf-*` 命令，或者直接使用 `taffish` 编译时，可以设置
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`，在运行时强制通用
+`<container:...>` 标签使用指定后端：
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 [ARGS...]
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- [ARGS...]
+```
+
+这个环境变量不会覆盖显式的 `<docker:...>`、`<podman:...>` 或
+`<apptainer:...>` 标签。使用 `taf run` 时，`--backend` 的优先级高于
+`TAFFISH_CONTAINER_BACKEND`。
+
 本地测试未发布镜像时，构建镜像和运行项目应使用一致后端：
 
 ```sh
@@ -609,6 +622,19 @@ taf install blast
 taf install blast 2.16.0-r1
 ```
 
+安装尚未发布到公开 Hub 的私有/本地 TAFFISH app 项目：
+
+```sh
+taf install --from /path/to/my-private-tool
+taf list
+taf which taf-my-private-tool
+```
+
+`taf install --from` 会读取本地项目的 `taffish.toml`、检查项目、把当前工作树复制到选定的
+TAFFISH home、构建带版本的 command wrapper，并把安装来源记录为
+`[local-project] <PROJECT-ROOT>`。路径可以是项目根目录，也可以是项目内任意子目录；
+TAFFISH 会向上搜索 `taffish.toml`。它不需要先运行 `taf update`，也不会自动安装依赖。
+
 也可以使用命令名：
 
 ```sh
@@ -640,8 +666,14 @@ TAFFISH `0.4.0` 新增了 `taffish-mcp`，这是一个保守的 stdio MCP server
 AI 客户端暴露 TAFFISH 能力。TAFFISH `0.5.0` 进一步为它增加了只读 TAF
 源码/文件编译器辅助工具，TAFFISH `0.6.0` 则新增了 app/project inspection、
 面向 AI 的用法摘要、安全 app invocation 编译、当前项目资源和 publish 准备 prompts。
+TAFFISH `0.7.0` 让 MCP compile 工具与运行时容器 backend override 保持一致。
 当前 MCP 接口提供相对安全的 project、app、Hub、config、history、resource、
 prompt、验证、编译和摘要操作，不暴露 `taf run`、`taf publish` 或镜像构建动作。
+
+对于 MCP compile 工具，如果 backend 选择很重要，优先显式传入 `containerBackend`。
+如果没有传入这个参数，则会在设置时使用
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`；显式 `containerBackend`
+始终具有更高优先级。
 
 MCP 客户端配置示例：
 
@@ -666,7 +698,7 @@ shell，并准备安全的项目操作，而不是一开始就依赖非结构化
 
 ## 运行时配置与镜像源
 
-从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前公开版本是 `0.6.0`。默认配置路径是：
+从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前公开版本是 `0.7.0`。默认配置路径是：
 
 ```text
 用户级 = ~/.local/share/taffish/config.toml

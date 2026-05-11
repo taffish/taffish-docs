@@ -261,6 +261,18 @@ taf run --backend podman -- --help
 taf run --backend apptainer -- --help
 ```
 
+For installed `taf-*` commands or direct `taffish` compilation, use
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` to force generic
+`<container:...>` tags at runtime:
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+```
+
+This does not override explicit `<docker:...>`, `<podman:...>`, or
+`<apptainer:...>` tags.
+
 Image building currently uses Docker or Podman:
 
 ```sh

@@ -500,6 +500,15 @@ taf install taf-my-tool v0.1.0-r1
 taf install taf-my-tool-v0.1.0-r1
 ```
 
+对于尚未发布到公开 Hub 的私有/本地 app 项目，用户可以绕过 index，直接从项目目录安装：
+
+```sh
+taf install --from /path/to/my-private-tool
+```
+
+这个模式会读取本地 `taffish.toml`、检查项目、把当前工作树复制到 TAFFISH home，
+并构建带版本的 wrapper。它不需要先运行 `taf update`，也不会自动安装依赖。
+
 ## 开发者如何发布 app
 
 典型路径：

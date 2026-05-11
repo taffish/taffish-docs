@@ -6,7 +6,7 @@ This guide shows how to connect `taffish-mcp` to common AI clients. For the
 server capability reference, tool list, resources, prompts, and safety model,
 read the [TAFFISH MCP Guide](taffish-mcp.en.md).
 
-The configuration examples in this document were generated and last checked on 2026-05-11.
+The configuration examples in this document were generated and last checked on 2026-05-12.
 MCP client configuration formats can change. Treat these snippets as practical
 starting points, and check the official client documentation when configuring a
 new machine or a new client version.
@@ -26,7 +26,7 @@ new machine or a new client version.
 
 ## Prerequisites
 
-Install the current TAFFISH release, `0.6.0` or later, for the current MCP tool surface:
+Install the current TAFFISH release, `0.7.0` or later, for the current MCP tool surface:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -50,6 +50,13 @@ For user installs, the executable is usually under:
 ```sh
 $HOME/.local/bin/taffish-mcp
 ```
+
+For MCP compile tools, an AI client can pass `containerBackend` when Docker,
+Podman, or Apptainer selection matters. If the tool call omits that argument
+and the MCP server environment has
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`, TAFFISH uses the
+environment value. This is a TAFFISH runtime setting, not a client-specific MCP
+feature.
 
 ## Official Configuration References
 

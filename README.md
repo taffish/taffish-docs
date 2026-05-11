@@ -70,7 +70,7 @@ Read these two documents when you want the system-level picture.
 
 | Document | Purpose |
 | --- | --- |
-| [TAFFISH Quick Start](en/quick-start.en.md) | Install TAFFISH, update the Hub index, search, install, run, list, locate, and uninstall apps. |
+| [TAFFISH Quick Start](en/quick-start.en.md) | Install TAFFISH, update the Hub index, search, install public apps, install private/local apps with `taf install --from`, run, list, locate, and uninstall apps. |
 | [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) | Configure `taffish-mcp` in Codex, Claude Code, Cursor, Cline, or a generic stdio MCP client. |
 | [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Understand `taffish-mcp` tools, read-only compiler helpers, app/project inspection, resources, prompts, and safety model. |
 | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Step-by-step `.taf` writing tutorial for app authors, from minimal scripts to parameters, containers, flows, and dependencies. |
@@ -82,8 +82,8 @@ Use these guides when you want a practical path from first install to daily use.
 
 | Document | Purpose |
 | --- | --- |
-| [TAFFISH App Developer Guide](en/app-developer-guide.en.md) | Practical workflow for creating, checking, running, building, preparing `release.md`, publishing, and maintaining TAFFISH apps. |
-| [Containerized App Best Practices](en/container-apps.en.md) | Dockerfile design, multi-stage builds, runtime mounts, GHCR visibility, local Docker/Podman testing, and backend consistency. |
+| [TAFFISH App Developer Guide](en/app-developer-guide.en.md) | Practical workflow for creating, checking, running, building, private/local testing with `taf install --from`, preparing `release.md`, publishing, and maintaining TAFFISH apps. |
+| [Containerized App Best Practices](en/container-apps.en.md) | Dockerfile design, multi-stage builds, runtime mounts, GHCR visibility, local Docker/Podman testing, backend consistency, and `TAFFISH_CONTAINER_BACKEND`. |
 | [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Flow app structure, `[[taf: ...]]`, `@:` parameter blocks, dependency declarations, multi-version dependencies, and install semantics. |
 
 Use these guides when you are actively building or maintaining apps.
