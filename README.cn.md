@@ -19,6 +19,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 - [仓库结构](#仓库结构)
 - [在线 Hub](#在线-hub)
 - [文档维护说明](#文档维护说明)
+- [许可证](#许可证)
 - [当前状态](#当前状态)
 
 ## 推荐阅读路径
@@ -137,6 +138,11 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 当需要确认精确行为时，对应仓库的代码和 release notes 应作为最终依据。文档的
 维护历史通过 GitHub commit history 追踪。如果未来某份文档只适用于特定版本，
 应该在该文档顶部明确标注。
+
+## 许可证
+
+本仓库中的文档使用 [Creative Commons Attribution 4.0 International License](LICENSE)
+授权，即 CC BY 4.0。
 
 ## 当前状态
 

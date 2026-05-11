@@ -21,6 +21,7 @@ discover, install, and manage TAFFISH apps.
 - [Repository Layout](#repository-layout)
 - [Online Hub](#online-hub)
 - [Documentation Policy](#documentation-policy)
+- [License](#license)
 - [Status](#status)
 
 ## Recommended Reading Paths
@@ -151,6 +152,11 @@ When exact behavior matters, prefer the corresponding repository code and releas
 notes as the final source of truth. Documentation history is tracked through
 GitHub commit history. If a future document applies only to a specific version,
 that constraint should be stated explicitly at the top of that document.
+
+## License
+
+The documentation in this repository is licensed under the
+[Creative Commons Attribution 4.0 International License](LICENSE) (CC BY 4.0).
 
 ## Status
 
