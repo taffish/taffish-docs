@@ -660,7 +660,9 @@ project resources, and prepare safe project actions without relying first on
 unstructured terminal text.
 
 For the focused guide to tools, resources, prompts, and safety boundaries, see
-[TAFFISH MCP Guide](taffish-mcp.en.md).
+[TAFFISH MCP Guide](taffish-mcp.en.md). For Codex, Claude Code, Cursor, Cline,
+and generic MCP client configuration examples, see
+[Using TAFFISH MCP With AI Clients](mcp-clients.en.md).
 
 ## Runtime Config And Mirrors
 

@@ -1,5 +1,7 @@
 # TAFFISH MCP 指南
 
+[English](../en/taffish-mcp.en.md) | [中文](taffish-mcp.cn.md)
+
 `taffish-mcp` 是 TAFFISH `0.4.0` 及后续版本随安装器分发的 MCP stdio server。它让
 AI 客户端可以用结构化方式检查 TAFFISH 项目、查询本地 Hub 状态、读取部分资源，并准备相对安全的项目操作。
 
@@ -11,6 +13,7 @@ AI 客户端可以用结构化方式检查 TAFFISH 项目、查询本地 Hub 状
 - [什么时候使用](#什么时候使用)
 - [安装与验证](#安装与验证)
 - [MCP 客户端配置](#mcp-客户端配置)
+- [特定客户端接入](#特定客户端接入)
 - [当前工具接口](#当前工具接口)
 - [资源](#资源)
 - [Prompts](#prompts)
@@ -77,6 +80,31 @@ export PATH="$HOME/.local/bin:$PATH"
 
 不同 MCP 客户端的配置文件位置不同。server 需要运行在正常 shell 环境中，以便在需要时找到
 `taf`、TAFFISH home 路径和容器 backend 工具。
+
+修改 MCP 配置后，有些客户端需要重启或显式 reload MCP servers，新的 server 才会出现。
+如果 `taffish-mcp --version` 在终端中可用，但客户端里还看不到 TAFFISH tools，
+先尝试重新加载客户端侧 MCP 配置。
+
+Codex、Claude Code、Cursor、Cline 和通用 MCP 客户端示例见
+[在 AI 客户端中使用 TAFFISH MCP](mcp-clients.cn.md)。
+
+## 特定客户端接入
+
+本文档是 `taffish-mcp` 暴露能力的参考。具体客户端接入说明单独维护在
+[在 AI 客户端中使用 TAFFISH MCP](mcp-clients.cn.md)。
+
+客户端配置示例生成并最后检查于 2026-05-11。MCP 客户端配置格式可能变化，所以在新机器或新客户端版本上配置时，
+应始终对照对应客户端的官方文档。
+
+官方 MCP 配置参考：
+
+| 客户端或标准 | 官方参考 |
+| --- | --- |
+| MCP stdio 传输 | [Model Context Protocol transport specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) |
+| Codex | [OpenAI Codex MCP documentation](https://developers.openai.com/codex/mcp) |
+| Claude Code | [Claude Code MCP documentation](https://code.claude.com/docs/en/mcp) |
+| Cursor | [Cursor MCP documentation](https://docs.cursor.com/en/context/mcp) |
+| Cline | [Cline MCP server configuration](https://docs.cline.bot/mcp/adding-and-configuring-servers) 和 [Cline CLI configuration](https://docs.cline.bot/cline-cli/configuration) |
 
 ## 当前工具接口
 
@@ -192,6 +220,9 @@ server 也提供一些可复用 prompts：
 ```sh
 taffish-mcp --version
 ```
+
+如果这个命令可用，但客户端仍然没有列出 TAFFISH tools，先重启 AI 客户端或 reload MCP servers。
+有些客户端不会在 MCP 层重启前读取新的配置。
 
 如果 `taffish://index/summary` 等资源失败，先运行：
 

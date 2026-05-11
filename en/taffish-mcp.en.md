@@ -1,5 +1,7 @@
 # TAFFISH MCP Guide
 
+[English](taffish-mcp.en.md) | [中文](../zh/taffish-mcp.cn.md)
+
 `taffish-mcp` is the MCP stdio server distributed with TAFFISH `0.4.0` and later.
 It gives AI clients a structured way to inspect TAFFISH projects, query local Hub
 state, read selected resources, and prepare safe project actions.
@@ -13,6 +15,7 @@ planning, and low-risk project maintenance. It does not expose `taf run`,
 - [When To Use It](#when-to-use-it)
 - [Installation And Verification](#installation-and-verification)
 - [MCP Client Configuration](#mcp-client-configuration)
+- [Client-Specific Setup](#client-specific-setup)
 - [Current Tool Surface](#current-tool-surface)
 - [Resources](#resources)
 - [Prompts](#prompts)
@@ -82,6 +85,34 @@ Use `taffish-mcp` as a stdio MCP server.
 The exact location for this JSON depends on the MCP client. The server expects to
 run in a normal shell environment where `taf`, TAFFISH home paths, and container
 backend tools can be discovered when needed.
+
+After changing MCP configuration, some clients need a restart or an explicit MCP
+server reload before the new server appears. If `taffish-mcp --version` works in
+a terminal but the client does not show TAFFISH tools yet, try reloading the
+client-side MCP configuration first.
+
+For Codex, Claude Code, Cursor, Cline, and generic MCP client examples, see
+[Using TAFFISH MCP With AI Clients](mcp-clients.en.md).
+
+## Client-Specific Setup
+
+This document is the reference for what `taffish-mcp` exposes. Client setup
+details are maintained separately in [Using TAFFISH MCP With AI Clients](mcp-clients.en.md).
+
+The client configuration examples were generated and last checked on 2026-05-11. MCP client
+configuration formats can change, so always compare the examples with the
+official client documentation when setting up a new machine or a new client
+version.
+
+Official MCP configuration references:
+
+| Client or standard | Official reference |
+| --- | --- |
+| MCP stdio transport | [Model Context Protocol transport specification](https://modelcontextprotocol.io/specification/2025-06-18/basic/transports) |
+| Codex | [OpenAI Codex MCP documentation](https://developers.openai.com/codex/mcp) |
+| Claude Code | [Claude Code MCP documentation](https://code.claude.com/docs/en/mcp) |
+| Cursor | [Cursor MCP documentation](https://docs.cursor.com/en/context/mcp) |
+| Cline | [Cline MCP server configuration](https://docs.cline.bot/mcp/adding-and-configuring-servers) and [Cline CLI configuration](https://docs.cline.bot/cline-cli/configuration) |
 
 ## Current Tool Surface
 
@@ -200,6 +231,10 @@ If the MCP client cannot start the server, first verify the command directly:
 ```sh
 taffish-mcp --version
 ```
+
+If this command works but the client still does not list TAFFISH tools, restart
+the AI client or reload MCP servers. Some clients do not pick up changed MCP
+configuration until their MCP layer is restarted.
 
 If resources such as `taffish://index/summary` fail, run:
 

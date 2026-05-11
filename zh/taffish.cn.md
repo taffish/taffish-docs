@@ -652,7 +652,8 @@ MCP 客户端配置示例：
 并准备安全的项目操作，而不是一开始就依赖非结构化终端文本。
 
 关于 tools、resources、prompts 和安全边界的集中说明，见
-[TAFFISH MCP 指南](taffish-mcp.cn.md)。
+[TAFFISH MCP 指南](taffish-mcp.cn.md)。Codex、Claude Code、Cursor、Cline
+和通用 MCP 客户端配置示例，见 [在 AI 客户端中使用 TAFFISH MCP](mcp-clients.cn.md)。
 
 ## 运行时配置与镜像源
 
