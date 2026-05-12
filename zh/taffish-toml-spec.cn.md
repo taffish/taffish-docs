@@ -188,6 +188,15 @@ exist = ["my-tool"]
 test = ["my-tool --help"]
 ```
 
+可以在 smoke 命令中使用嵌套 shell 引号。推荐写法是 TOML 外层使用双引号，shell
+片段内部使用单引号：
+
+```toml
+test = ["python -c 'import vina, rdkit, meeko, gemmi, prody'"]
+```
+
+index parser 支持 `\"` 这类 TOML basic string 转义，但单引号写法通常更容易阅读和审核。
+
 字段：
 
 | 字段 | 类型 | 必需 | 说明 |

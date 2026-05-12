@@ -125,6 +125,15 @@ exist = ["my-tool"]
 test = ["my-tool --help"]
 ```
 
+如果命令本身需要嵌套引号，建议外层继续使用 TOML 双引号，shell 片段内部使用单引号：
+
+```toml
+test = ["python -c 'import vina, rdkit, meeko, gemmi, prody'"]
+```
+
+`\"` 这类 TOML 转义是合法的，但 smoke `test` 命令最终会在容器中通过 `sh -lc`
+执行；使用单引号通常更清楚，也更不容易写错。
+
 建议：
 
 - smoke 检查应短小、确定、可重复。

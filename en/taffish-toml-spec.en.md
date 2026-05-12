@@ -207,6 +207,16 @@ exist = ["my-tool"]
 test = ["my-tool --help"]
 ```
 
+Nested shell quoting is allowed. The recommended style is to keep TOML's outer
+string quotes as double quotes and use single quotes inside shell snippets:
+
+```toml
+test = ["python -c 'import vina, rdkit, meeko, gemmi, prody'"]
+```
+
+TOML basic string escapes such as `\"` are supported by the index parser, but
+the single-quote style is usually easier to read and review.
+
 | Field | Type | Required | Description |
 | --- | --- | --- | --- |
 | `backend` | string | no | Preferred smoke backend: `docker`, `podman`, or `apptainer`. Default is `docker`. |

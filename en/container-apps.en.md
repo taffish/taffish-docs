@@ -127,6 +127,17 @@ exist = ["my-tool"]
 test = ["my-tool --help"]
 ```
 
+For commands that need nested quoting, keep the outer TOML string in double
+quotes and prefer single quotes inside the shell snippet:
+
+```toml
+test = ["python -c 'import vina, rdkit, meeko, gemmi, prody'"]
+```
+
+TOML escapes such as `\"` are valid, but the single-quote style is usually less
+fragile because smoke `test` commands are executed through `sh -lc` inside the
+container.
+
 Guidelines:
 
 - Keep smoke checks short and deterministic.

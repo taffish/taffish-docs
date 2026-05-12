@@ -18,6 +18,7 @@ from the error message, then check the relevant section.
 - [Apptainer Missing `mksquashfs`](#apptainer-missing-mksquashfs)
 - [Build Backend Rejects Apptainer](#build-backend-rejects-apptainer)
 - [`taf check` Rejects `[smoke]`](#taf-check-rejects-smoke)
+- [Smoke Command Fails Because Of Nested Quotes](#smoke-command-fails-because-of-nested-quotes)
 - [Option Is Handled By The Wrapper Instead Of The Tool](#option-is-handled-by-the-wrapper-instead-of-the-tool)
 - [`exec`: Executable File Not Found](#exec-executable-file-not-found)
 - [Tool Exists In The Image But Is Not Found](#tool-exists-in-the-image-but-is-not-found)
@@ -313,6 +314,22 @@ test = ["my-tool --help"]
 checks cheap and deterministic. The public Hub/index automation runs them for
 new containerized versions after the image has been pushed; failures appear in
 the index build report instead of the main installable index.
+
+## Smoke Command Fails Because Of Nested Quotes
+
+Smoke `test` entries are TOML strings and are executed through `sh -lc` inside
+the smoke container. When a command itself needs quotes, prefer single quotes
+inside the shell snippet:
+
+```toml
+[smoke]
+test = ["python -c 'import vina, rdkit, meeko, gemmi, prody'"]
+```
+
+TOML basic string escapes such as `\"` are valid, but deeply nested quoting is
+harder to review and easier to copy incorrectly. If the index report shows a
+Python `SyntaxError` where the code appears to start with an unexpected quote,
+check the quoting in `[smoke].test` first.
 
 ## Option Is Handled By The Wrapper Instead Of The Tool
 

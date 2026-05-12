@@ -18,6 +18,7 @@
 - [Apptainer 缺少 `mksquashfs`](#apptainer-缺少-mksquashfs)
 - [构建镜像时 backend 不接受 Apptainer](#构建镜像时-backend-不接受-apptainer)
 - [`taf check` 拒绝 `[smoke]`](#taf-check-拒绝-smoke)
+- [smoke 命令因为嵌套引号失败](#smoke-命令因为嵌套引号失败)
 - [参数被 wrapper 处理而不是传给上游工具](#参数被-wrapper-处理而不是传给上游工具)
 - [`exec`: executable file not found](#exec-executable-file-not-found)
 - [镜像里有工具但运行时找不到](#镜像里有工具但运行时找不到)
@@ -304,6 +305,20 @@ test = ["my-tool --help"]
 如果默认值足够，`backend` 和 `timeout` 可以省略。Smoke 检查应该短小、确定、可
 重复。公开 Hub/index 自动化会在镜像推送后，对新的容器化版本运行这些检查；失败
 结果会进入 index 构建报告，而不是进入主安装 index。
+
+## smoke 命令因为嵌套引号失败
+
+Smoke `test` 条目是 TOML 字符串，并会在 smoke 容器中通过 `sh -lc` 执行。如果命令
+本身需要引号，推荐在 shell 片段内部使用单引号：
+
+```toml
+[smoke]
+test = ["python -c 'import vina, rdkit, meeko, gemmi, prody'"]
+```
+
+`\"` 这类 TOML basic string 转义是合法的，但多层嵌套引号更难审核，也更容易复制
+出错。如果 index report 中出现 Python `SyntaxError`，并且代码看起来像以多余的引号
+开头，应优先检查 `[smoke].test` 中的引号写法。
 
 ## 参数被 wrapper 处理而不是传给上游工具
 
