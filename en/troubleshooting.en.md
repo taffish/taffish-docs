@@ -17,6 +17,7 @@ from the error message, then check the relevant section.
 - [Podman Machine Or crun Errors](#podman-machine-or-crun-errors)
 - [Apptainer Missing `mksquashfs`](#apptainer-missing-mksquashfs)
 - [Build Backend Rejects Apptainer](#build-backend-rejects-apptainer)
+- [`taf check` Rejects `[smoke]`](#taf-check-rejects-smoke)
 - [Option Is Handled By The Wrapper Instead Of The Tool](#option-is-handled-by-the-wrapper-instead-of-the-tool)
 - [`exec`: Executable File Not Found](#exec-executable-file-not-found)
 - [Tool Exists In The Image But Is Not Found](#tool-exists-in-the-image-but-is-not-found)
@@ -281,6 +282,37 @@ This is not valid for image building:
 ```sh
 taf build --image --backend apptainer
 ```
+
+## `taf check` Rejects `[smoke]`
+
+Starting with TAFFISH `0.8.0`, containerized apps must provide real `[smoke]`
+metadata. `taf check` validates this metadata but does not run the smoke
+commands locally.
+
+Common causes:
+
+- `[smoke]` is missing for a project that declares `[container].image` or
+  `[container].dockerfile`.
+- `exist` and `test` are both missing or empty.
+- The default `TODO` placeholders from `taf new --tool --docker` were not
+  replaced.
+- `backend` is not one of `docker`, `podman`, or `apptainer`.
+- `timeout` is not a positive integer.
+
+Minimal example:
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
+```
+
+`backend` and `timeout` can be omitted when their defaults are fine. Keep smoke
+checks cheap and deterministic. The public Hub/index automation runs them for
+new containerized versions after the image has been pushed; failures appear in
+the index build report instead of the main installable index.
 
 ## Option Is Handled By The Wrapper Instead Of The Tool
 

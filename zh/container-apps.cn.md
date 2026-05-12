@@ -7,6 +7,9 @@
 - [什么时候使用容器](#什么时候使用容器)
 - [基本结构](#基本结构)
 - [镜像命名与 tag](#镜像命名与-tag)
+- [`taffish.toml`](#taffishtoml)
+- [`src/main.taf`](#srcmaintaf)
+- [Smoke 元数据](#smoke-元数据)
 - [运行时挂载与工作目录](#运行时挂载与工作目录)
 - [Dockerfile 建议](#dockerfile-建议)
 - [多阶段构建](#多阶段构建)
@@ -50,22 +53,6 @@ my-tool/
       build-image.yml
 ```
 
-`taffish.toml`：
-
-```toml
-[container]
-image = "ghcr.io/taffish/my-tool:0.1.0-r1"
-dockerfile = "docker/Dockerfile"
-build_platforms = "linux/amd64,linux/arm64"
-```
-
-`src/main.taf`：
-
-```taf
-<taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
-my-tool --input ::input::
-```
-
 ## 镜像命名与 tag
 
 推荐格式：
@@ -86,6 +73,69 @@ ghcr.io/taffish/blast:2.16.0-r1
 - 不要用 `latest` 作为 app 的正式引用。
 - 不要覆盖已发布 tag。
 - 如果 Dockerfile 修复但上游版本不变，增加 release，例如 `2.16.0-r2`。
+
+## `taffish.toml`
+
+容器元数据：
+
+```toml
+[container]
+image = "ghcr.io/taffish/my-tool:0.1.0-r1"
+dockerfile = "docker/Dockerfile"
+build_platforms = "linux/amd64,linux/arm64"
+```
+
+规则：
+
+- `image` 应与 app version id 一致：`<version>-r<release>`。
+- `dockerfile` 是项目内相对路径。
+- `build_platforms` 是逗号分隔的平台列表。
+- 除非有明确理由，否则以 `linux/amd64` 作为基线平台。
+- 只有在上游工具实际支持时才增加 `linux/arm64`。
+- 容器化 app 还必须提供 `[smoke]` 元数据，才能通过 `taf check` 和官方 Hub 索引。
+
+## `src/main.taf`
+
+通用容器 backend：
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
+my-tool --input ::input::
+```
+
+显式 backend：
+
+```taf
+<taf-app:docker:ghcr.io/taffish/my-tool:0.1.0-r1>
+my-tool --input ::input::
+```
+
+如果镜像可以在支持的 backend 之间移植，发布 app 时优先使用通用 `container` 标签。只有工具或本地开发环境明确依赖某个 backend 时，才使用显式 `docker` 或 `podman` 标签。
+
+## Smoke 元数据
+
+TAFFISH `0.8.0` 为容器化 app 增加了 `[smoke]` 元数据。它用于描述低成本检查，
+证明最终镜像中存在目标可执行文件，并且可以运行一个最小命令。
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
+```
+
+建议：
+
+- smoke 检查应短小、确定、可重复。
+- 用 `exist` 检查命令是否在容器 `PATH` 中。
+- 用 `test` 运行最小命令，例如 `tool --help`、`tool -h` 或 `tool --version`。
+- 不要依赖网络、大型参考数据或用户凭证。
+- 在 `taf check` 或 `taf publish` 前替换所有默认 `TODO` 占位。
+
+`taf check` 只校验元数据，不运行容器。公开 Hub/index 自动化会在镜像推送后，
+对新的容器化版本运行 smoke checks，记录 digest/platform/smoke 元数据，并把失败结果写入
+index reports，而不是把失败的新版本暴露给用户。
 
 ## 运行时挂载与工作目录
 

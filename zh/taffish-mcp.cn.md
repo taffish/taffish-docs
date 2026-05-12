@@ -6,9 +6,9 @@
 AI 客户端可以用结构化方式检查 TAFFISH 项目、查询本地 Hub 状态、读取部分资源，
 验证或编译 `.taf` 源码但不执行它，并准备相对安全的项目操作。
 
-TAFFISH `0.7.0` 是当前推荐的 MCP 使用版本。它保留了 `0.5.0` 引入的只读
+TAFFISH `0.8.0` 是当前推荐的 MCP 使用版本。它保留了 `0.5.0` 引入的只读
 TAF 源码/文件编译器辅助工具、`0.6.0` 新增的 app/project inspection 和安全
-app invocation 编译，并让 MCP compile 工具与运行时容器 backend override 保持一致。
+app invocation 编译、`0.7.0` 的运行时容器 backend override 对齐，并在不运行容器的前提下暴露 app 和项目的 smoke/trust 元数据。
 
 它的设计是保守的。接口主要服务于检查、规划和低风险项目维护，不暴露
 `taf run`、`taf publish`、容器镜像构建或其他高影响执行路径。
@@ -34,7 +34,7 @@ app invocation 编译，并让 MCP compile 工具与运行时容器 backend over
 - 检查本地 TAFFISH 环境和配置
 - 搜索本地 TAFFISH index
 - 在建议安装前解析 app 元数据
-- 检查已安装或已索引 app 的源码、帮助、容器和依赖
+- 检查已安装或已索引 app 的源码、帮助、容器、依赖、smoke 元数据和 trust 状态
 - 在不运行 app 的情况下编译候选 app 调用
 - 读取当前项目的 `taffish.toml` 和 `src/main.taf`
 - 摘要当前项目的用法、帮助、release notes 和本地 artifacts
@@ -54,7 +54,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定版本安装：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.0 --user
 ```
 
 验证：
@@ -161,12 +161,17 @@ App inspection 与调用规划：
 | --- | --- |
 | `taffish_resolve_app` | 使用本地 index 和安装元数据解析 app、command alias 或 version-pinned artifact command。 |
 | `taffish_inspect_app` | 检查 index 元数据，并在本地 source 已安装时读取 `taffish.toml`、`src/main.taf` 和 `docs/help.md`。 |
-| `taffish_summarize_app_usage` | 返回面向 AI 的 app 用法数据，包括 command、args、help、containers 和 dependencies。 |
+| `taffish_summarize_app_usage` | 返回面向 AI 的 app 用法数据，包括 command、args、help、containers、dependencies、smoke 元数据和 trust 状态。 |
 | `taffish_compile_app_invocation` | 验证候选 app 参数，并把已安装 app 的 `main.taf` 编译为 shell，但不运行。 |
 
 `taffish_compile_app_invocation` 使用相同的 backend 优先级：先使用显式
 `containerBackend`，再使用已设置的 `TAFFISH_CONTAINER_BACKEND`，最后使用
 TAFFISH 正常的运行时 backend 选择。
+
+对于容器化 app，inspection 和 usage summary 会在可用时暴露 index 层的
+`container.digest`、`container.platforms`、`smoke`、`trust` 和 `source.commit`。
+MCP 不运行 smoke tests、不拉取镜像、不启动容器；它只暴露本地 TAFFISH 和
+Hub/index 已记录的元数据。
 
 安装与卸载规划：
 
@@ -182,7 +187,7 @@ TAFFISH 正常的运行时 backend 选择。
 | `taffish_create_project` | 在当前目录创建新的 TAFFISH app 项目，会写入文件。 |
 | `taffish_check_project` | 检查当前 TAFFISH app 项目，只读。 |
 | `taffish_inspect_project` | 检查当前项目的 manifest、`src/main.taf` 摘要、`docs/help.md`、`release.md` 和本地 artifacts，只读。 |
-| `taffish_summarize_project_usage` | 返回面向 AI 的当前项目用法数据，包括 command、args、help、containers 和 dependencies，只读。 |
+| `taffish_summarize_project_usage` | 返回面向 AI 的当前项目用法数据，包括 command、args、help、containers、dependencies、smoke 元数据和本地 trust notes，只读。 |
 | `taffish_compile_project` | 编译当前项目并返回生成的 shell，不执行它。 |
 | `taffish_build_project` | 构建当前项目的命令 wrapper。容器镜像构建刻意不暴露。 |
 
@@ -267,9 +272,10 @@ TAF 源码/文件编译器工具是只读工具。它们可以解析、验证、
 2. 调用 `taffish_search_apps`。
 3. 对选中的 app 调用 `taffish_resolve_app`。
 4. 调用 `taffish_summarize_app_usage` 获取 command、args、help、containers 和 dependencies。
-5. 需要原始 `taffish.toml`、`src/main.taf` 或 `docs/help.md` 时，调用 `taffish_inspect_app`。
-6. 需要验证候选参数时，调用 `taffish_compile_app_invocation`，但不运行 app。
-7. 当用户需要特定 Docker、Podman 或 Apptainer 编译预览时，传入 `containerBackend`。
+5. 推荐容器化 app 进入可复现流程前，检查返回的 smoke/trust 字段。
+6. 需要原始 `taffish.toml`、`src/main.taf` 或 `docs/help.md` 时，调用 `taffish_inspect_app`。
+7. 需要验证候选参数时，调用 `taffish_compile_app_invocation`，但不运行 app。
+8. 当用户需要特定 Docker、Podman 或 Apptainer 编译预览时，传入 `containerBackend`。
 
 调试项目：
 
@@ -278,8 +284,9 @@ TAF 源码/文件编译器工具是只读工具。它们可以解析、验证、
 3. 读取 `taffish://project/current/src/main.taf`。
 4. 需要时读取 `taffish://project/current/docs/help.md` 或 `taffish://project/current/release.md`。
 5. 调用 `taffish_check_project` 做严格校验。
-6. 调用 `taffish_compile_project` 检查生成的 shell，但不执行它。需要后端特异的容器代码时，传入 `containerBackend`。
-7. 在编辑文件前提出最小修改建议。
+6. 如果是容器化项目，检查项目摘要中的 `[smoke]` 元数据，并在发布前替换所有占位。
+7. 调用 `taffish_compile_project` 检查生成的 shell，但不执行它。需要后端特异的容器代码时，传入 `containerBackend`。
+8. 在编辑文件前提出最小修改建议。
 
 准备项目发布：
 

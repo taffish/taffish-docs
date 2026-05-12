@@ -62,8 +62,13 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.0 --user
 ```
+
+TAFFISH `0.8.0` is also the first open-source local CLI/compiler release.
+Most users should use the installer above, but source builds and release
+verification are documented in the
+[taffish/taffish README](https://github.com/taffish/taffish).
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
 downloads files from the Gitee mirror and initializes the China mirror config
@@ -171,7 +176,7 @@ taf update --url <INDEX-URL>
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current public release is `0.7.0`.
+mirror and custom source support. The current public release is `0.8.0`.
 
 Default config paths:
 
@@ -418,3 +423,4 @@ If GitHub is slow or blocked in your environment:
 - [Containerized App Best Practices](container-apps.en.md)
 - [Flow And Dependencies Guide](flow-dependencies.en.md)
 - [Troubleshooting](troubleshooting.en.md)
+- [Build From Source](https://github.com/taffish/taffish/blob/main/docs/dev/en/build-from-source.md)

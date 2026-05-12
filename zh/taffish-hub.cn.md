@@ -30,6 +30,7 @@ taf install <app>
 - [index 数据模型](#index-数据模型)
 - [依赖信息](#依赖信息)
 - [平台约束](#平台约束)
+- [Smoke 与 Trust 元数据](#smoke-与-trust-元数据)
 - [上游来源信息](#上游来源信息)
 - [`taffish.github.io`](#taffishgithubio)
 - [`.github`](#github)
@@ -53,6 +54,7 @@ Hub 提供一个中心索引，把分散信息整理成：
 - app 的 GitHub 仓库在哪里
 - app 的 release tag 和 commit 是什么
 - 是否有容器镜像
+- 容器化版本是否通过 smoke/trust 元数据检查
 - 是否有依赖
 - 有哪些平台约束
 - 包装的上游软件来源是什么
@@ -269,7 +271,28 @@ v1.0.0-r1
     "image": "ghcr.io/taffish/my-tool:0.1.0-r1",
     "dockerfile": "docker/Dockerfile",
     "image_tag": "0.1.0-r1",
-    "image_tag_matches_version": true
+    "image_tag_matches_version": true,
+    "digest": "sha256:manifest-list-digest",
+    "platforms": ["linux/amd64", "linux/arm64"],
+    "platform_digests": {
+      "linux/amd64": "sha256:...",
+      "linux/arm64": "sha256:..."
+    }
+  },
+  "smoke": {
+    "backend": "docker",
+    "timeout": 60,
+    "exist": ["my-tool"],
+    "test": ["my-tool --help"],
+    "status": "passed",
+    "checked_at": "2026-05-12T08:00:00Z",
+    "backend_used": "docker"
+  },
+  "trust": {
+    "status": "passed",
+    "checked_at": "2026-05-12T08:00:00Z",
+    "policy": "taffish.index/trust-v1",
+    "source": "taffish-index"
   },
   "source": {
     "repository": "taffish/my-tool",
@@ -344,6 +367,29 @@ optional
 required
 forbidden
 ```
+
+## Smoke 与 Trust 元数据
+
+容器化 app 应该在 `taffish.toml` 中声明 `[smoke]`：
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
+```
+
+本地 `taf check` 会校验这部分元数据，并拒绝默认 `TODO` 占位，但不会运行 smoke
+tests。TAFFISH Hub/index 自动化会在最终镜像推送后，对新的容器化版本运行 smoke
+checks，并记录镜像 digest 和平台列表。
+
+主 index 策略：
+
+- 已经接受过的版本，如果 release tag 仍指向同一 commit，则复用旧记录。
+- 新的非容器版本可以以 `trust.status = "not_applicable"` 进入 index。
+- 新的容器化版本只有通过 digest/platform 检查和 smoke checks 后才进入主 index。
+- 失败结果写入 `index/reports/latest.json` 和带时间戳的 reports，不进入稳定主 index。
 
 ## 上游来源信息
 
@@ -541,9 +587,11 @@ release tag: v<version>-r<release>
 ```text
 docker/Dockerfile
 GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
+taffish.toml 中的 [smoke]
 ```
 
-当 `taffish-index` 的自动化下一次运行后，该 app 会被写入 index。用户随后运行 `taf update` 即可安装。
+当 `taffish-index` 的自动化下一次运行后，非容器 app 和通过可信 gate 的容器化 app 会被写入主 index。
+失败的新容器化版本会进入维护者报告。用户随后运行 `taf update` 即可安装已接受的版本。
 
 ## 镜像与内部来源支持
 

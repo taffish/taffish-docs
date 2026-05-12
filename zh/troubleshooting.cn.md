@@ -17,6 +17,7 @@
 - [Podman machine 或 crun 报错](#podman-machine-或-crun-报错)
 - [Apptainer 缺少 `mksquashfs`](#apptainer-缺少-mksquashfs)
 - [构建镜像时 backend 不接受 Apptainer](#构建镜像时-backend-不接受-apptainer)
+- [`taf check` 拒绝 `[smoke]`](#taf-check-拒绝-smoke)
 - [参数被 wrapper 处理而不是传给上游工具](#参数被-wrapper-处理而不是传给上游工具)
 - [`exec`: executable file not found](#exec-executable-file-not-found)
 - [镜像里有工具但运行时找不到](#镜像里有工具但运行时找不到)
@@ -276,6 +277,33 @@ taf run --backend docker -- --help
 ```sh
 taf build --image --backend apptainer
 ```
+
+## `taf check` 拒绝 `[smoke]`
+
+从 TAFFISH `0.8.0` 开始，容器化 app 必须提供真实 `[smoke]` 元数据。
+`taf check` 会校验这部分元数据，但不会在本地运行 smoke 命令。
+
+常见原因：
+
+- 声明了 `[container].image` 或 `[container].dockerfile` 的项目没有 `[smoke]`。
+- `exist` 和 `test` 同时缺失或为空。
+- `taf new --tool --docker` 生成的默认 `TODO` 占位还没有替换。
+- `backend` 不是 `docker`、`podman` 或 `apptainer`。
+- `timeout` 不是正整数。
+
+最小示例：
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
+```
+
+如果默认值足够，`backend` 和 `timeout` 可以省略。Smoke 检查应该短小、确定、可
+重复。公开 Hub/index 自动化会在镜像推送后，对新的容器化版本运行这些检查；失败
+结果会进入 index 构建报告，而不是进入主安装 index。
 
 ## 参数被 wrapper 处理而不是传给上游工具
 

@@ -14,6 +14,7 @@ the future.
 - [`[command]`](#command)
 - [`[runtime]`](#runtime)
 - [`[container]`](#container)
+- [`[smoke]`](#smoke)
 - [`[dependencies]`](#dependencies)
 - [`[platform]`](#platform)
 - [`[upstream]`](#upstream)
@@ -31,6 +32,7 @@ the future.
 - Booleans use `true` / `false`.
 - Integers are used for release, CPU, memory, and similar fields.
 - String arrays are used for multi-version dependencies and similar fields.
+- Containerized apps should provide `[smoke]` checks that are cheap, deterministic, and safe to run in Hub automation.
 
 Apps should keep metadata simple, stable, and machine-parseable.
 
@@ -180,6 +182,47 @@ Rules:
 my-tool --help
 ```
 
+## `[smoke]`
+
+Required for containerized apps that declare `[container].image` or
+`[container].dockerfile`. Optional for non-container apps.
+
+`taf new --tool --docker` creates a placeholder section:
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["TODO"]
+test = ["TODO --help"]
+```
+
+Replace the placeholders before running `taf check` or publishing:
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
+```
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `backend` | string | no | Preferred smoke backend: `docker`, `podman`, or `apptainer`. Default is `docker`. |
+| `timeout` | integer | no | Per-command timeout in seconds. Default is `60`. Must be positive. |
+| `exist` | string array | no | Executable names that should be discoverable in the container `PATH`. |
+| `test` | string array | no | Shell commands that should exit with status `0`. |
+
+Rules:
+
+- Containerized projects must define `[smoke]`.
+- `exist` and `test` cannot both be empty.
+- `TODO` placeholders are rejected by `taf check`.
+- `taf check` validates the metadata but does not run smoke commands.
+- Hub/index automation runs smoke checks for new containerized versions, records
+  smoke status, and rejects failed new versions from the main public index.
+
 ## `[dependencies]`
 
 Optional. Mainly used by flow apps.
@@ -313,6 +356,12 @@ image = "ghcr.io/taffish/blast:2.16.0-r1"
 dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
 
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["blastn"]
+test = ["blastn -help"]
+
 [upstream]
 name = "BLAST+"
 type = "official"
@@ -381,5 +430,7 @@ ghcr.io/taffish/blast:2.16.0-r1
 - `docs/help.md` is missing.
 - Dockerfile path is wrong.
 - Container image tag does not match `version-release`.
+- A containerized app has no `[smoke]` section.
+- `[smoke]` still contains a default `TODO` placeholder.
 - A flow uses `[[taf: ...]]`, but `[dependencies]` is missing or version-mismatched.
 - `[upstream]` is used for the app's own GitHub repository instead of the original wrapped software.

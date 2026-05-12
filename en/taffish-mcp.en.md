@@ -7,10 +7,11 @@ It gives AI clients a structured way to inspect TAFFISH projects, query local Hu
 state, read selected resources, validate or compile `.taf` source without
 executing it, and prepare safe project actions.
 
-TAFFISH `0.7.0` is the current recommended release for MCP use. It keeps the
+TAFFISH `0.8.0` is the current recommended release for MCP use. It keeps the
 read-only TAF source/file compiler helpers introduced in `0.5.0`, the
 app/project inspection and safe app invocation compilation added in `0.6.0`,
-and aligns MCP compile tools with runtime container backend override.
+the runtime container backend override alignment from `0.7.0`, and exposes
+smoke/trust metadata for app and project inspection without running containers.
 
 It is intentionally conservative. The interface is designed for inspection,
 planning, and low-risk project maintenance. It does not expose `taf run`,
@@ -37,7 +38,7 @@ Use `taffish-mcp` when an AI client needs structured access to TAFFISH context:
 - inspect the local TAFFISH environment and config
 - search the local TAFFISH index
 - resolve app metadata before suggesting an install
-- inspect installed or indexed app source, help, containers, and dependencies
+- inspect installed or indexed app source, help, containers, dependencies, smoke metadata, and trust status
 - compile a candidate app invocation without running it
 - read the current project's `taffish.toml` and `src/main.taf`
 - summarize current project usage, help, release notes, and local artifacts
@@ -58,7 +59,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.0 --user
 ```
 
 Verify:
@@ -171,12 +172,18 @@ App inspection and invocation planning:
 | --- | --- |
 | `taffish_resolve_app` | Resolve an app, command alias, or version-pinned artifact command using local index and install metadata. |
 | `taffish_inspect_app` | Inspect index metadata plus installed `taffish.toml`, `src/main.taf`, and `docs/help.md` when local source is installed. |
-| `taffish_summarize_app_usage` | Return AI-oriented usage data for an app: command, args, help, containers, and dependencies. |
+| `taffish_summarize_app_usage` | Return AI-oriented usage data for an app: command, args, help, containers, dependencies, smoke metadata, and trust status. |
 | `taffish_compile_app_invocation` | Validate candidate app arguments and compile the installed app's `main.taf` to shell without running it. |
 
 `taffish_compile_app_invocation` follows the same backend priority model:
 explicit `containerBackend` first, then `TAFFISH_CONTAINER_BACKEND` when set,
 then TAFFISH's normal runtime backend selection.
+
+For containerized apps, inspection and usage summaries expose index-level
+`container.digest`, `container.platforms`, `smoke`, `trust`, and `source.commit`
+when available. MCP does not run smoke tests, pull images, or start containers;
+it only surfaces metadata that local TAFFISH and the Hub/index have already
+recorded.
 
 Install and uninstall planning:
 
@@ -192,7 +199,7 @@ Project work:
 | `taffish_create_project` | Create a new TAFFISH app project in the current working directory. This writes files. |
 | `taffish_check_project` | Check the current TAFFISH app project. Read-only. |
 | `taffish_inspect_project` | Inspect the current project manifest, `src/main.taf` summary, `docs/help.md`, `release.md`, and local artifacts. Read-only. |
-| `taffish_summarize_project_usage` | Return AI-oriented usage data for the current project: command, args, help, containers, and dependencies. Read-only. |
+| `taffish_summarize_project_usage` | Return AI-oriented usage data for the current project: command, args, help, containers, dependencies, smoke metadata, and local trust notes. Read-only. |
 | `taffish_compile_project` | Compile the current project and return generated shell. It does not execute it. |
 | `taffish_build_project` | Build the current project command wrapper. Container image builds are intentionally not exposed. |
 
@@ -281,9 +288,10 @@ Search and explain an app:
 2. Call `taffish_search_apps`.
 3. Call `taffish_resolve_app` for the selected app.
 4. Call `taffish_summarize_app_usage` for command, args, help, containers, and dependencies.
-5. Use `taffish_inspect_app` when raw `taffish.toml`, `src/main.taf`, or `docs/help.md` context is needed.
-6. Use `taffish_compile_app_invocation` to validate candidate arguments without running the app.
-7. Pass `containerBackend` when the user needs a specific Docker, Podman, or Apptainer compile preview.
+5. Check the returned smoke/trust fields before recommending a containerized app in a reproducible workflow.
+6. Use `taffish_inspect_app` when raw `taffish.toml`, `src/main.taf`, or `docs/help.md` context is needed.
+7. Use `taffish_compile_app_invocation` to validate candidate arguments without running the app.
+8. Pass `containerBackend` when the user needs a specific Docker, Podman, or Apptainer compile preview.
 
 Debug a project:
 
@@ -292,8 +300,9 @@ Debug a project:
 3. Read `taffish://project/current/src/main.taf`.
 4. Read `taffish://project/current/docs/help.md` or `taffish://project/current/release.md` when relevant.
 5. Call `taffish_check_project` for strict validation.
-6. Call `taffish_compile_project` to review generated shell without executing it. Pass `containerBackend` when backend-specific container code matters.
-7. Suggest minimal changes before editing files.
+6. For containerized projects, review `[smoke]` metadata in the project summary and replace any placeholder before publishing.
+7. Call `taffish_compile_project` to review generated shell without executing it. Pass `containerBackend` when backend-specific container code matters.
+8. Suggest minimal changes before editing files.
 
 Prepare a project for publish:
 

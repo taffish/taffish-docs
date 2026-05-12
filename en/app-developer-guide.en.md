@@ -32,6 +32,7 @@ A good TAFFISH app should have:
 - A runnable `src/main.taf`.
 - A user-readable `docs/help.md`.
 - If it uses a container, an image tag aligned with the TAFFISH version id.
+- If it uses a container, real `[smoke]` checks instead of the default TODO placeholders.
 - If it wraps third-party bioinformatics software, `[upstream]` metadata where possible.
 - If it is a flow, accurate `[dependencies]`.
 - A repository and release tag that can be indexed by TAFFISH Hub.
@@ -124,7 +125,7 @@ my-tool/
 
 Important files:
 
-- `taffish.toml`: app metadata, runtime behavior, dependencies, container info, platform constraints, and upstream metadata.
+- `taffish.toml`: app metadata, runtime behavior, dependencies, container info, smoke checks, platform constraints, and upstream metadata.
 - `src/main.taf`: TAFFISH source code.
 - `docs/help.md`: help text shown by the built command.
 - `target/`: generated command wrappers and frozen snapshots.
@@ -349,6 +350,12 @@ Use containers when a tool has complex system packages, compiled dependencies, o
 image = "ghcr.io/taffish/my-tool:0.1.0-r1"
 dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
+
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
 ```
 
 `src/main.taf`:
@@ -364,6 +371,13 @@ Requirements:
 - Dockerfile should be versioned in the app repository.
 - Image build workflow should live in the app repository.
 - GHCR package should be public so users can pull it.
+- `[smoke]` should contain real checks that prove the expected executable exists and a minimal command can run.
+
+`taf check` validates `[smoke]` structure and rejects the default `TODO`
+placeholders. It does not run smoke commands locally. The public Hub/index
+automation runs smoke checks for new containerized versions after the image is
+available, records digest/platform/smoke metadata, and only writes passing new
+versions into the main index.
 
 See [Containerized App Best Practices](container-apps.en.md).
 
@@ -540,6 +554,7 @@ Do not publish directly if:
 - The image tag has not been built yet.
 - `taf check` fails.
 - `docs/help.md` is missing.
+- `[smoke]` is missing for a containerized app or still contains `TODO`.
 - `release.md` still contains a placeholder `TODO` summary.
 - The release tag already exists.
 
@@ -558,6 +573,7 @@ On GitHub:
 - Check that the release tag exists.
 - Check GitHub Actions.
 - Check GHCR package visibility if the app uses a container.
+- Check the `taffish-index` report if a new containerized version is not accepted; smoke or digest gates may have failed.
 - Check that TAFFISH Hub can index the package after the next index run.
 
 After the index updates:
@@ -620,6 +636,7 @@ Before publishing, confirm:
 - [ ] `docs/help.md` is updated.
 - [ ] For a tool app, upstream source is recorded in `[upstream]` where possible.
 - [ ] For a containerized app, image tag matches `version-release`.
+- [ ] For a containerized app, `[smoke]` has real `exist` or `test` checks and no `TODO` placeholders.
 - [ ] For a containerized app, local `taf build --image --backend ...` and `taf run --backend ...` use a consistent backend.
 - [ ] If testing a private app before public release, `taf install --from <PROJECT-DIR>` works from the project root or a child directory.
 - [ ] For a flow app, `[dependencies]` matches `[[taf: ...]]`.

@@ -61,8 +61,12 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.0 --user
 ```
+
+TAFFISH `0.8.0` 也是本地 CLI/编译器的第一个开源版本。大多数用户仍然
+建议使用上面的安装器；源码构建和 release 校验说明见
+[taffish/taffish README](https://github.com/taffish/taffish)。
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
 文件，并在没有配置文件时自动初始化中国镜像配置：
@@ -164,7 +168,7 @@ taf update --url <INDEX-URL>
 ## 运行时配置与镜像源
 
 从 TAFFISH `0.2.0` 开始，`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义
-来源。当前公开版本是 `0.7.0`。
+来源。当前公开版本是 `0.8.0`。
 
 默认配置路径：
 
@@ -399,3 +403,4 @@ TAFFISH 仍然会使用 app package 中声明的容器镜像，通常是 GHCR。
 - [容器化 app 最佳实践](container-apps.cn.md)
 - [Flow 与依赖指南](flow-dependencies.cn.md)
 - [故障排查](troubleshooting.cn.md)
+- [从源码构建](https://github.com/taffish/taffish/blob/main/docs/dev/zh-CN/build-from-source.md)

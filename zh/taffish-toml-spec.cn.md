@@ -12,6 +12,7 @@
 - [`[command]`](#command)
 - [`[runtime]`](#runtime)
 - [`[container]`](#container)
+- [`[smoke]`](#smoke)
 - [`[dependencies]`](#dependencies)
 - [`[platform]`](#platform)
 - [`[upstream]`](#upstream)
@@ -29,6 +30,7 @@
 - 布尔值使用 `true` / `false`。
 - 整数用于 release、CPU 和内存等字段。
 - 字符串数组用于多版本依赖等字段。
+- 容器化 app 应提供低成本、确定性、适合 Hub 自动化运行的 `[smoke]` 检查。
 
 建议所有 app 都保持字段简洁、稳定、可机器解析。
 
@@ -161,6 +163,48 @@ build_platforms = "linux/amd64,linux/arm64"
 - 如果写了 `image`，镜像 tag 应匹配 `<version>-r<release>`。
 - `taffish-index` 当前导出 `image` 和 `dockerfile`，`build_platforms` 主要用于本地构建和 GitHub Actions。
 
+## `[smoke]`
+
+声明了 `[container].image` 或 `[container].dockerfile` 的容器化 app 必须提供。
+非容器 app 可不提供。
+
+`taf new --tool --docker` 会创建占位模板：
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["TODO"]
+test = ["TODO --help"]
+```
+
+运行 `taf check` 或发布前，应替换成真实检查：
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
+```
+
+字段：
+
+| 字段 | 类型 | 必需 | 说明 |
+| --- | --- | --- | --- |
+| `backend` | string | 否 | 推荐 smoke 后端：`docker`、`podman` 或 `apptainer`。默认 `docker`。 |
+| `timeout` | integer | 否 | 每条命令的超时时间，单位秒。默认 `60`，必须为正整数。 |
+| `exist` | string array | 否 | 应能在容器 `PATH` 中找到的可执行命令名。 |
+| `test` | string array | 否 | 应以退出码 `0` 结束的 shell 命令。 |
+
+规则：
+
+- 容器化项目必须定义 `[smoke]`。
+- `exist` 和 `test` 不能同时为空。
+- `taf check` 会拒绝默认 `TODO` 占位。
+- `taf check` 只校验元数据，不运行 smoke 命令。
+- Hub/index 自动化会对新的容器化版本运行 smoke checks，记录 smoke 状态，并把失败的新版本挡在公开主 index 之外。
+
 ## `[dependencies]`
 
 可选。主要用于 flow app。
@@ -285,6 +329,12 @@ image = "ghcr.io/taffish/blast:2.16.0-r1"
 dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
 
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["blastn"]
+test = ["blastn -help"]
+
 [platform]
 os = "linux,darwin"
 arch = "amd64,arm64"
@@ -360,5 +410,7 @@ ghcr.io/taffish/blast:2.16.0-r1
 - `docs/help.md` 缺失。
 - Dockerfile 路径写错。
 - 容器镜像 tag 与 `version-release` 不一致。
+- 容器化 app 没有 `[smoke]`。
+- `[smoke]` 仍然包含默认 `TODO` 占位。
 - flow 使用了 `[[taf: ...]]`，但 `[dependencies]` 缺失或版本不一致。
 - 把 `[upstream]` 当成 app 自己的 GitHub 仓库信息。

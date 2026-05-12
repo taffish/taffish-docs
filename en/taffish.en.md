@@ -19,6 +19,7 @@ In other words, a `.taf` file describes how a tool or workflow should run. `taff
 - [The `taf` CLI](#the-taf-cli)
 - [MCP / AI Integration](#mcp--ai-integration)
 - [Runtime Config And Mirrors](#runtime-config-and-mirrors)
+- [Open Source And Source Builds](#open-source-and-source-builds)
 - [TAFFISH App Project Structure](#taffish-app-project-structure)
 - [Recommended Development Workflow](#recommended-development-workflow)
 - [Tool Versus Flow](#tool-versus-flow)
@@ -37,9 +38,10 @@ TAFFISH does not try to replace shell, Docker, Conda, or workflow engines. It pu
 
 ## Installation
 
-The public `taffish` repository currently provides binary releases. The
-recommended user installation uses the installer from the canonical
-`taffish/taffish` repository:
+The public `taffish` repository provides the open-source TAFFISH
+implementation, installers, source-tree build documentation, and binary
+release payloads. The recommended user installation uses the installer from
+that canonical repository:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -54,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.7.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.0 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -105,6 +107,10 @@ the local environment and index. If the network is unavailable, the installer
 prints a warning but does not roll back the installed binaries.
 
 `taf doctor` checks common local dependencies such as `git`, `gh`, `docker`, `podman`, `apptainer`, `sbcl`, and shell tools.
+
+For source builds, release verification, supported maintainer build paths, and
+contribution notes, see the
+[taffish/taffish README](https://github.com/taffish/taffish).
 
 ## The `taffish` Compiler
 
@@ -676,7 +682,8 @@ clients. TAFFISH `0.5.0` extended it with read-only TAF source/file compiler
 helpers, and TAFFISH `0.6.0` added app/project inspection, AI-oriented usage
 summaries, safe app invocation compilation, current project resources, and
 publish-preparation prompts. TAFFISH `0.7.0` aligns MCP compile tools with the
-runtime container backend override. The interface exposes safe project, app, Hub,
+runtime container backend override. TAFFISH `0.8.0` exposes smoke/trust metadata
+for app and project inspection without running smoke tests or containers. The interface exposes safe project, app, Hub,
 config, history, resource, prompt, validation, compilation, and summarization
 operations. It does not expose `taf run`, `taf publish`, or image-building
 actions.
@@ -711,7 +718,7 @@ and generic MCP client configuration examples, see
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current public release is `0.7.0`. The default
+custom source support. The current public release is `0.8.0`. The default
 config paths are:
 
 ```text
@@ -760,6 +767,36 @@ enabled = true
 clones apps. Users or maintainers can adapt the same mechanism for internal Git
 services, as long as the mirror provides compatible repositories, tags, and the
 same TAFFISH index schema.
+
+## Open Source And Source Builds
+
+TAFFISH `0.8.0` is the first open-source local CLI/compiler release. The
+Common Lisp implementation is published in
+[taffish/taffish](https://github.com/taffish/taffish) under Apache License 2.0.
+
+The source repository builds three command-line entry points:
+
+```text
+taf
+taffish
+taffish-mcp
+```
+
+Source builds are mainly for contributors, maintainers, packagers, and users
+who need to inspect or modify the implementation. Most users should still use
+the prebuilt binaries installed by the standard installer.
+
+Useful source-side documents:
+
+- [Build From Source](https://github.com/taffish/taffish/blob/main/docs/dev/en/build-from-source.md)
+- [Source-tree Developer Docs](https://github.com/taffish/taffish/tree/main/docs/dev/en)
+- [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
+- [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md)
+
+At `0.8.0`, official macOS Apple Silicon binaries are built with SBCL and
+Linux x86_64 binaries are built manually with LispWorks. Release payloads
+include `SHA256SUMS`, `SHA256SUMS.asc`, and `TAFFISH-RELEASE-KEY.asc` for
+manual checksum and GPG signature verification.
 
 ## TAFFISH App Project Structure
 
@@ -835,7 +872,18 @@ For a container app:
 image = "ghcr.io/taffish/my-tool:0.1.0-r1"
 dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
+
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
 ```
+
+For containerized apps, `[smoke]` is part of the publishable metadata. `taf
+check` validates it and rejects default `TODO` placeholders, while Hub/index
+automation runs the actual smoke checks for new versions after the image is
+available.
 
 For flow dependencies:
 
@@ -877,6 +925,10 @@ Check locally:
 ```sh
 taf check
 ```
+
+For a containerized app, replace the default `[smoke]` placeholders before this
+step. `taf check` does not run smoke commands locally; it validates that the Hub
+automation has enough metadata to run them later.
 
 For a containerized app, build the local image first and choose the backend explicitly:
 
@@ -955,4 +1007,4 @@ Current practical boundaries:
 - The official Hub currently publishes through the `taffish` GitHub organization and is not an open self-service publishing platform.
 - Container image builds are handled by each app repository's GitHub Actions workflow, not by `taffish-index`.
 - Runtime mirror config can rewrite index and app repository access, but it does not automatically mirror container registries.
-- The public `taffish` repository currently focuses on binary distribution; core source code is not public yet.
+- The public `taffish` repository is now the open-source local CLI/compiler repository, while this documentation repository remains focused on user, app-author, Hub, and index material.

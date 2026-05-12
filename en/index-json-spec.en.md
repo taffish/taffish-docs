@@ -17,9 +17,11 @@ taffish.index/v1
 - [`counts`](#counts)
 - [`packages`](#packages)
 - [Version Record](#version-record)
+- [Container, Smoke, And Trust](#container-smoke-and-trust)
 - [`commands`](#commands)
 - [`repositories`](#repositories)
 - [`warnings`](#warnings)
+- [Build Reports](#build-reports)
 - [Dependency Semantics](#dependency-semantics)
 - [Upstream Omission Rules](#upstream-omission-rules)
 - [Compatibility Principles](#compatibility-principles)
@@ -32,6 +34,8 @@ The `taffish-index` repository generates:
 index/index.json
 index/packages/<package>.json
 index/commands/<command>.json
+index/reports/latest.json
+index/reports/<timestamp>.json
 ```
 
 Users download this by default:
@@ -84,7 +88,8 @@ Fields:
   "versions": 27,
   "commands": 12,
   "repositories": 12,
-  "warnings": 0
+  "warnings": 0,
+  "failed": 0
 }
 ```
 
@@ -95,6 +100,7 @@ Fields:
 - `commands`: number of commands.
 - `repositories`: number of repositories.
 - `warnings`: number of warnings.
+- `failed`: number of trust-gate failures written to the latest build report.
 
 ## `packages`
 
@@ -163,7 +169,28 @@ A version record describes one concrete app version.
     "image": "ghcr.io/taffish/blast:2.16.0-r1",
     "dockerfile": "docker/Dockerfile",
     "image_tag": "2.16.0-r1",
-    "image_tag_matches_version": true
+    "image_tag_matches_version": true,
+    "digest": "sha256:manifest-list-digest",
+    "platforms": ["linux/amd64", "linux/arm64"],
+    "platform_digests": {
+      "linux/amd64": "sha256:...",
+      "linux/arm64": "sha256:..."
+    }
+  },
+  "smoke": {
+    "backend": "docker",
+    "timeout": 60,
+    "exist": ["blastn"],
+    "test": ["blastn -help"],
+    "status": "passed",
+    "checked_at": "2026-05-12T08:00:00Z",
+    "backend_used": "docker"
+  },
+  "trust": {
+    "status": "passed",
+    "checked_at": "2026-05-12T08:00:00Z",
+    "policy": "taffish.index/trust-v1",
+    "source": "taffish-index"
   },
   "source": {
     "repository": "taffish/blast",
@@ -194,8 +221,44 @@ Field descriptions:
 | `platform` | object | Platform constraints. |
 | `paths` | object | Project-relative paths. |
 | `container` | object/null | Container metadata. |
+| `smoke` | object/null | Smoke metadata and result for containerized apps. |
+| `trust` | object/null | Hub/index trust-gate status. |
 | `source` | object | App repository source information. |
 | `upstream` | object | Optional upstream software source. |
+
+## Container, Smoke, And Trust
+
+`container` fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `image` | string | Container image reference. |
+| `dockerfile` | string/null | Project-relative Dockerfile path. |
+| `image_tag` | string/null | Image tag parsed from `image`. |
+| `image_tag_matches_version` | boolean | Whether the image tag matches `version_id`. |
+| `digest` | string/null | Manifest-list digest recorded by the index builder. |
+| `platforms` | array | Platforms reported for the image, such as `linux/amd64`. |
+| `platform_digests` | object | Optional mapping from platform to per-platform digest. |
+
+`smoke` fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `backend` | string | Requested smoke backend: `docker`, `podman`, or `apptainer`. |
+| `timeout` | number | Per smoke command timeout in seconds. |
+| `exist` | array | Executables that should exist in the container `PATH`. |
+| `test` | array | Commands that should exit with status `0`. |
+| `status` | string/null | Usually `passed` for records in the main index. |
+| `checked_at` | string/null | UTC smoke check time. |
+| `backend_used` | string/null | Backend actually used by the index builder. |
+
+`trust.status` values currently used by the official index:
+
+- `passed`: container digest/platform inspection and smoke checks passed.
+- `not_applicable`: non-container app version; no container smoke gate applies.
+
+Failed new versions are not written to the main index. They appear in build
+reports instead.
 
 ## `commands`
 
@@ -249,6 +312,43 @@ Non-fatal problems encountered during index generation are written to
 
 Warnings do not prevent other valid apps from being written into the index. The
 web UI can display them, and maintainers should review them regularly.
+
+## Build Reports
+
+The index builder also writes reports:
+
+```text
+index/reports/latest.json
+index/reports/<timestamp>.json
+```
+
+Report schema:
+
+```json
+{
+  "schema_version": "taffish.index.report/v1",
+  "generated_at": "2026-05-12T08:00:00Z",
+  "organization": "taffish",
+  "counts": {
+    "failed": 1,
+    "warnings": 0
+  },
+  "failed": [
+    {
+      "repository": "taffish/my-tool",
+      "ref": "v0.1.0-r1",
+      "version_id": "0.1.0-r1",
+      "stage": "smoke",
+      "message": "smoke command failed",
+      "image": "ghcr.io/taffish/my-tool:0.1.0-r1"
+    }
+  ],
+  "warnings": []
+}
+```
+
+`taf update` and `taf install` consume the stable main index, not report files.
+Reports are for maintainers and future Hub UI diagnostics.
 
 ## Dependency Semantics
 
@@ -313,3 +413,5 @@ Index JSON consumers should:
 - not interpret dependency arrays as alternatives
 - use `source.ref` and `source.commit` to track app source
 - use `upstream` to track the wrapped software source
+- treat missing `smoke` or `trust` as unknown/legacy metadata, not as proof of failure
+- read reports separately from the main installable index

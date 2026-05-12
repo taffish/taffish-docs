@@ -35,6 +35,7 @@ the app repository itself and is not centrally handled by `taffish-hub`.
 - [Index Data Model](#index-data-model)
 - [Dependencies](#dependencies)
 - [Platform Constraints](#platform-constraints)
+- [Smoke And Trust Metadata](#smoke-and-trust-metadata)
 - [Upstream Source Metadata](#upstream-source-metadata)
 - [`taffish.github.io`](#taffishgithubio)
 - [`.github`](#github)
@@ -59,6 +60,7 @@ Hub provides a central index that organizes distributed information into:
 - app GitHub repository
 - app release tag and commit
 - whether a container image exists
+- whether a containerized version has passed smoke/trust metadata checks
 - whether dependencies exist
 - platform constraints
 - original upstream software source
@@ -296,7 +298,28 @@ Each version record contains:
     "image": "ghcr.io/taffish/my-tool:0.1.0-r1",
     "dockerfile": "docker/Dockerfile",
     "image_tag": "0.1.0-r1",
-    "image_tag_matches_version": true
+    "image_tag_matches_version": true,
+    "digest": "sha256:manifest-list-digest",
+    "platforms": ["linux/amd64", "linux/arm64"],
+    "platform_digests": {
+      "linux/amd64": "sha256:...",
+      "linux/arm64": "sha256:..."
+    }
+  },
+  "smoke": {
+    "backend": "docker",
+    "timeout": 60,
+    "exist": ["my-tool"],
+    "test": ["my-tool --help"],
+    "status": "passed",
+    "checked_at": "2026-05-12T08:00:00Z",
+    "backend_used": "docker"
+  },
+  "trust": {
+    "status": "passed",
+    "checked_at": "2026-05-12T08:00:00Z",
+    "policy": "taffish.index/trust-v1",
+    "source": "taffish-index"
   },
   "source": {
     "repository": "taffish/my-tool",
@@ -374,6 +397,30 @@ optional
 required
 forbidden
 ```
+
+## Smoke And Trust Metadata
+
+Containerized apps should declare `[smoke]` in `taffish.toml`:
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
+```
+
+Local `taf check` validates this metadata and rejects default `TODO`
+placeholders, but it does not run smoke tests. TAFFISH Hub/index automation runs
+smoke checks for new containerized versions after the final image has been
+pushed. It also records the image digest and platform list.
+
+Main-index policy:
+
+- existing accepted versions are reused when the release tag still points to the same commit;
+- new non-container versions can enter the index with `trust.status = "not_applicable"`;
+- new containerized versions enter the main index only after digest/platform inspection and smoke checks pass;
+- failures are written to `index/reports/latest.json` and timestamped reports, not to the stable main index.
 
 ## Upstream Source Metadata
 
@@ -578,10 +625,13 @@ If it is containerized, it should also have:
 ```text
 docker/Dockerfile
 GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
+[smoke] in taffish.toml
 ```
 
-When the next `taffish-index` automation run completes, the app is written into
-the index. Users can then run `taf update` and install it.
+When the next `taffish-index` automation run completes, non-container apps and
+containerized apps that pass the trust gate are written into the main index.
+Failed new containerized versions are recorded in reports for maintainers.
+Users can then run `taf update` and install accepted versions.
 
 ## Mirror And Internal Source Support
 

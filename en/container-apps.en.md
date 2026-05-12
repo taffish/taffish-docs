@@ -9,6 +9,7 @@ Containerized apps are the recommended way to package tools with complex system 
 - [Image Naming And Tags](#image-naming-and-tags)
 - [`taffish.toml`](#taffishtoml)
 - [`src/main.taf`](#srcmaintaf)
+- [Smoke Metadata](#smoke-metadata)
 - [Runtime Mounts And Working Directory](#runtime-mounts-and-working-directory)
 - [Dockerfile Advice](#dockerfile-advice)
 - [Multi-Stage Builds](#multi-stage-builds)
@@ -92,6 +93,7 @@ Rules:
 - `build_platforms` is a comma-separated list.
 - Use `linux/amd64` as the baseline platform unless there is a strong reason not to.
 - Add `linux/arm64` only when the upstream tool actually supports it.
+- Containerized apps must also provide `[smoke]` metadata before they can pass `taf check` and public Hub indexing.
 
 ## `src/main.taf`
 
@@ -110,6 +112,34 @@ my-tool --input ::input::
 ```
 
 Prefer the generic `container` tag for published apps when the image is portable across supported backends. Use explicit `docker` or `podman` tags when a tool or local development setup depends on one backend.
+
+## Smoke Metadata
+
+TAFFISH `0.8.0` adds `[smoke]` metadata for containerized apps. It describes
+cheap checks that prove the final image contains the expected executable and can
+run a minimal command.
+
+```toml
+[smoke]
+backend = "docker"
+timeout = 60
+exist = ["my-tool"]
+test = ["my-tool --help"]
+```
+
+Guidelines:
+
+- Keep smoke checks short and deterministic.
+- Use `exist` for command availability checks.
+- Use `test` for minimal commands such as `tool --help`, `tool -h`, or
+  `tool --version`.
+- Do not require network access, large reference data, or user credentials.
+- Replace every default `TODO` placeholder before `taf check` or `taf publish`.
+
+`taf check` validates the metadata but does not run the container. The public
+Hub/index automation runs smoke checks for new containerized versions after the
+image has been pushed, records digest/platform/smoke metadata, and writes
+failures to index reports instead of exposing failed new versions to users.
 
 ## Runtime Mounts And Working Directory
 
