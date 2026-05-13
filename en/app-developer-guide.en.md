@@ -40,6 +40,7 @@ A good TAFFISH app should have:
 - A user-readable `docs/help.md`.
 - If it uses a container, an image tag aligned with the TAFFISH version id.
 - If it uses a container, real `[smoke]` checks instead of the default TODO placeholders.
+- Optional `[meta]` metadata when it is intended for public Hub discovery.
 - If it wraps third-party bioinformatics software, `[upstream]` metadata where possible.
 - If it is a flow, accurate `[dependencies]`.
 - A repository and release tag that can be indexed by TAFFISH Hub.
@@ -195,12 +196,26 @@ Do not put a Gitee or internal mirror URL here for official Hub packages.
 Since TAFFISH `0.2.0`, mirrors are handled through local `taf` runtime config,
 where `[[source.rewrite]]` can rewrite the canonical URL during install.
 
+Recommended discovery metadata:
+
+```toml
+[meta]
+domain = "bioinformatics"
+category = "sequence-clustering"
+summary = "CD-HIT wrapper for clustering biological sequences."
+keywords = ["cd-hit", "clustering", "sequence-identity"]
+```
+
+`[meta]` is optional for local development, but public Hub apps should provide
+it when useful. It improves Hub search, filtering, and app detail pages.
+
 Recommended upstream metadata:
 
 ```toml
 [upstream]
 name = "CD-HIT"
 type = "github"
+url = "https://github.com/weizhongli/cdhit"
 homepage = "https://github.com/weizhongli/cdhit"
 repository = "weizhongli/cdhit"
 version = "4.8.1"
@@ -532,7 +547,10 @@ The built command uses the frozen source snapshot, not the live `src/` directory
 Before publishing, edit the ignored `release.md` draft. With
 `taf publish --release`, the first line of `release.md` becomes the publish
 commit/tag message, and the whole file becomes the GitHub Release notes. Replace
-the default `TODO` summary before a real release.
+the default `TODO` summary before a real release. Since TAFFISH `0.8.1`,
+`taf publish --release` rejects only the default first-line placeholders
+`TODO` and `TODO: release summary`; a real summary that happens to contain the
+word `todo` is accepted.
 
 Publish preview with release notes:
 
@@ -564,7 +582,7 @@ Do not publish directly if:
 - `taf check` fails.
 - `docs/help.md` is missing.
 - `[smoke]` is missing for a containerized app or still contains `TODO`.
-- `release.md` still contains a placeholder `TODO` summary.
+- `release.md` still uses the default first-line `TODO` summary.
 - The release tag already exists.
 
 ## Post-Publish Checks
@@ -643,6 +661,7 @@ Before publishing, confirm:
 - [ ] `command.name` starts with `taf-`.
 - [ ] `src/main.taf` can be parsed by `taf check`.
 - [ ] `docs/help.md` is updated.
+- [ ] If intended for public Hub discovery, `[meta]` contains useful domain, category, summary, and keywords.
 - [ ] For a tool app, upstream source is recorded in `[upstream]` where possible.
 - [ ] For a containerized app, image tag matches `version-release`.
 - [ ] For a containerized app, `[smoke]` has real `exist` or `test` checks and no `TODO` placeholders.

@@ -56,7 +56,7 @@ artifact integrity.
 
 ## Release Payload Integrity
 
-TAFFISH `0.8.0` release payloads include:
+Current TAFFISH `0.8.1` release payloads include:
 
 ```text
 target/SHA256SUMS
@@ -94,7 +94,7 @@ are selected from a fixed release tag through `--version`.
 Example:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.1 --user
 ```
 
 This separates installer updates from versioned release payloads. For

@@ -126,10 +126,16 @@ private mirror, enterprise environment, or security-sensitive workflow.
 
 ## Source Development
 
-TAFFISH `0.8.0` is the first open-source local CLI/compiler release. The
-source code, ASDF systems, source-tree developer docs, release payloads,
-contribution guide, and security policy live in
+TAFFISH `0.8.1` is the current stable patch release in the first open-source
+`0.8.x` local CLI/compiler series. The source code, ASDF systems,
+source-tree developer docs, release payloads, contribution guide, and security
+policy live in
 [taffish/taffish](https://github.com/taffish/taffish).
+
+The `0.8.1` release keeps the `0.8.0` public interface stable, fixes
+`release.md` placeholder detection in `taf publish --release`, documents
+optional `[meta]` and `[upstream]` metadata, and refreshes the signed checksum
+release payload.
 
 The most relevant source-side documents are:
 

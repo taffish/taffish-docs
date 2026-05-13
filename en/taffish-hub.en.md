@@ -36,6 +36,7 @@ the app repository itself and is not centrally handled by `taffish-hub`.
 - [Dependencies](#dependencies)
 - [Platform Constraints](#platform-constraints)
 - [Smoke And Trust Metadata](#smoke-and-trust-metadata)
+- [Discovery Metadata](#discovery-metadata)
 - [Upstream Source Metadata](#upstream-source-metadata)
 - [`taffish.github.io`](#taffishgithubio)
 - [`.github`](#github)
@@ -63,6 +64,7 @@ Hub provides a central index that organizes distributed information into:
 - whether a containerized version has passed smoke/trust metadata checks
 - whether dependencies exist
 - platform constraints
+- discovery metadata for search and browsing
 - original upstream software source
 
 Users only need to update the local index, then install by name.
@@ -289,6 +291,14 @@ Each version record contains:
     "min_cpus": null,
     "min_memory_mb": null
   },
+  "meta": {
+    "domain": "bioinformatics",
+    "category": "sequence-alignment",
+    "categories": ["sequence-alignment"],
+    "keywords": ["blast", "alignment", "sequence-search"],
+    "summary": "BLAST+ wrapper for sequence similarity search.",
+    "description": "BLAST+ wrapper for sequence similarity search."
+  },
   "paths": {
     "main": "src/main.taf",
     "help": "docs/help.md",
@@ -337,6 +347,7 @@ If the app provides `[upstream]`, the version record may also include:
   "upstream": {
     "name": "CD-HIT",
     "type": "github",
+    "url": "https://github.com/weizhongli/cdhit",
     "homepage": "https://github.com/weizhongli/cdhit",
     "repository": "weizhongli/cdhit",
     "version": "4.8.1",
@@ -422,6 +433,25 @@ Main-index policy:
 - new containerized versions enter the main index only after digest/platform inspection and smoke checks pass;
 - failures are written to `index/reports/latest.json` and timestamped reports, not to the stable main index.
 
+## Discovery Metadata
+
+`[meta]` describes public discovery information for a TAFFISH app. It is
+optional for local development, but useful for official Hub packages.
+
+Recommended app-side form:
+
+```toml
+[meta]
+domain = "bioinformatics"
+category = "sequence-alignment"
+summary = "BLAST+ wrapper for sequence similarity search."
+keywords = ["blast", "alignment", "sequence-search"]
+```
+
+TAFFISH `0.8.1` documents `category` and `summary` as compact app-side fields.
+The index also accepts `categories` and `description`, then emits both forms in
+JSON for Hub compatibility.
+
 ## Upstream Source Metadata
 
 `[upstream]` describes the original software source wrapped by an app, such as
@@ -433,6 +463,7 @@ Example:
 [upstream]
 name = "BLAST+"
 type = "official"
+url = "https://blast.ncbi.nlm.nih.gov/"
 homepage = "https://blast.ncbi.nlm.nih.gov/"
 version = "2.16.0"
 ```
@@ -443,6 +474,7 @@ Or:
 [upstream]
 name = "CD-HIT"
 type = "github"
+url = "https://github.com/weizhongli/cdhit"
 repository = "weizhongli/cdhit"
 version = "4.8.1"
 ```
@@ -452,6 +484,7 @@ Supported fields:
 ```text
 name
 type
+url
 homepage
 repository
 release_url
@@ -489,6 +522,7 @@ It provides:
 - version list
 - dependency list
 - platform constraints
+- discovery metadata
 - upstream source display
 - install command copy
 - dependency-aware install chain

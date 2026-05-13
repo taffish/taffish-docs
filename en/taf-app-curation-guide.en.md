@@ -142,11 +142,20 @@ image = "ghcr.io/taffish/my-tool:1.0.0-r1"
 dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
 
+[meta]
+domain = "bioinformatics"
+category = "sequence-analysis"
+summary = "Short human-facing description for Hub search and display."
+keywords = ["my-tool", "sequence-analysis"]
+
 [upstream]
+name = "My Tool"
 type = "github"
-repo = "owner/project"
-watch = "tags"
-strip_prefix = "v"
+url = "https://github.com/owner/project"
+repository = "owner/project"
+version = "1.0.0"
+license = "Apache-2.0"
+citation = "DOI, PMID, or paper URL when available"
 
 [smoke]
 backend = "docker"
@@ -161,6 +170,7 @@ Notes:
 - `release` is the TAFFISH packaging release.
 - `[container].image` should match `<version>-r<release>`.
 - `[repository].url` is the TAFFISH app repository, not the upstream repository.
+- `[meta]` is optional, but recommended for public Hub search and display.
 - `[upstream]` describes the wrapped software, not the TAFFISH app itself.
 - `command_mode = true` matters for tool apps because users can run helper
   commands inside the same container.

@@ -160,6 +160,9 @@ taf publish --release --yes --build
 `taf publish --release` reads the ignored `release.md` draft. If the GitHub
 Release title or notes look wrong, edit `release.md`: the first line becomes the
 publish message, and the whole file becomes the GitHub Release notes.
+TAFFISH `0.8.1` rejects only the default first-line placeholders `TODO` and
+`TODO: release summary`, so normal release summaries that contain the word
+`todo` are accepted.
 
 ## GHCR Image Pull Fails
 

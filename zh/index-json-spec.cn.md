@@ -15,6 +15,7 @@ taffish.index/v1
 - [`counts`](#counts)
 - [`packages`](#packages)
 - [version record](#version-record)
+- [meta](#meta)
 - [container、smoke 与 trust](#containersmoke-与-trust)
 - [`commands`](#commands)
 - [`repositories`](#repositories)
@@ -157,6 +158,14 @@ version record 描述一个具体版本。
     "min_cpus": null,
     "min_memory_mb": null
   },
+  "meta": {
+    "domain": "bioinformatics",
+    "category": "sequence-alignment",
+    "categories": ["sequence-alignment"],
+    "keywords": ["blast", "alignment", "sequence-search"],
+    "summary": "BLAST+ wrapper for sequence similarity search.",
+    "description": "BLAST+ wrapper for sequence similarity search."
+  },
   "paths": {
     "main": "src/main.taf",
     "help": "docs/help.md",
@@ -216,12 +225,33 @@ version record 描述一个具体版本。
 | `runtime.command_mode` | boolean | 是否是 command mode。 |
 | `dependencies` | object | flow 依赖。 |
 | `platform` | object | 平台约束。 |
+| `meta` | object/null | 可选，搜索、筛选和展示用发现元数据。 |
 | `paths` | object | 项目内路径。 |
 | `container` | object/null | 容器信息。 |
 | `smoke` | object/null | 容器化 app 的 smoke 元数据和结果。 |
 | `trust` | object/null | Hub/index 可信 gate 状态。 |
 | `source` | object | app 仓库来源信息。 |
 | `upstream` | object | 可选，上游软件来源。 |
+
+## meta
+
+`meta` 记录来自 `taffish.toml` 中 `[meta]` 或 index 维护者 override 的可选发现
+元数据。它用于搜索、分类和 Hub 展示；安装器应该把它视为可选字段。
+
+当前字段：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `domain` | string/null | 大领域，例如 `bioinformatics`。 |
+| `category` | string/null | 主分类 token。 |
+| `categories` | array | 用于筛选和浏览的分类 token。 |
+| `keywords` | array | 搜索关键词和别名。 |
+| `summary` | string/null | 一句话描述。 |
+| `description` | string/null | 同一段面向用户的描述，为 Hub 兼容保留。 |
+
+TAFFISH `0.8.1` 文档化了更简洁的 app 侧字段 `category` 和 `summary`。
+`taffish-index` 也兼容更丰富的 Hub 侧别名 `categories` 和 `description`，
+并在生成 record 时同时输出两种形式，方便新旧消费者读取。
 
 ## container、smoke 与 trust
 
@@ -381,6 +411,7 @@ report schema：
 "upstream": {
   "name": "CD-HIT",
   "type": "github",
+  "url": "https://github.com/weizhongli/cdhit",
   "homepage": "https://github.com/weizhongli/cdhit",
   "repository": "weizhongli/cdhit",
   "version": "4.8.1",
@@ -399,6 +430,8 @@ Index JSON 消费者应该：
 - 检查 `schema_version`。
 - 对未知字段保持宽容。
 - 对缺失可选字段保持宽容。
+- 把 `meta` 视为可选发现元数据。
+- 兼容读取 `category`/`summary` 和 `categories`/`description`。
 - 不把缺失 `upstream` 显示成“无来源”。
 - 不把依赖数组解释成 alternatives。
 - 使用 `source.ref` 和 `source.commit` 追踪 app 自身来源。

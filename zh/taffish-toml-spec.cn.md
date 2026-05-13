@@ -19,6 +19,7 @@
 - [`[smoke]`](#smoke)
 - [`[dependencies]`](#dependencies)
 - [`[platform]`](#platform)
+- [`[meta]`](#meta)
 - [`[upstream]`](#upstream)
 - [Tool 示例](#tool-示例)
 - [Flow 示例](#flow-示例)
@@ -280,6 +281,37 @@ min_memory_mb = 4096
 - `required`：需要容器环境。
 - `forbidden`：不应在容器内运行。
 
+## `[meta]`
+
+可选。用于描述生态发现元数据，服务搜索、筛选、文档和 Hub 展示。本地 `taf`
+命令不强制要求它存在。
+
+推荐 app 侧写法：
+
+```toml
+[meta]
+domain = "bioinformatics"
+category = "sequence-alignment"
+summary = "BLAST+ wrapper for sequence similarity search."
+keywords = ["blast", "alignment", "sequence-search"]
+```
+
+字段：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `domain` | string | 大领域，例如 `bioinformatics`、`chemistry`、`machine-learning` 或 `general`。 |
+| `category` | string | 更细分的分类 token，例如 `sequence-alignment`。 |
+| `summary` | string | 面向用户的一句话描述。 |
+| `keywords` | string array | 搜索关键词和别名。 |
+
+默认 `taf new` 骨架刻意不生成 `[meta]`。维护者在准备公开 Hub/index 收录时可以
+手动添加。
+
+`taffish-index` 也兼容更丰富的 Hub 侧别名 `categories` 和 `description`。
+`category` 会归一化为 `categories`，`summary` 会归一化为 `description`；
+生成的 index record 会同时保留两种形式，方便不同消费者读取。
+
 ## `[upstream]`
 
 可选。用于描述被包装软件的原始来源。
@@ -288,6 +320,7 @@ min_memory_mb = 4096
 [upstream]
 name = "CD-HIT"
 type = "github"
+url = "https://github.com/weizhongli/cdhit"
 homepage = "https://github.com/weizhongli/cdhit"
 repository = "weizhongli/cdhit"
 release_url = "https://github.com/weizhongli/cdhit/releases"
@@ -305,6 +338,7 @@ pmid = "23060610"
 | --- | --- | --- |
 | `name` | string | 上游软件名称。 |
 | `type` | string | 来源类型，推荐 `official`、`github`、`gitlab`、`archive`、`docker`、`apt`、`conda`、`other`。 |
+| `url` | string | 通用上游主页、仓库或文档 URL。 |
 | `homepage` | string | 上游主页。 |
 | `repository` | string | 上游仓库，例如 `weizhongli/cdhit`。 |
 | `release_url` | string | 上游发布页。 |
@@ -354,9 +388,16 @@ os = "linux,darwin"
 arch = "amd64,arm64"
 container = "required"
 
+[meta]
+domain = "bioinformatics"
+category = "sequence-alignment"
+summary = "BLAST+ wrapper for sequence similarity search."
+keywords = ["blast", "alignment", "sequence-search"]
+
 [upstream]
 name = "BLAST+"
 type = "official"
+url = "https://blast.ncbi.nlm.nih.gov/"
 homepage = "https://blast.ncbi.nlm.nih.gov/"
 version = "2.16.0"
 ```

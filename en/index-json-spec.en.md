@@ -17,6 +17,7 @@ taffish.index/v1
 - [`counts`](#counts)
 - [`packages`](#packages)
 - [Version Record](#version-record)
+- [Meta](#meta)
 - [Container, Smoke, And Trust](#container-smoke-and-trust)
 - [`commands`](#commands)
 - [`repositories`](#repositories)
@@ -160,6 +161,14 @@ A version record describes one concrete app version.
     "min_cpus": null,
     "min_memory_mb": null
   },
+  "meta": {
+    "domain": "bioinformatics",
+    "category": "sequence-alignment",
+    "categories": ["sequence-alignment"],
+    "keywords": ["blast", "alignment", "sequence-search"],
+    "summary": "BLAST+ wrapper for sequence similarity search.",
+    "description": "BLAST+ wrapper for sequence similarity search."
+  },
   "paths": {
     "main": "src/main.taf",
     "help": "docs/help.md",
@@ -219,12 +228,35 @@ Field descriptions:
 | `runtime.command_mode` | boolean | Whether the app is command mode. |
 | `dependencies` | object | Flow dependencies. |
 | `platform` | object | Platform constraints. |
+| `meta` | object/null | Optional discovery metadata for search, filtering, and display. |
 | `paths` | object | Project-relative paths. |
 | `container` | object/null | Container metadata. |
 | `smoke` | object/null | Smoke metadata and result for containerized apps. |
 | `trust` | object/null | Hub/index trust-gate status. |
 | `source` | object | App repository source information. |
 | `upstream` | object | Optional upstream software source. |
+
+## Meta
+
+`meta` records optional discovery metadata copied from `[meta]` in
+`taffish.toml` or from index maintainer overrides. It is for search,
+categorization, and Hub display; installers should treat it as optional.
+
+Current fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `domain` | string/null | Broad domain, such as `bioinformatics`. |
+| `category` | string/null | Primary category token. |
+| `categories` | array | Category tokens used for filtering and browsing. |
+| `keywords` | array | Search keywords and aliases. |
+| `summary` | string/null | One-sentence description. |
+| `description` | string/null | Same human-facing description, kept for Hub compatibility. |
+
+TAFFISH `0.8.1` documents the compact app-side fields `category` and
+`summary`. `taffish-index` also accepts the richer Hub-side aliases
+`categories` and `description`, then emits both forms so older and newer
+consumers can read the same record.
 
 ## Container, Smoke, And Trust
 
@@ -391,6 +423,7 @@ When upstream metadata exists:
 "upstream": {
   "name": "CD-HIT",
   "type": "github",
+  "url": "https://github.com/weizhongli/cdhit",
   "homepage": "https://github.com/weizhongli/cdhit",
   "repository": "weizhongli/cdhit",
   "version": "4.8.1",
@@ -409,6 +442,8 @@ Index JSON consumers should:
 - check `schema_version`
 - tolerate unknown fields
 - tolerate missing optional fields
+- treat `meta` as optional discovery metadata
+- read `category`/`summary` and `categories`/`description` compatibly
 - not display missing `upstream` as "no source"
 - not interpret dependency arrays as alternatives
 - use `source.ref` and `source.commit` to track app source

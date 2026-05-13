@@ -7,7 +7,7 @@ It gives AI clients a structured way to inspect TAFFISH projects, query local Hu
 state, read selected resources, validate or compile `.taf` source without
 executing it, and prepare safe project actions.
 
-TAFFISH `0.8.0` is the current recommended release for MCP use. It keeps the
+TAFFISH `0.8.1` is the current recommended release for MCP use. It keeps the
 read-only TAF source/file compiler helpers introduced in `0.5.0`, the
 app/project inspection and safe app invocation compilation added in `0.6.0`,
 the runtime container backend override alignment from `0.7.0`, and exposes
@@ -59,7 +59,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.1 --user
 ```
 
 Verify:

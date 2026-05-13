@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.1 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -718,7 +718,7 @@ and generic MCP client configuration examples, see
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current public release is `0.8.0`. The default
+custom source support. The current public release is `0.8.1`. The default
 config paths are:
 
 ```text
@@ -770,8 +770,8 @@ same TAFFISH index schema.
 
 ## Open Source And Source Builds
 
-TAFFISH `0.8.0` is the first open-source local CLI/compiler release. The
-Common Lisp implementation is published in
+TAFFISH `0.8.1` is the current stable patch release in the first open-source
+`0.8.x` local CLI/compiler series. The Common Lisp implementation is published in
 [taffish/taffish](https://github.com/taffish/taffish) under Apache License 2.0.
 
 The source repository builds three command-line entry points:
@@ -793,10 +793,12 @@ Useful source-side documents:
 - [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-At `0.8.0`, official macOS Apple Silicon binaries are built with SBCL and
-Linux x86_64 binaries are built manually with LispWorks. Release payloads
-include `SHA256SUMS`, `SHA256SUMS.asc`, and `TAFFISH-RELEASE-KEY.asc` for
-manual checksum and GPG signature verification.
+At `0.8.1`, official macOS Apple Silicon binaries are built with SBCL and
+Linux x86_64 binaries are built manually with LispWorks. The `0.8.1` patch
+keeps the `0.8.0` public interface stable, fixes `release.md` placeholder
+detection in `taf publish --release`, documents optional `[meta]` and
+`[upstream]` metadata, and includes `SHA256SUMS`, `SHA256SUMS.asc`, and
+`TAFFISH-RELEASE-KEY.asc` for manual checksum and GPG signature verification.
 
 ## TAFFISH App Project Structure
 

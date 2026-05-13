@@ -26,7 +26,7 @@ new machine or a new client version.
 
 ## Prerequisites
 
-Install the current TAFFISH release, `0.8.0` or later, for the current MCP tool surface:
+Install the current TAFFISH release, `0.8.1` or later, for the current MCP tool surface:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user

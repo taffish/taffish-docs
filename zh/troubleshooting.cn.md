@@ -156,6 +156,9 @@ taf publish --release --yes --build
 `taf publish --release` 会读取被 ignore 的 `release.md` 草稿。如果 GitHub
 Release 标题或说明不对，编辑 `release.md`：第一行会成为 publish message，整个
 文件会成为 GitHub Release notes。
+TAFFISH `0.8.1` 只会拒绝第一行仍为默认占位符 `TODO` 或
+`TODO: release summary` 的 release notes；真实 summary 中正常出现 `todo`
+这个词不会被误拒绝。
 
 ## GHCR 镜像拉取失败
 

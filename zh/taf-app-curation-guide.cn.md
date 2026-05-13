@@ -128,11 +128,20 @@ image = "ghcr.io/taffish/my-tool:1.0.0-r1"
 dockerfile = "docker/Dockerfile"
 build_platforms = "linux/amd64,linux/arm64"
 
+[meta]
+domain = "bioinformatics"
+category = "sequence-analysis"
+summary = "Short human-facing description for Hub search and display."
+keywords = ["my-tool", "sequence-analysis"]
+
 [upstream]
+name = "My Tool"
 type = "github"
-repo = "owner/project"
-watch = "tags"
-strip_prefix = "v"
+url = "https://github.com/owner/project"
+repository = "owner/project"
+version = "1.0.0"
+license = "Apache-2.0"
+citation = "DOI, PMID, or paper URL when available"
 
 [smoke]
 backend = "docker"
@@ -147,6 +156,7 @@ test = ["my-tool --help"]
 - `release` 是 TAFFISH 包装层 release。
 - `[container].image` tag 应与 `<version>-r<release>` 对齐。
 - `[repository].url` 是 TAFFISH app 仓库，不是上游仓库。
+- `[meta]` 是可选字段，但公开 Hub app 推荐填写，用于搜索和展示。
 - `[upstream]` 描述被包装的软件，不描述 TAFFISH app 自己。
 - `command_mode = true` 对 tool app 很重要，用户可以运行容器内的辅助命令。
 - 不要添加当前工具链不理解的字段。

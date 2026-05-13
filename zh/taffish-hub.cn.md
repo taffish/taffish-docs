@@ -31,6 +31,7 @@ taf install <app>
 - [依赖信息](#依赖信息)
 - [平台约束](#平台约束)
 - [Smoke 与 Trust 元数据](#smoke-与-trust-元数据)
+- [发现元数据](#发现元数据)
 - [上游来源信息](#上游来源信息)
 - [`taffish.github.io`](#taffishgithubio)
 - [`.github`](#github)
@@ -57,6 +58,7 @@ Hub 提供一个中心索引，把分散信息整理成：
 - 容器化版本是否通过 smoke/trust 元数据检查
 - 是否有依赖
 - 有哪些平台约束
+- 搜索和浏览用发现元数据
 - 包装的上游软件来源是什么
 
 用户只需要更新本地 index，然后按名称安装。
@@ -262,6 +264,14 @@ v1.0.0-r1
     "min_cpus": null,
     "min_memory_mb": null
   },
+  "meta": {
+    "domain": "bioinformatics",
+    "category": "sequence-alignment",
+    "categories": ["sequence-alignment"],
+    "keywords": ["blast", "alignment", "sequence-search"],
+    "summary": "BLAST+ wrapper for sequence similarity search.",
+    "description": "BLAST+ wrapper for sequence similarity search."
+  },
   "paths": {
     "main": "src/main.taf",
     "help": "docs/help.md",
@@ -310,6 +320,7 @@ v1.0.0-r1
   "upstream": {
     "name": "CD-HIT",
     "type": "github",
+    "url": "https://github.com/weizhongli/cdhit",
     "homepage": "https://github.com/weizhongli/cdhit",
     "repository": "weizhongli/cdhit",
     "version": "4.8.1",
@@ -391,6 +402,25 @@ checks，并记录镜像 digest 和平台列表。
 - 新的容器化版本只有通过 digest/platform 检查和 smoke checks 后才进入主 index。
 - 失败结果写入 `index/reports/latest.json` 和带时间戳的 reports，不进入稳定主 index。
 
+## 发现元数据
+
+`[meta]` 描述 TAFFISH app 的公开发现信息。它对本地开发是可选的，但对官方 Hub
+package 很有用。
+
+推荐 app 侧写法：
+
+```toml
+[meta]
+domain = "bioinformatics"
+category = "sequence-alignment"
+summary = "BLAST+ wrapper for sequence similarity search."
+keywords = ["blast", "alignment", "sequence-search"]
+```
+
+TAFFISH `0.8.1` 文档化了更简洁的 app 侧字段 `category` 和 `summary`。
+index 也兼容 `categories` 和 `description`，并在 JSON 中同时输出两种形式以适配
+Hub 消费端。
+
 ## 上游来源信息
 
 `[upstream]` 描述 app 包装的原始软件来源，例如 BLAST、CD-HIT、BWA 等。
@@ -401,6 +431,7 @@ checks，并记录镜像 digest 和平台列表。
 [upstream]
 name = "BLAST+"
 type = "official"
+url = "https://blast.ncbi.nlm.nih.gov/"
 homepage = "https://blast.ncbi.nlm.nih.gov/"
 version = "2.16.0"
 ```
@@ -411,6 +442,7 @@ version = "2.16.0"
 [upstream]
 name = "CD-HIT"
 type = "github"
+url = "https://github.com/weizhongli/cdhit"
 repository = "weizhongli/cdhit"
 version = "4.8.1"
 ```
@@ -420,6 +452,7 @@ version = "4.8.1"
 ```text
 name
 type
+url
 homepage
 repository
 release_url
@@ -457,6 +490,7 @@ https://raw.githubusercontent.com/taffish/taffish-index/main/index/index.json
 - 版本列表
 - 依赖列表
 - 平台约束
+- 发现元数据
 - upstream 来源展示
 - install 命令复制
 - dependency-aware install chain

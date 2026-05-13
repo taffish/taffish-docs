@@ -38,6 +38,7 @@
 - 有用户可读的 `docs/help.md`。
 - 如果依赖容器，则镜像 tag 与 TAFFISH version id 对齐。
 - 如果依赖容器，则 `[smoke]` 已替换为真实检查，而不是默认 `TODO` 占位。
+- 如果准备进入公开 Hub，则尽量填写 `[meta]` 发现元数据。
 - 如果包装第三方生信软件，则尽量填写 `[upstream]`。
 - 如果是 flow，则准确声明 `[dependencies]`。
 - 能通过 `taf check`。
@@ -194,12 +195,26 @@ command_mode = false
 package 不要在这里填写 Gitee 或内部镜像 URL。从 TAFFISH `0.2.0` 开始，镜像通过本地 `taf`
 运行时配置处理，`[[source.rewrite]]` 会在 install 时重写 canonical URL。
 
+推荐补充发现元数据：
+
+```toml
+[meta]
+domain = "bioinformatics"
+category = "sequence-clustering"
+summary = "CD-HIT wrapper for clustering biological sequences."
+keywords = ["cd-hit", "clustering", "sequence-identity"]
+```
+
+`[meta]` 对本地开发是可选的，但准备进入公开 Hub 的 app 推荐提供。它可以改善
+Hub 搜索、筛选和详情页展示。
+
 推荐补充 upstream：
 
 ```toml
 [upstream]
 name = "CD-HIT"
 type = "github"
+url = "https://github.com/weizhongli/cdhit"
 homepage = "https://github.com/weizhongli/cdhit"
 repository = "weizhongli/cdhit"
 version = "4.8.1"
@@ -528,7 +543,10 @@ target/.taf-my-tool-v0.1.0-r1/
 
 发布前，先编辑被 ignore 的 `release.md` 草稿。使用 `taf publish --release`
 时，`release.md` 第一行会成为 publish commit/tag message，整个文件会成为
-GitHub Release notes。正式发布前应替换默认的 `TODO` 摘要。
+GitHub Release notes。正式发布前应替换默认的 `TODO` 摘要。从 TAFFISH
+`0.8.1` 开始，`taf publish --release` 只会拒绝第一行仍为默认占位符
+`TODO` 或 `TODO: release summary` 的 release notes；真实 summary 中正常出现
+`todo` 这个词不会被误拒绝。
 
 带 release notes 预览：
 
@@ -572,7 +590,7 @@ taf publish --release --yes --pre
 - `taf check` 失败。
 - `docs/help.md` 缺失。
 - 容器化 app 缺少 `[smoke]`，或 `[smoke]` 仍然包含 `TODO`。
-- `release.md` 仍然是默认 `TODO` 摘要。
+- `release.md` 第一行仍然是默认 `TODO` 摘要。
 - release tag 已经存在。
 
 ## 发布后检查
@@ -643,6 +661,7 @@ tag = "v0.1.0-r1"
 - [ ] `command.name` 以 `taf-` 开头。
 - [ ] `src/main.taf` 可以被 `taf check` 解析。
 - [ ] `docs/help.md` 已更新。
+- [ ] 如果准备进入公开 Hub，`[meta]` 中包含有用的 domain、category、summary 和 keywords。
 - [ ] 如果是 tool app，确认上游软件来源写入 `[upstream]`。
 - [ ] 如果是容器化 app，镜像 tag 与 `version-release` 一致。
 - [ ] 如果是容器化 app，`[smoke]` 已经包含真实的 `exist` 或 `test` 检查，并且没有 `TODO` 占位。

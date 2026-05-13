@@ -23,6 +23,7 @@ official Hub curation, see the
 - [`[smoke]`](#smoke)
 - [`[dependencies]`](#dependencies)
 - [`[platform]`](#platform)
+- [`[meta]`](#meta)
 - [`[upstream]`](#upstream)
 - [Tool Example](#tool-example)
 - [Flow Example](#flow-example)
@@ -308,6 +309,36 @@ Current `container` meanings:
 - `required`: requires a container environment.
 - `forbidden`: should not run inside a container.
 
+## `[meta]`
+
+Optional. Describes ecosystem discovery metadata for search, filtering,
+documentation, and Hub display. Local `taf` commands do not require it.
+
+Recommended app-side form:
+
+```toml
+[meta]
+domain = "bioinformatics"
+category = "sequence-alignment"
+summary = "BLAST+ wrapper for sequence similarity search."
+keywords = ["blast", "alignment", "sequence-search"]
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `domain` | string | Broad domain, for example `bioinformatics`, `chemistry`, `machine-learning`, or `general`. |
+| `category` | string | More specific category token, for example `sequence-alignment`. |
+| `summary` | string | One-sentence human-facing description. |
+| `keywords` | string array | Search keywords and aliases. |
+
+The default `taf new` skeleton intentionally does not create `[meta]`.
+Maintainers can add it when preparing an app for public Hub/index discovery.
+
+`taffish-index` also accepts the richer Hub-side aliases `categories` and
+`description`. `category` is normalized into `categories`, and `summary` is
+normalized into `description`; generated index records keep both forms for
+consumer compatibility.
+
 ## `[upstream]`
 
 Optional. Describes the original source of the wrapped software.
@@ -318,6 +349,7 @@ Example:
 [upstream]
 name = "CD-HIT"
 type = "github"
+url = "https://github.com/weizhongli/cdhit"
 homepage = "https://github.com/weizhongli/cdhit"
 repository = "weizhongli/cdhit"
 release_url = "https://github.com/weizhongli/cdhit/releases"
@@ -335,6 +367,7 @@ Supported fields:
 | --- | --- | --- |
 | `name` | string | Upstream project name. |
 | `type` | string | Source type. Recommended values: `official`, `github`, `gitlab`, `archive`, `docker`, `apt`, `conda`, `other`. |
+| `url` | string | General upstream homepage, repository, or documentation URL. |
 | `homepage` | string | Upstream homepage. |
 | `repository` | string | Upstream repository, for example `weizhongli/cdhit`. |
 | `release_url` | string | Upstream release page. |
@@ -380,9 +413,16 @@ timeout = 60
 exist = ["blastn"]
 test = ["blastn -help"]
 
+[meta]
+domain = "bioinformatics"
+category = "sequence-alignment"
+summary = "BLAST+ wrapper for sequence similarity search."
+keywords = ["blast", "alignment", "sequence-search"]
+
 [upstream]
 name = "BLAST+"
 type = "official"
+url = "https://blast.ncbi.nlm.nih.gov/"
 homepage = "https://blast.ncbi.nlm.nih.gov/"
 version = "2.16.0"
 ```
