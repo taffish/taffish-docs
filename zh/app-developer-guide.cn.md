@@ -4,6 +4,11 @@
 
 官方 TAFFISH Hub 当前不是开放自助发布平台。只有 `taffish` GitHub 组织成员可以在官方组织下创建、发布和维护 app 仓库。目前官方维护者暂为单人维护；如果开发者希望把 app 纳入官方 Hub，需要先联系维护者申请加入组织，或由维护者协助审核与发布。
 
+本文是通用 app 生命周期指南。精确字段含义以 [`taffish.toml` 规范](taffish-toml-spec.cn.md)
+为准；Dockerfile、GHCR 和 smoke 细节以 [容器化 app 最佳实践](container-apps.cn.md)
+为准；官方 Hub app 的精修 checklist 以 [官方 taf-app 精修手册](taf-app-curation-guide.cn.md)
+为准；出错时优先查 [故障排查](troubleshooting.cn.md)。
+
 ## 目录
 
 - [开发目标](#开发目标)
@@ -346,7 +351,7 @@ taf-my-tool-v0.1.0-r1 --input sample.fa --output result.txt
 
 如果 tool app 依赖复杂系统包、编译环境或生信软件，推荐使用容器。
 
-`taffish.toml`：
+最小容器元数据：
 
 ```toml
 [container]
@@ -361,7 +366,7 @@ exist = ["my-tool"]
 test = ["my-tool --help"]
 ```
 
-`src/main.taf`：
+最小入口：
 
 ```taf
 <taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
@@ -377,10 +382,11 @@ my-tool --input ::input::
 - `[smoke]` 应包含真实检查，用于证明目标可执行文件存在，并且一个最小命令可以运行。
 
 `taf check` 会校验 `[smoke]` 结构，并拒绝默认 `TODO` 占位。它不会在本地运行
-smoke 命令。公开 Hub/index 自动化会在镜像可用后，对新的容器化版本运行 smoke
-checks，记录 digest/platform/smoke 元数据，并且只把通过的新版本写入主 index。
+smoke 命令。公开 Hub/index 自动化会在镜像可用后运行 smoke checks，并只把通过的新版本写入主 index。
 
-更多建议见 [容器化 app 最佳实践](container-apps.cn.md)。
+本节只给出最小形状。Dockerfile 设计、运行时挂载、GHCR 可见性、本地 Docker/Podman
+测试和 smoke 细节见 [容器化 app 最佳实践](container-apps.cn.md)。如果是在精修官方
+Hub app，还应参考 [官方 taf-app 精修手册](taf-app-curation-guide.cn.md)。
 
 ## flow app 与依赖
 

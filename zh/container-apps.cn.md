@@ -2,6 +2,10 @@
 
 生信工具经常依赖复杂系统包、编译环境、运行库和外部数据。TAFFISH 推荐把这类 tool app 容器化，再通过 `.taf` 提供稳定命令入口。
 
+本文是容器实践专题。字段语义以 [`taffish.toml` 规范](taffish-toml-spec.cn.md)
+为准；从创建到发布的完整流程见 [TAFFISH app 开发者指南](app-developer-guide.cn.md)；
+官方 Hub app 的最终精修 checklist 见 [官方 taf-app 精修手册](taf-app-curation-guide.cn.md)。
+
 ## 目录
 
 - [什么时候使用容器](#什么时候使用容器)

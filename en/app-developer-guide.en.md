@@ -4,6 +4,13 @@ This guide is for maintainers who want to develop TAFFISH apps. It covers the wo
 
 The official TAFFISH Hub is not currently an open self-service publishing platform. Only members of the `taffish` GitHub organization can create, publish, and maintain official app repositories. At the moment, official maintenance is handled by a single maintainer. Developers who want an app included in the official Hub should contact the maintainer to request organization membership or request maintainer-assisted review and publishing.
 
+This is the general app lifecycle guide. Exact field semantics live in the
+[`taffish.toml` Specification](taffish-toml-spec.en.md). Dockerfile, GHCR, and
+smoke details live in [Containerized App Best Practices](container-apps.en.md).
+Official Hub curation checklists live in the
+[Official taf-app Curation Guide](taf-app-curation-guide.en.md). When something
+fails, start with [Troubleshooting](troubleshooting.en.md).
+
 ## Table Of Contents
 
 - [Development Goals](#development-goals)
@@ -343,7 +350,7 @@ taf-my-tool-v0.1.0-r1 --input sample.fa --output result.txt
 
 Use containers when a tool has complex system packages, compiled dependencies, or bioinformatics runtime requirements.
 
-`taffish.toml`:
+Minimal container metadata:
 
 ```toml
 [container]
@@ -358,7 +365,7 @@ exist = ["my-tool"]
 test = ["my-tool --help"]
 ```
 
-`src/main.taf`:
+Minimal entry point:
 
 ```taf
 <taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
@@ -374,12 +381,14 @@ Requirements:
 - `[smoke]` should contain real checks that prove the expected executable exists and a minimal command can run.
 
 `taf check` validates `[smoke]` structure and rejects the default `TODO`
-placeholders. It does not run smoke commands locally. The public Hub/index
-automation runs smoke checks for new containerized versions after the image is
-available, records digest/platform/smoke metadata, and only writes passing new
-versions into the main index.
+placeholders. It does not run smoke commands locally. The public Hub/index runs
+smoke checks after the image is available and only writes passing new versions
+into the main index.
 
-See [Containerized App Best Practices](container-apps.en.md).
+This section only shows the minimal shape. Dockerfile design, runtime mounts,
+GHCR visibility, local Docker/Podman testing, and smoke details live in
+[Containerized App Best Practices](container-apps.en.md). For official Hub app
+curation, also use the [Official taf-app Curation Guide](taf-app-curation-guide.en.md).
 
 ## Flow Apps And Dependencies
 

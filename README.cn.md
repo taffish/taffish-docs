@@ -34,7 +34,8 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | 使用已有 TAFFISH app | [快速开始](zh/quick-start.cn.md) -> 遇到问题看 [故障排查](zh/troubleshooting.cn.md) -> 需要背景再看 [什么是 TAFFISH Hub](zh/taffish-hub.cn.md) |
 | 学习 TAFFISH 语言 | [什么是 TAFFISH](zh/taffish.cn.md) -> [TAF 脚本教程](zh/taf-script-tutorial.cn.md) |
 | 写一个简单 tool app | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) -> [App 开发者指南](zh/app-developer-guide.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
-| 封装一个容器化生信工具 | [App 开发者指南](zh/app-developer-guide.cn.md) -> [容器化 app 最佳实践](zh/container-apps.cn.md) -> [故障排查](zh/troubleshooting.cn.md) |
+| 封装一个容器化生信工具 | [App 开发者指南](zh/app-developer-guide.cn.md) -> [容器化 app 最佳实践](zh/container-apps.cn.md) -> [官方 taf-app 精修手册](zh/taf-app-curation-guide.cn.md) -> [故障排查](zh/troubleshooting.cn.md) |
+| 精修官方 Hub app | [官方 taf-app 精修手册](zh/taf-app-curation-guide.cn.md) -> [Augustus app 模板](https://github.com/taffish/augustus) -> [容器化 app 最佳实践](zh/container-apps.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
 | 写一个带依赖的 flow app | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) -> [Flow 与依赖指南](zh/flow-dependencies.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
 | 理解 Hub 和 index 内部逻辑 | [什么是 TAFFISH Hub](zh/taffish-hub.cn.md) -> [TAFFISH Index JSON 规范](zh/index-json-spec.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
 | 理解安全与可信模型 | [TAFFISH 安全模型](zh/security-model.cn.md) -> [TAFFISH Index JSON 规范](zh/index-json-spec.cn.md) -> [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) |
@@ -55,11 +56,18 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | [在 AI 客户端中使用 TAFFISH MCP](zh/mcp-clients.cn.md) | 面向 Codex、Claude Code、Cursor、Cline 和通用 stdio MCP 客户端的配置教程。 |
 | [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 实际 app 发布流程。重点是 `taf new`、项目编辑、检查、运行、构建、`release.md`、发布和维护。 |
 | [容器化 app 最佳实践](zh/container-apps.cn.md) | 容器专题。覆盖 Dockerfile 设计、smoke 元数据、运行时挂载、GHCR、Docker/Podman 测试和 backend 一致性。 |
+| [官方 taf-app 精修手册](zh/taf-app-curation-guide.cn.md) | 官方 Hub 维护者手册。以 Augustus 为模板，说明 app 文件边界、help/README/release/smoke 设计、版本策略、发布前后检查和不该改的内容。 |
 | [Flow 与依赖指南](zh/flow-dependencies.cn.md) | Flow 专题。覆盖 `[[taf: ...]]`、`@:` 块、精确 app 版本和依赖语义。 |
 | [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) | 元数据参考。面向 app 作者、Hub 维护者和校验器，包含容器化 app 的 `[smoke]` 元数据。 |
 | [TAFFISH Index JSON 规范](zh/index-json-spec.cn.md) | 机器可读 index 参考。面向 `taf`、Hub 自动化、index 消费端、trust 元数据、容器 digest、smoke 结果和构建报告。 |
 | [TAFFISH 安全模型](zh/security-model.cn.md) | 分层可信模型，覆盖源码、release 完整性、安装器、镜像、Hub index gate、本地安装校验、容器和 MCP/AI 边界。 |
 | [故障排查](zh/troubleshooting.cn.md) | 问题导向参考。命令、smoke 元数据、容器、GHCR、GitHub 或 wrapper 出错时从这里开始。 |
+
+维护规则：字段级事实以 [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) 为准；
+index 输出以 [TAFFISH Index JSON 规范](zh/index-json-spec.cn.md) 为准；容器实践以
+[容器化 app 最佳实践](zh/container-apps.cn.md) 为准；官方 Hub app 的最终 checklist
+以 [官方 taf-app 精修手册](zh/taf-app-curation-guide.cn.md) 为准；具体报错处理以
+[故障排查](zh/troubleshooting.cn.md) 为准。
 
 ## 核心概念
 
@@ -88,6 +96,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | --- | --- |
 | [TAFFISH app 开发者指南](zh/app-developer-guide.cn.md) | 从创建、检查、运行、构建、用 `taf install --from` 做私有/本地测试、准备 `release.md`、发布到维护 TAFFISH app 的完整实践流程。 |
 | [容器化 app 最佳实践](zh/container-apps.cn.md) | Dockerfile 设计、多阶段构建、smoke 元数据、运行时挂载、GHCR 可见性、本地 Docker/Podman 测试、backend 一致性和 `TAFFISH_CONTAINER_BACKEND`。 |
+| [官方 taf-app 精修手册](zh/taf-app-curation-guide.cn.md) | 面向官方 Hub 维护者的 curation guide，说明如何把 `taf new` 项目打磨成可发布、可索引、可复用为模板的正式 app。 |
 | [Flow 与依赖指南](zh/flow-dependencies.cn.md) | Flow app 结构、`[[taf: ...]]`、`@:` 参数块、依赖声明、多版本依赖和安装语义。 |
 
 当你正在开发或维护 app 时，主要参考这些文档。
@@ -136,6 +145,7 @@ TAFFISH `0.8.0` 是本地 CLI/编译器的第一个开源版本。源码、ASDF
 - `taffish-mcp` 会在“什么是 TAFFISH”中简要出现。MCP 指南说明 server 能力、只读编译器辅助工具、app/project inspection、smoke/trust 元数据暴露、安全编译预览和安全边界，
   客户端接入教程则说明 Codex、Claude Code、Cursor、Cline 和通用 MCP 配置示例。
 - `taf run`、`taf build`、`taf publish` 会同时出现在 app 开发指南和语言手册里，因为它们连接了语法和项目生命周期。
+- 官方 taf-app 精修手册与 app 开发者指南、容器最佳实践有重叠，但它更像维护者 checklist，聚焦“以 Augustus 为模板做官方 Hub app”。
 - 容器 backend 说明会出现在快速开始、容器最佳实践和故障排查里，因为真实部署中容器问题最常见。
 - Smoke 元数据会出现在 app 开发指南、容器最佳实践、`taffish.toml` 规范、Hub 指南、Index JSON 规范和 MCP 指南里，因为 TAFFISH `0.8.0` 把本地 app 元数据、Hub 侧校验和 AI 辅助检查连接到了一起。
 - 安全内容单独形成模型文档，因为 release 校验、镜像、index trust gate、本地安装校验、容器和 MCP 边界横跨多个仓库。

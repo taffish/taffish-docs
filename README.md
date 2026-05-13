@@ -36,7 +36,8 @@ Choose a path based on what you want to do.
 | Use existing TAFFISH apps | [Quick Start](en/quick-start.en.md) -> [Troubleshooting](en/troubleshooting.en.md) when needed -> [What Is TAFFISH Hub](en/taffish-hub.en.md) for background |
 | Learn the TAFFISH language | [What Is TAFFISH](en/taffish.en.md) -> [TAF Script Tutorial](en/taf-script-tutorial.en.md) |
 | Write a simple tool app | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [App Developer Guide](en/app-developer-guide.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
-| Package a containerized bioinformatics tool | [App Developer Guide](en/app-developer-guide.en.md) -> [Containerized App Best Practices](en/container-apps.en.md) -> [Troubleshooting](en/troubleshooting.en.md) |
+| Package a containerized bioinformatics tool | [App Developer Guide](en/app-developer-guide.en.md) -> [Containerized App Best Practices](en/container-apps.en.md) -> [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) -> [Troubleshooting](en/troubleshooting.en.md) |
+| Curate an official Hub app | [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) -> [Augustus app template](https://github.com/taffish/augustus) -> [Containerized App Best Practices](en/container-apps.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
 | Write a flow app with dependencies | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [Flow And Dependencies Guide](en/flow-dependencies.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
 | Understand Hub and index internals | [What Is TAFFISH Hub](en/taffish-hub.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
 | Understand security and trust | [TAFFISH Security Model](en/security-model.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [TAFFISH MCP Guide](en/taffish-mcp.en.md) |
@@ -57,11 +58,20 @@ If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 | [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) | Client setup guide for Codex, Claude Code, Cursor, Cline, and generic stdio MCP clients. |
 | [App Developer Guide](en/app-developer-guide.en.md) | Practical app release workflow. It focuses on `taf new`, project editing, check, run, build, `release.md`, publish, and maintenance. |
 | [Containerized App Best Practices](en/container-apps.en.md) | Focused container guide. It covers Dockerfile design, smoke metadata, runtime mounts, GHCR, Docker/Podman testing, and backend consistency. |
+| [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) | Official Hub maintainer guide. It uses Augustus as the baseline template and covers file boundaries, help/README/release/smoke design, version policy, publish checks, and what not to edit. |
 | [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Focused flow guide. It covers `[[taf: ...]]`, `@:` blocks, exact app versions, and dependency semantics. |
 | [`taffish.toml` Specification](en/taffish-toml-spec.en.md) | Metadata reference for app authors, Hub maintainers, and validators, including `[smoke]` metadata for containerized apps. |
 | [TAFFISH Index JSON Specification](en/index-json-spec.en.md) | Machine-readable index reference for `taf`, Hub automation, index consumers, trust metadata, container digests, smoke results, and build reports. |
 | [TAFFISH Security Model](en/security-model.en.md) | Layered trust model covering source code, release payload integrity, installers, mirrors, Hub index gates, local install verification, containers, and MCP/AI boundaries. |
 | [Troubleshooting](en/troubleshooting.en.md) | Problem-oriented reference. Start here when commands, smoke metadata, containers, GHCR, GitHub, or wrappers fail. |
+
+Maintenance rule: field-level truth belongs in the
+[`taffish.toml` Specification](en/taffish-toml-spec.en.md); index output truth
+belongs in the [TAFFISH Index JSON Specification](en/index-json-spec.en.md);
+container practice belongs in [Containerized App Best Practices](en/container-apps.en.md);
+official Hub app checklists belong in the
+[Official taf-app Curation Guide](en/taf-app-curation-guide.en.md); concrete
+failure handling belongs in [Troubleshooting](en/troubleshooting.en.md).
 
 ## Core Concepts
 
@@ -90,6 +100,7 @@ Use these guides when you want a practical path from first install to daily use.
 | --- | --- |
 | [TAFFISH App Developer Guide](en/app-developer-guide.en.md) | Practical workflow for creating, checking, running, building, private/local testing with `taf install --from`, preparing `release.md`, publishing, and maintaining TAFFISH apps. |
 | [Containerized App Best Practices](en/container-apps.en.md) | Dockerfile design, multi-stage builds, smoke metadata, runtime mounts, GHCR visibility, local Docker/Podman testing, backend consistency, and `TAFFISH_CONTAINER_BACKEND`. |
+| [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) | Curation guide for official Hub maintainers turning `taf new` projects into publishable, indexable apps that can serve as templates. |
 | [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Flow app structure, `[[taf: ...]]`, `@:` parameter blocks, dependency declarations, multi-version dependencies, and install semantics. |
 
 Use these guides when you are actively building or maintaining apps.
@@ -148,6 +159,9 @@ Some repetition is intentional:
   configuration examples.
 - `taf run`, `taf build`, and `taf publish` appear in the app developer guide
   and the language manual because they connect syntax to project lifecycle.
+- The official taf-app curation guide overlaps with the app developer guide and
+  container best practices, but acts more like a maintainer checklist for
+  official Hub apps using Augustus as the baseline.
 - Container backend notes appear in Quick Start, container best practices, and
   troubleshooting because runtime issues are common in real deployments.
 - Smoke metadata appears in the app developer guide, container best practices,

@@ -6,6 +6,12 @@ This document describes the currently recommended fields. Fields not listed here
 may be ignored by current tools and are not guaranteed to remain compatible in
 the future.
 
+This is the field-level source of truth. For the practical development workflow,
+see the [TAFFISH App Developer Guide](app-developer-guide.en.md). For container
+practice, see [Containerized App Best Practices](container-apps.en.md). For
+official Hub curation, see the
+[Official taf-app Curation Guide](taf-app-curation-guide.en.md).
+
 ## Table Of Contents
 
 - [Basic Principles](#basic-principles)
@@ -32,6 +38,8 @@ the future.
 - Booleans use `true` / `false`.
 - Integers are used for release, CPU, memory, and similar fields.
 - String arrays are used for multi-version dependencies and similar fields.
+- The current project parser expects arrays on one line, for example
+  `test = ["tool --help"]`.
 - Containerized apps should provide `[smoke]` checks that are cheap, deterministic, and safe to run in Hub automation.
 
 Apps should keep metadata simple, stable, and machine-parseable.

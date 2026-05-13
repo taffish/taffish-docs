@@ -2,6 +2,12 @@
 
 Containerized apps are the recommended way to package tools with complex system dependencies, compiled binaries, or bioinformatics runtime environments. In TAFFISH, the app repository owns the Dockerfile and image build workflow. TAFFISH Hub only indexes metadata and releases.
 
+This is the focused container practice guide. Exact field semantics live in the
+[`taffish.toml` Specification](taffish-toml-spec.en.md). The end-to-end app
+lifecycle lives in the [TAFFISH App Developer Guide](app-developer-guide.en.md).
+Official Hub final review checklists live in the
+[Official taf-app Curation Guide](taf-app-curation-guide.en.md).
+
 ## Table Of Contents
 
 - [When To Use Containers](#when-to-use-containers)

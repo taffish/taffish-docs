@@ -4,6 +4,10 @@
 
 本文描述当前推荐字段。未列出的字段可能被当前工具忽略，未来也不保证兼容。
 
+本文是字段级事实来源。实际开发流程见 [TAFFISH app 开发者指南](app-developer-guide.cn.md)，
+容器实践见 [容器化 app 最佳实践](container-apps.cn.md)，官方 Hub app 精修见
+[官方 taf-app 精修手册](taf-app-curation-guide.cn.md)。
+
 ## 目录
 
 - [基本原则](#基本原则)
@@ -30,6 +34,7 @@
 - 布尔值使用 `true` / `false`。
 - 整数用于 release、CPU 和内存等字段。
 - 字符串数组用于多版本依赖等字段。
+- 当前项目解析器要求数组写成单行，例如 `test = ["tool --help"]`。
 - 容器化 app 应提供低成本、确定性、适合 Hub 自动化运行的 `[smoke]` 检查。
 
 建议所有 app 都保持字段简洁、稳定、可机器解析。
