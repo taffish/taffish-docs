@@ -172,6 +172,8 @@ Notes:
 - `[repository].url` is the TAFFISH app repository, not the upstream repository.
 - `[meta]` is optional, but recommended for public Hub search and display.
 - `[upstream]` describes the wrapped software, not the TAFFISH app itself.
+- For new releases, write `[meta]` and `[upstream]` here; use index-side
+  `metadata-overrides.toml` only for already published immutable records.
 - `command_mode = true` matters for tool apps because users can run helper
   commands inside the same container.
 - Do not add fields that current tools do not understand.
@@ -435,6 +437,8 @@ Keep the same app release when:
 
 - Only the index, `taf`, website, or documentation system is fixed.
 - Only the index action is re-run.
+- Only index-side display metadata for an already published immutable version is
+  supplemented through `metadata-overrides.toml`.
 - The already published app tag content did not change.
 
 Increment `release` when:

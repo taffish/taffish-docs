@@ -33,6 +33,7 @@ taf install <app>
 - [Smoke 与 Trust 元数据](#smoke-与-trust-元数据)
 - [发现元数据](#发现元数据)
 - [上游来源信息](#上游来源信息)
+- [index metadata overrides](#index-metadata-overrides)
 - [`taffish.github.io`](#taffishgithubio)
 - [`.github`](#github)
 - [app 镜像构建](#app-镜像构建)
@@ -469,6 +470,16 @@ pmid
 - 用户知道 taf app 包装的是哪个原始工具。
 - 维护者可以基于 upstream 检查新版本。
 - 生信工具可以保留引用、许可证和论文信息。
+
+## index metadata overrides
+
+已发布 app release 应视为不可变。如果旧的已收录版本缺少发现元数据或 upstream
+展示元数据，维护者不应该重写已发布 tag，也不应该只为了这些展示信息 bump app
+release。官方 index 可以通过 `metadata-overrides.toml` 补充这些信息。
+
+这个机制只用于 index 侧元数据，例如 `meta` 和 `upstream`。它不改变 install
+命令、source commit、容器镜像、镜像 digest、smoke 结果或 trust 状态。新的 app
+release 仍然应该在自己的 `taffish.toml` 中写完整的 `[meta]` 和 `[upstream]`。
 
 ## `taffish.github.io`
 

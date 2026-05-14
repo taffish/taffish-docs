@@ -38,6 +38,7 @@ the app repository itself and is not centrally handled by `taffish-hub`.
 - [Smoke And Trust Metadata](#smoke-and-trust-metadata)
 - [Discovery Metadata](#discovery-metadata)
 - [Upstream Source Metadata](#upstream-source-metadata)
+- [Index Metadata Overrides](#index-metadata-overrides)
 - [`taffish.github.io`](#taffishgithubio)
 - [`.github`](#github)
 - [App Image Builds](#app-image-builds)
@@ -501,6 +502,18 @@ This information matters because:
 - users can see which original tool the taf app wraps
 - maintainers can check new upstream versions
 - bioinformatics tools can preserve citation, license, and paper information
+
+## Index Metadata Overrides
+
+Published app releases are treated as immutable. When an old accepted version is
+missing discovery or upstream display metadata, maintainers should not rewrite
+the published tag or bump the app release only for that metadata. Instead, the
+official index can supplement it through `metadata-overrides.toml`.
+
+This mechanism is limited to index-side metadata such as `meta` and `upstream`.
+It does not change install commands, source commits, container images, image
+digests, smoke results, or trust status. New app releases should still include
+complete `[meta]` and `[upstream]` information in their own `taffish.toml`.
 
 ## `taffish.github.io`
 

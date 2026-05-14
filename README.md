@@ -109,8 +109,8 @@ Use these guides when you are actively building or maintaining apps.
 
 | Document | Purpose |
 | --- | --- |
-| [`taffish.toml` Specification](en/taffish-toml-spec.en.md) | Metadata fields consumed by `taf`, TAFFISH Hub, and the index builder, including `[smoke]`. |
-| [TAFFISH Index JSON Specification](en/index-json-spec.en.md) | Static index schema consumed by `taf update`, `taf search`, `taf info`, and `taf install`, including trust reports and container smoke metadata. |
+| [`taffish.toml` Specification](en/taffish-toml-spec.en.md) | Metadata fields consumed by `taf`, TAFFISH Hub, and the index builder, including `[smoke]`, `[meta]`, and `[upstream]`. |
+| [TAFFISH Index JSON Specification](en/index-json-spec.en.md) | Static index schema consumed by `taf update`, `taf search`, `taf info`, and `taf install`, including trust reports, container smoke metadata, and index-side metadata overrides. |
 
 Use these documents when implementing tools, automation, validators, or Hub
 consumers.

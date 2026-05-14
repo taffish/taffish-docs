@@ -226,6 +226,11 @@ pmid = "23060610"
 
 `[upstream]` describes the original software being wrapped. It is not the TAFFISH app repository.
 
+For new public releases, keep discovery and upstream metadata in
+`taffish.toml`. If an already published immutable release only needs display
+metadata corrected or supplemented, official index maintainers can use
+`metadata-overrides.toml` instead of publishing a new app release.
+
 See [`taffish.toml` Specification](taffish-toml-spec.en.md) for the full field reference.
 
 ## Writing `src/main.taf`

@@ -16,6 +16,7 @@ taffish.index/v1
 - [`packages`](#packages)
 - [version record](#version-record)
 - [meta](#meta)
+- [metadata overrides](#metadata-overrides)
 - [container、smoke 与 trust](#containersmoke-与-trust)
 - [`commands`](#commands)
 - [`repositories`](#repositories)
@@ -235,7 +236,7 @@ version record 描述一个具体版本。
 
 ## meta
 
-`meta` 记录来自 `taffish.toml` 中 `[meta]` 或 index 维护者 override 的可选发现
+`meta` 记录来自 `taffish.toml` 中 `[meta]` 或 index 维护者 metadata override 的可选发现
 元数据。它用于搜索、分类和 Hub 展示；安装器应该把它视为可选字段。
 
 当前字段：
@@ -252,6 +253,19 @@ version record 描述一个具体版本。
 TAFFISH `0.8.1` 文档化了更简洁的 app 侧字段 `category` 和 `summary`。
 `taffish-index` 也兼容更丰富的 Hub 侧别名 `categories` 和 `description`，
 并在生成 record 时同时输出两种形式，方便新旧消费者读取。
+
+## metadata overrides
+
+官方 index 维护者可以通过 `metadata-overrides.toml` 为已经发布、已经不可变的
+version record 补充元数据。override 只用于展示和发现元数据，尤其是 `meta`
+和 `upstream` 中的 license、citation、DOI、PMID 等信息。
+
+override 不改变可安装 app 的身份：version id、release tag、source ref、容器镜像
+tag、镜像 digest、platform、smoke 结果和 trust record 仍然来自 app 仓库和
+index 检查。
+
+新 app release 仍然应该优先把 `[meta]` 和 `[upstream]` 直接写入 `taffish.toml`。
+metadata override 主要用于历史 record，或不值得重新发布 app 的 index 侧元数据修正。
 
 ## container、smoke 与 trust
 
@@ -403,7 +417,7 @@ report schema：
 
 ## upstream 省略规则
 
-如果 `taffish.toml` 没有 `[upstream]`，或 `[upstream]` 没有任何有效字段，则 version record 中不出现 `upstream`。
+如果 `taffish.toml` 和 index metadata override 都没有提供任何有效 upstream 字段，则 version record 中不出现 `upstream`。
 
 有 upstream 时：
 

@@ -18,6 +18,7 @@ taffish.index/v1
 - [`packages`](#packages)
 - [Version Record](#version-record)
 - [Meta](#meta)
+- [Metadata Overrides](#metadata-overrides)
 - [Container, Smoke, And Trust](#container-smoke-and-trust)
 - [`commands`](#commands)
 - [`repositories`](#repositories)
@@ -239,7 +240,7 @@ Field descriptions:
 ## Meta
 
 `meta` records optional discovery metadata copied from `[meta]` in
-`taffish.toml` or from index maintainer overrides. It is for search,
+`taffish.toml` or from index maintainer metadata overrides. It is for search,
 categorization, and Hub display; installers should treat it as optional.
 
 Current fields:
@@ -257,6 +258,21 @@ TAFFISH `0.8.1` documents the compact app-side fields `category` and
 `summary`. `taffish-index` also accepts the richer Hub-side aliases
 `categories` and `description`, then emits both forms so older and newer
 consumers can read the same record.
+
+## Metadata Overrides
+
+Official index maintainers may supplement already published, immutable version
+records through `metadata-overrides.toml`. Overrides are intended for display
+and discovery metadata only, especially `meta` and `upstream` fields such as
+license, citation, DOI, and PMID.
+
+Overrides do not change installable app identity: version ids, release tags,
+source refs, container image tags, image digests, platform lists, smoke results,
+and trust records still come from the app repository and index checks.
+
+For new app releases, prefer writing `[meta]` and `[upstream]` directly in
+`taffish.toml`. Use metadata overrides for historical records or index-side
+metadata corrections that do not justify republishing the app.
 
 ## Container, Smoke, And Trust
 
@@ -414,8 +430,8 @@ official flows should use exact version ids.
 
 ## Upstream Omission Rules
 
-If `taffish.toml` has no `[upstream]`, or `[upstream]` has no valid field, the
-version record does not contain `upstream`.
+If neither `taffish.toml` nor index metadata overrides provide valid upstream
+fields, the version record does not contain `upstream`.
 
 When upstream metadata exists:
 
