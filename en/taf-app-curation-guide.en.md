@@ -65,7 +65,8 @@ taf new my-tool --tool --docker \
 Then polish in this order:
 
 1. Read upstream documentation and identify the main command, helper commands,
-   version policy, and recommended installation path.
+   version policy, recommended installation path, license, and canonical
+   citation when available.
 2. Design the Dockerfile so the image contains commands needed by real
    workflows, not only the primary executable.
 3. Design `src/main.taf`, preferably as a thin wrapper.
@@ -155,7 +156,9 @@ url = "https://github.com/owner/project"
 repository = "owner/project"
 version = "1.0.0"
 license = "Apache-2.0"
-citation = "DOI, PMID, or paper URL when available"
+citation = "Author et al. YEAR"
+doi = "10.xxxx/example"
+pmid = "12345678"
 
 [smoke]
 backend = "docker"
@@ -172,6 +175,9 @@ Notes:
 - `[repository].url` is the TAFFISH app repository, not the upstream repository.
 - `[meta]` is optional, but recommended for public Hub search and display.
 - `[upstream]` describes the wrapped software, not the TAFFISH app itself.
+- For bioinformatics tools, check upstream docs, the paper page, DOI, or PubMed
+  for the canonical citation. Prefer adding `citation` and `doi`; add `pmid`
+  when it is available. Do not guess citation metadata.
 - For new releases, write `[meta]` and `[upstream]` here; use index-side
   `metadata-overrides.toml` only for display metadata or upstream attribution
   fields on already published immutable records.
@@ -485,6 +491,8 @@ podman run --rm ghcr.io/taffish/my-tool:1.0.0-r1 my-tool --help
 Checklist:
 
 - `taffish.toml` has no `TODO`.
+- `[upstream]` records the upstream license and, for scholarly bioinformatics
+  tools, verified `citation`, `doi`, and optionally `pmid`.
 - `docs/help.md` exists and matches command, image, and version.
 - `README.md` matches command, image, and version.
 - `release.md` first line is real, concise, and not a default placeholder.

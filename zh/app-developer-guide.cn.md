@@ -219,11 +219,15 @@ homepage = "https://github.com/weizhongli/cdhit"
 repository = "weizhongli/cdhit"
 version = "4.8.1"
 license = "GPL-2.0"
+citation = "Fu et al. 2012"
 doi = "10.1093/bioinformatics/bts565"
 pmid = "23060610"
 ```
 
 `[upstream]` 描述的是被包装软件的原始来源，不是 TAFFISH app 自己的仓库来源。
+对生信工具，尽量补充已确认的学术归属信息：推荐填写 `citation` 和 `doi`；
+如果 canonical paper 已被 PubMed 收录，也推荐填写 `pmid`。不能确认时宁可留空，
+不要猜测。
 
 新的公开 release 应该把发现元数据和 upstream 元数据保存在 `taffish.toml` 中。
 如果已经发布且不可变的历史版本只是需要修正展示元数据，或补充已有 upstream 仓库的
@@ -668,6 +672,7 @@ tag = "v0.1.0-r1"
 - [ ] `docs/help.md` 已更新。
 - [ ] 如果准备进入公开 Hub，`[meta]` 中包含有用的 domain、category、summary 和 keywords。
 - [ ] 如果是 tool app，确认上游软件来源写入 `[upstream]`。
+- [ ] 对学术生信工具，`[upstream]` 包含已确认的 `license`、`citation`、`doi`，以及可选的 `pmid`。
 - [ ] 如果是容器化 app，镜像 tag 与 `version-release` 一致。
 - [ ] 如果是容器化 app，`[smoke]` 已经包含真实的 `exist` 或 `test` 检查，并且没有 `TODO` 占位。
 - [ ] 如果是容器化 app，本地 `taf build --image --backend ...` 和 `taf run --backend ...` 使用一致后端。

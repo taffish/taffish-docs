@@ -56,7 +56,8 @@ taf new my-tool --tool --docker \
 
 然后按顺序精修：
 
-1. 阅读上游文档，确认主命令、辅助命令、版本策略和安装方式。
+1. 阅读上游文档，确认主命令、辅助命令、版本策略、安装方式、许可证，以及可用时的
+   canonical citation。
 2. 设计 Dockerfile，让容器包含真实工作流需要的命令，而不只是主程序。
 3. 设计 `src/main.taf`，优先保持薄 wrapper。
 4. 精修 `taffish.toml`，尤其是 image、upstream 和 smoke。
@@ -141,7 +142,9 @@ url = "https://github.com/owner/project"
 repository = "owner/project"
 version = "1.0.0"
 license = "Apache-2.0"
-citation = "DOI, PMID, or paper URL when available"
+citation = "Author et al. YEAR"
+doi = "10.xxxx/example"
+pmid = "12345678"
 
 [smoke]
 backend = "docker"
@@ -158,6 +161,8 @@ test = ["my-tool --help"]
 - `[repository].url` 是 TAFFISH app 仓库，不是上游仓库。
 - `[meta]` 是可选字段，但公开 Hub app 推荐填写，用于搜索和展示。
 - `[upstream]` 描述被包装的软件，不描述 TAFFISH app 自己。
+- 对生信工具，精修阶段应查阅上游文档、论文页面、DOI 或 PubMed，确认 canonical
+  citation。推荐填写 `citation` 和 `doi`；如果能确认 PMID，也填写 `pmid`。不要猜测引用元数据。
 - 新 release 应该把 `[meta]` 和 `[upstream]` 写在这里；index 侧
   `metadata-overrides.toml` 只用于已经发布且不可变的历史 record 的展示元数据或
   上游归属/引用字段。
@@ -449,6 +454,7 @@ podman run --rm ghcr.io/taffish/my-tool:1.0.0-r1 my-tool --help
 检查清单：
 
 - `taffish.toml` 无 `TODO`。
+- `[upstream]` 记录上游许可证；对学术生信工具，记录已确认的 `citation`、`doi`，以及可选的 `pmid`。
 - `docs/help.md` 存在并与 command/image/version 一致。
 - `README.md` 与 command/image/version 一致。
 - `release.md` 第一行真实、简洁、无默认占位。

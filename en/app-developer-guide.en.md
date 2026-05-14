@@ -220,11 +220,15 @@ homepage = "https://github.com/weizhongli/cdhit"
 repository = "weizhongli/cdhit"
 version = "4.8.1"
 license = "GPL-2.0"
+citation = "Fu et al. 2012"
 doi = "10.1093/bioinformatics/bts565"
 pmid = "23060610"
 ```
 
 `[upstream]` describes the original software being wrapped. It is not the TAFFISH app repository.
+For bioinformatics tools, include verified scholarly attribution when available:
+`citation` and `doi` are recommended, and `pmid` is useful when the canonical
+paper is indexed in PubMed. Leave these fields out rather than guessing.
 
 For new public releases, keep discovery and upstream metadata in
 `taffish.toml`. If an already published immutable release only needs display
@@ -669,6 +673,7 @@ Before publishing, confirm:
 - [ ] `docs/help.md` is updated.
 - [ ] If intended for public Hub discovery, `[meta]` contains useful domain, category, summary, and keywords.
 - [ ] For a tool app, upstream source is recorded in `[upstream]` where possible.
+- [ ] For scholarly bioinformatics tools, `[upstream]` includes verified `license`, `citation`, `doi`, and optionally `pmid`.
 - [ ] For a containerized app, image tag matches `version-release`.
 - [ ] For a containerized app, `[smoke]` has real `exist` or `test` checks and no `TODO` placeholders.
 - [ ] For a containerized app, local `taf build --image --backend ...` and `taf run --backend ...` use a consistent backend.
