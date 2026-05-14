@@ -370,6 +370,7 @@ Supported fields:
 | `url` | string | General upstream homepage, repository, or documentation URL. |
 | `homepage` | string | Upstream homepage. |
 | `repository` | string | Upstream repository, for example `weizhongli/cdhit`. |
+| `repo` | string | Compatibility alias for `repository`; index output normalizes it to `repository`. |
 | `release_url` | string | Upstream release page. |
 | `docker_image` | string | Existing upstream Docker image. |
 | `version` | string | Upstream version. |

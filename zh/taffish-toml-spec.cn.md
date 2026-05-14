@@ -341,6 +341,7 @@ pmid = "23060610"
 | `url` | string | 通用上游主页、仓库或文档 URL。 |
 | `homepage` | string | 上游主页。 |
 | `repository` | string | 上游仓库，例如 `weizhongli/cdhit`。 |
+| `repo` | string | `repository` 的兼容别名；index 输出会归一化为 `repository`。 |
 | `release_url` | string | 上游发布页。 |
 | `docker_image` | string | 上游已有 Docker 镜像。 |
 | `version` | string | 被包装的上游版本。 |
