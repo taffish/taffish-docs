@@ -226,8 +226,9 @@ pmid = "23060610"
 `[upstream]` 描述的是被包装软件的原始来源，不是 TAFFISH app 自己的仓库来源。
 
 新的公开 release 应该把发现元数据和 upstream 元数据保存在 `taffish.toml` 中。
-如果已经发布且不可变的历史版本只是需要修正或补充展示元数据，官方 index 维护者可以使用
-`metadata-overrides.toml`，而不是为此发布新的 app release。
+如果已经发布且不可变的历史版本只是需要修正展示元数据，或补充已有 upstream 仓库的
+开源协议，官方 index 维护者可以使用 `metadata-overrides.toml`，而不是为此发布新的
+app release。
 
 更完整的字段规范见 [taffish.toml 规范](taffish-toml-spec.cn.md)。
 

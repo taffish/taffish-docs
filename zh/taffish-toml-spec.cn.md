@@ -309,7 +309,7 @@ keywords = ["blast", "alignment", "sequence-search"]
 手动添加。
 
 新的公开 release 应该把发现元数据保存在 `taffish.toml` 中。官方 index 只在补充
-已经发布且不可变的历史 record，或修正 index 侧展示元数据时使用
+已经发布且不可变的历史 record 的 index 侧展示元数据时使用
 `metadata-overrides.toml`。
 
 `taffish-index` 也兼容更丰富的 Hub 侧别名 `categories` 和 `description`。
@@ -357,8 +357,8 @@ pmid = "23060610"
 如果 `[upstream]` 不存在，或没有任何有效字段，index 中会省略 `upstream` 字段。
 
 新的 release 推荐直接把 upstream 元数据写在这里。index 侧
-`metadata-overrides.toml` 可以补充历史不可变 record，但不替代新 package 的 app 侧
-信息来源。
+`metadata-overrides.toml` 可以为已经存在 upstream 的历史不可变 record 补充
+`upstream.license`，但不替代新 package 的 app 侧信息来源。
 
 ## Tool 示例
 

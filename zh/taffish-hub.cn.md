@@ -473,13 +473,14 @@ pmid
 
 ## index metadata overrides
 
-已发布 app release 应视为不可变。如果旧的已收录版本缺少发现元数据或 upstream
-展示元数据，维护者不应该重写已发布 tag，也不应该只为了这些展示信息 bump app
-release。官方 index 可以通过 `metadata-overrides.toml` 补充这些信息。
+已发布 app release 应视为不可变。如果旧的已收录版本缺少发现元数据，或缺少已经声明的
+upstream 仓库的开源协议，维护者不应该重写已发布 tag，也不应该只为了这些展示信息
+bump app release。官方 index 可以通过 `metadata-overrides.toml` 补充这些信息。
 
-这个机制只用于 index 侧元数据，例如 `meta` 和 `upstream`。它不改变 install
-命令、source commit、容器镜像、镜像 digest、smoke 结果或 trust 状态。新的 app
-release 仍然应该在自己的 `taffish.toml` 中写完整的 `[meta]` 和 `[upstream]`。
+这个机制只用于 index 侧元数据，例如 `meta` 和 `upstream.license`。它不会创建新的
+upstream object，也不改变 install 命令、source commit、容器镜像、镜像 digest、
+smoke 结果或 trust 状态。新的 app release 仍然应该在自己的 `taffish.toml` 中写完整的
+`[meta]` 和 `[upstream]`。
 
 ## `taffish.github.io`
 

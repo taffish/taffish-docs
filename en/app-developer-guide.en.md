@@ -228,8 +228,9 @@ pmid = "23060610"
 
 For new public releases, keep discovery and upstream metadata in
 `taffish.toml`. If an already published immutable release only needs display
-metadata corrected or supplemented, official index maintainers can use
-`metadata-overrides.toml` instead of publishing a new app release.
+metadata corrected or an existing upstream repository license supplemented,
+official index maintainers can use `metadata-overrides.toml` instead of
+publishing a new app release.
 
 See [`taffish.toml` Specification](taffish-toml-spec.en.md) for the full field reference.
 

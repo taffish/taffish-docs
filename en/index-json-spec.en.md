@@ -263,8 +263,8 @@ consumers can read the same record.
 
 Official index maintainers may supplement already published, immutable version
 records through `metadata-overrides.toml`. Overrides are intended for display
-and discovery metadata only, especially `meta` and `upstream` fields such as
-license, citation, DOI, and PMID.
+and discovery metadata only: `meta` fields, plus `upstream.license` on records
+that already have an upstream object.
 
 Overrides do not change installable app identity: version ids, release tags,
 source refs, container image tags, image digests, platform lists, smoke results,
@@ -430,8 +430,9 @@ official flows should use exact version ids.
 
 ## Upstream Omission Rules
 
-If neither `taffish.toml` nor index metadata overrides provide valid upstream
-fields, the version record does not contain `upstream`.
+If `taffish.toml` does not provide valid upstream fields, the version record
+does not contain `upstream`. Index metadata overrides may supplement
+`upstream.license` only after such an upstream object already exists.
 
 When upstream metadata exists:
 

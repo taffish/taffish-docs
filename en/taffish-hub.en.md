@@ -506,14 +506,16 @@ This information matters because:
 ## Index Metadata Overrides
 
 Published app releases are treated as immutable. When an old accepted version is
-missing discovery or upstream display metadata, maintainers should not rewrite
-the published tag or bump the app release only for that metadata. Instead, the
-official index can supplement it through `metadata-overrides.toml`.
+missing discovery metadata or the open-source license of an already declared
+upstream repository, maintainers should not rewrite the published tag or bump
+the app release only for that metadata. Instead, the official index can
+supplement it through `metadata-overrides.toml`.
 
-This mechanism is limited to index-side metadata such as `meta` and `upstream`.
-It does not change install commands, source commits, container images, image
-digests, smoke results, or trust status. New app releases should still include
-complete `[meta]` and `[upstream]` information in their own `taffish.toml`.
+This mechanism is limited to index-side metadata such as `meta` and
+`upstream.license`. It does not create upstream objects and does not change
+install commands, source commits, container images, image digests, smoke
+results, or trust status. New app releases should still include complete
+`[meta]` and `[upstream]` information in their own `taffish.toml`.
 
 ## `taffish.github.io`
 
