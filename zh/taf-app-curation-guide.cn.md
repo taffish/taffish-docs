@@ -160,7 +160,7 @@ test = ["my-tool --help"]
 - `[upstream]` 描述被包装的软件，不描述 TAFFISH app 自己。
 - 新 release 应该把 `[meta]` 和 `[upstream]` 写在这里；index 侧
   `metadata-overrides.toml` 只用于已经发布且不可变的历史 record 的展示元数据或
-  upstream license。
+  上游归属/引用字段。
 - `command_mode = true` 对 tool app 很重要，用户可以运行容器内的辅助命令。
 - 不要添加当前工具链不理解的字段。
 
@@ -404,7 +404,7 @@ test = ["python -c 'import my_tool'"]
 - 只是修复 index、taf、官网或文档系统 bug。
 - 只是重新运行 index action。
 - 只是通过 `metadata-overrides.toml` 为已经发布且不可变的版本补充 index 侧展示元数据或
-  `upstream.license`。
+  上游归属/引用字段。
 - 没有改变 app 仓库中已发布 tag 的内容。
 
 何时增加 release：

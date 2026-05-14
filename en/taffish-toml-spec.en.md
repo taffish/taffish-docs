@@ -387,9 +387,10 @@ If `[upstream]` is absent, or no valid fields exist, the index omits the
 `upstream` field.
 
 For new releases, prefer storing upstream metadata here. Index-side
-`metadata-overrides.toml` can supplement `upstream.license` on historical
-immutable records that already have upstream data, but it does not replace the
-app-side source of truth for new packages.
+`metadata-overrides.toml` can supplement upstream attribution fields such as
+`license`, `citation`, `doi`, and `pmid` on historical immutable records that
+already have upstream data, but it does not replace the app-side source of truth
+for new packages.
 
 ## Tool Example
 

@@ -358,7 +358,8 @@ pmid = "23060610"
 
 新的 release 推荐直接把 upstream 元数据写在这里。index 侧
 `metadata-overrides.toml` 可以为已经存在 upstream 的历史不可变 record 补充
-`upstream.license`，但不替代新 package 的 app 侧信息来源。
+`license`、`citation`、`doi`、`pmid` 等上游归属/引用字段，但不替代新 package 的
+app 侧信息来源。
 
 ## Tool 示例
 
