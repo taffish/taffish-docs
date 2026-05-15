@@ -418,9 +418,8 @@ summary = "BLAST+ wrapper for sequence similarity search."
 keywords = ["blast", "alignment", "sequence-search"]
 ```
 
-TAFFISH `0.8.1` 文档化了更简洁的 app 侧字段 `category` 和 `summary`。
-index 也兼容 `categories` 和 `description`，并在 JSON 中同时输出两种形式以适配
-Hub 消费端。
+从 TAFFISH `0.8.1` 开始，更简洁的 app 侧字段 `category` 和 `summary` 已被文档化。
+index 也兼容 `categories` 和 `description`，并在 JSON 中同时输出两种形式以适配 Hub 消费端。
 
 ## 上游来源信息
 

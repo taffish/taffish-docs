@@ -160,9 +160,9 @@ taf publish --release --yes --build
 `taf publish --release` reads the ignored `release.md` draft. If the GitHub
 Release title or notes look wrong, edit `release.md`: the first line becomes the
 publish message, and the whole file becomes the GitHub Release notes.
-TAFFISH `0.8.1` rejects only the default first-line placeholders `TODO` and
-`TODO: release summary`, so normal release summaries that contain the word
-`todo` are accepted.
+Since TAFFISH `0.8.1`, only the default first-line placeholders `TODO` and
+`TODO: release summary` are rejected, so normal release summaries that contain
+the word `todo` are accepted.
 
 ## GHCR Image Pull Fails
 
@@ -450,6 +450,19 @@ TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
 
 This still does not override explicit `<docker:...>`, `<podman:...>`, or
 `<apptainer:...>` tags.
+
+If the problem is not backend selection but one-off runtime policy, use
+backend-specific runtime argument variables instead. For example, on an ARM host
+that needs to run an amd64 Docker/Podman image:
+
+```sh
+TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+```
+
+Use these variables for local policy only. If an app itself needs backend-specific
+flags, such as GPU access for normal operation, the app source should declare
+them with `$@[target: args]`.
 
 ## Where To Get More Context
 

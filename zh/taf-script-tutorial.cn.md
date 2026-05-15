@@ -265,6 +265,17 @@ TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
 
 它不会覆盖显式的 `<docker:...>`、`<podman:...>` 或 `<apptainer:...>` 标签。
 
+对于 app 自身的 backend runtime 需求，使用结构化容器参数：
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-gpu-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+my-gpu-tool ::*ARGV*::
+```
+
+当 app 实现本身需要这些参数时，应使用这种方式。`TAFFISH_DOCKER_RUN_ARGS`、
+`TAFFISH_PODMAN_RUN_ARGS` 或 `TAFFISH_APPTAINER_RUN_ARGS` 用于本地单次策略，例如在某台机器上强制
+`--platform linux/amd64`。
+
 镜像构建目前使用 Docker 或 Podman：
 
 ```sh

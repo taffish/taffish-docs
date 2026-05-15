@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -447,6 +447,36 @@ This environment variable does not override explicit `<docker:...>`,
 `<podman:...>`, or `<apptainer:...>` tags. When using `taf run`,
 `--backend` has priority over `TAFFISH_CONTAINER_BACKEND`.
 
+TAFFISH `0.9.0` adds structured backend-specific runtime arguments inside the
+container tag. They are written after `$` as `@[target: args]` blocks:
+
+```taf
+<container:ghcr.io/taffish/my-tool:1.0.0-r1$@[all: --network host][docker/podman: --security-opt=label=disable]>
+my-tool --help
+```
+
+Targets can be `all`, `container` as an alias of `all`, `docker`, `podman`,
+`apptainer`, or backend combinations such as `docker/podman`. These tag
+arguments are for app implementation requirements. For example, if a wrapped app
+requires GPU access to work correctly, the app should declare the backend-specific
+GPU flags in `src/main.taf`:
+
+```taf
+<container:ghcr.io/taffish/my-gpu-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+my-gpu-tool --help
+```
+
+Local runtime policy belongs in environment variables instead:
+
+```sh
+TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_APPTAINER_RUN_ARGS="--bind /scratch:/scratch" taf-my-tool ...
+```
+
+These variables are for single-run, machine, cluster, platform, or site policy.
+They append backend-specific runtime arguments without changing the app source.
+
 When testing an unpublished local image, build and run with the same backend:
 
 ```sh
@@ -718,7 +748,7 @@ and generic MCP client configuration examples, see
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current public release is `0.8.1`. The default
+custom source support. The current public release is `0.9.0`. The default
 config paths are:
 
 ```text
@@ -770,8 +800,7 @@ same TAFFISH index schema.
 
 ## Open Source And Source Builds
 
-TAFFISH `0.8.1` is the current stable patch release in the first open-source
-`0.8.x` local CLI/compiler series. The Common Lisp implementation is published in
+TAFFISH `0.9.0` is the current public release. The Common Lisp implementation is published in
 [taffish/taffish](https://github.com/taffish/taffish) under Apache License 2.0.
 
 The source repository builds three command-line entry points:
@@ -793,11 +822,11 @@ Useful source-side documents:
 - [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-At `0.8.1`, official macOS Apple Silicon binaries are built with SBCL and
-Linux x86_64 binaries are built manually with LispWorks. The `0.8.1` patch
-keeps the `0.8.0` public interface stable, fixes `release.md` placeholder
-detection in `taf publish --release`, documents optional `[meta]` and
-`[upstream]` metadata, and includes `SHA256SUMS`, `SHA256SUMS.asc`, and
+At `0.9.0`, official macOS Apple Silicon binaries are built with SBCL and
+Linux x86_64 binaries are built manually with LispWorks. The `0.9.0` release
+adds structured backend-specific container runtime arguments, local backend
+runtime-argument environment variables, external binary-level tests, and
+refreshed release payloads. It includes `SHA256SUMS`, `SHA256SUMS.asc`, and
 `TAFFISH-RELEASE-KEY.asc` for manual checksum and GPG signature verification.
 
 ## TAFFISH App Project Structure

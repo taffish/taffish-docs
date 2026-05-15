@@ -62,12 +62,11 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
 ```
 
-TAFFISH `0.8.1` is the current stable patch release in the first open-source
-`0.8.x` local CLI/compiler series. Most users should use the installer above,
-but source builds and release verification are documented in the
+TAFFISH `0.9.0` is the current public release. Most users should use the
+installer above, but source builds and release verification are documented in the
 [taffish/taffish README](https://github.com/taffish/taffish).
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
@@ -176,7 +175,7 @@ taf update --url <INDEX-URL>
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current public release is `0.8.1`.
+mirror and custom source support. The current public release is `0.9.0`.
 
 Default config paths:
 
@@ -386,6 +385,27 @@ TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 --compile -- --help
 This does not override explicit `<docker:...>`, `<podman:...>`, or
 `<apptainer:...>` tags. In local project runs, `taf run --backend ...` has
 priority over the environment variable.
+
+TAFFISH `0.9.0` also supports backend-specific container runtime arguments. Use
+structured `.taf` tag arguments for app requirements, such as an app that needs
+GPU access:
+
+```taf
+<container:ghcr.io/taffish/my-gpu-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+  my-gpu-tool --help
+```
+
+Use runtime environment variables for machine, site, or one-off differences
+that are not part of the app implementation:
+
+```sh
+TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_APPTAINER_RUN_ARGS="--bind /scratch:/scratch" taf-my-tool ...
+```
+
+In short: put app-specific runtime needs in `.taf`; put local execution policy
+in environment variables.
 
 If a container backend reports errors before the app starts, first check the
 backend itself. For example:

@@ -506,12 +506,27 @@ TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
 This does not override explicit backend tags. During local project runs,
 `taf run --backend ...` has priority over the environment variable.
 
-If the image is not portable across all backends, or if it only exists in one local backend store during development, use an explicit backend tag in `src/main.taf`:
+If the app truly requires one backend, or if it only exists in one local backend
+store during development, use an explicit backend tag in `src/main.taf`:
 
 ```taf
 <taf-app:podman:ghcr.io/taffish/my-tool:0.1.0-r1>
 my-tool --input ::input::
 ```
+
+If the app is portable but has backend-specific runtime requirements, keep the
+generic `container` tag and use TAFFISH `0.9.0` structured runtime arguments:
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+my-tool ::*ARGV*::
+```
+
+Use this for app implementation needs. For example, GPU access required by the
+wrapped tool should be declared in the app source. Use
+`TAFFISH_DOCKER_RUN_ARGS`, `TAFFISH_PODMAN_RUN_ARGS`, or
+`TAFFISH_APPTAINER_RUN_ARGS` only for local machine, site, platform, or one-off
+runtime policy that is not part of the app itself.
 
 Common checks:
 

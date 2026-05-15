@@ -250,7 +250,7 @@ version record 描述一个具体版本。
 | `summary` | string/null | 一句话描述。 |
 | `description` | string/null | 同一段面向用户的描述，为 Hub 兼容保留。 |
 
-TAFFISH `0.8.1` 文档化了更简洁的 app 侧字段 `category` 和 `summary`。
+从 TAFFISH `0.8.1` 开始，更简洁的 app 侧字段 `category` 和 `summary` 已被文档化。
 `taffish-index` 也兼容更丰富的 Hub 侧别名 `categories` 和 `description`，
 并在生成 record 时同时输出两种形式，方便新旧消费者读取。
 

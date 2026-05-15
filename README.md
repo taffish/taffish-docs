@@ -57,7 +57,7 @@ If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 | [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Capability reference for `taffish-mcp`, including tools, read-only compiler helpers, app/project inspection, smoke/trust metadata exposure, resources, prompts, safety boundaries, and troubleshooting. |
 | [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) | Client setup guide for Codex, Claude Code, Cursor, Cline, and generic stdio MCP clients. |
 | [App Developer Guide](en/app-developer-guide.en.md) | Practical app release workflow. It focuses on `taf new`, project editing, check, run, build, `release.md`, publish, and maintenance. |
-| [Containerized App Best Practices](en/container-apps.en.md) | Focused container guide. It covers Dockerfile design, smoke metadata, runtime mounts, GHCR, Docker/Podman testing, and backend consistency. |
+| [Containerized App Best Practices](en/container-apps.en.md) | Focused container guide. It covers Dockerfile design, smoke metadata, runtime mounts, GHCR, Docker/Podman testing, backend consistency, and TAFFISH `0.9.0` runtime-argument policy. |
 | [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) | Official Hub maintainer guide. It uses Augustus as the baseline template and covers file boundaries, help/README/release/smoke design, version policy, publish checks, and what not to edit. |
 | [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Focused flow guide. It covers `[[taf: ...]]`, `@:` blocks, exact app versions, and dependency semantics. |
 | [`taffish.toml` Specification](en/taffish-toml-spec.en.md) | Metadata reference for app authors, Hub maintainers, and validators, including `[smoke]` metadata for containerized apps. |
@@ -99,7 +99,7 @@ Use these guides when you want a practical path from first install to daily use.
 | Document | Purpose |
 | --- | --- |
 | [TAFFISH App Developer Guide](en/app-developer-guide.en.md) | Practical workflow for creating, checking, running, building, private/local testing with `taf install --from`, preparing `release.md`, publishing, and maintaining TAFFISH apps. |
-| [Containerized App Best Practices](en/container-apps.en.md) | Dockerfile design, multi-stage builds, smoke metadata, runtime mounts, GHCR visibility, local Docker/Podman testing, backend consistency, and `TAFFISH_CONTAINER_BACKEND`. |
+| [Containerized App Best Practices](en/container-apps.en.md) | Dockerfile design, multi-stage builds, smoke metadata, runtime mounts, GHCR visibility, local Docker/Podman testing, backend consistency, `TAFFISH_CONTAINER_BACKEND`, structured `$@[target: args]`, and backend runtime-argument environment variables. |
 | [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) | Curation guide for official Hub maintainers turning `taf new` projects into publishable, indexable apps that can serve as templates. |
 | [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Flow app structure, `[[taf: ...]]`, `@:` parameter blocks, dependency declarations, multi-version dependencies, and install semantics. |
 
@@ -126,16 +126,14 @@ private mirror, enterprise environment, or security-sensitive workflow.
 
 ## Source Development
 
-TAFFISH `0.8.1` is the current stable patch release in the first open-source
-`0.8.x` local CLI/compiler series. The source code, ASDF systems,
+TAFFISH `0.9.0` is the current public release. The source code, ASDF systems,
 source-tree developer docs, release payloads, contribution guide, and security
 policy live in
 [taffish/taffish](https://github.com/taffish/taffish).
 
-The `0.8.1` release keeps the `0.8.0` public interface stable, fixes
-`release.md` placeholder detection in `taf publish --release`, documents
-optional `[meta]` and `[upstream]` metadata, and refreshes the signed checksum
-release payload.
+The `0.9.0` release adds structured backend-specific container runtime
+arguments in `.taf` tags, local backend runtime-argument environment variables,
+external binary-level tests, and refreshed signed checksum release payloads.
 
 The most relevant source-side documents are:
 
@@ -168,8 +166,12 @@ Some repetition is intentional:
 - The official taf-app curation guide overlaps with the app developer guide and
   container best practices, but acts more like a maintainer checklist for
   official Hub apps using Augustus as the baseline.
-- Container backend notes appear in Quick Start, container best practices, and
-  troubleshooting because runtime issues are common in real deployments.
+- Container backend and runtime-argument notes appear in Quick Start, container
+  best practices, and troubleshooting because runtime issues are common in real
+  deployments. App-specific runtime requirements belong in `.taf` tags with
+  `$@[target: args]`; one-off local policy belongs in
+  `TAFFISH_DOCKER_RUN_ARGS`, `TAFFISH_PODMAN_RUN_ARGS`, or
+  `TAFFISH_APPTAINER_RUN_ARGS`.
 - Smoke metadata appears in the app developer guide, container best practices,
   `taffish.toml` specification, Hub guide, index JSON specification, and MCP
   guide because TAFFISH `0.8.0` connects local app metadata with Hub-side

@@ -384,7 +384,17 @@ taf run --backend podman -- --help
 my-tool --help
 ```
 
-如果一个镜像只在本地 Docker 或 Podman 中存在，或者运行参数依赖某个后端，建议在 `src/main.taf` 中使用显式后端标签，而不是泛化的 `container`。
+如果 app 确实只能使用某一个后端，可以在 `src/main.taf` 中使用显式后端标签。如果
+app 本身可以移植，但不同后端需要不同 runtime 参数，应保留泛化 `container` 标签，并使用
+TAFFISH `0.9.0` 的结构化 runtime 参数：
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+my-tool ::*ARGV*::
+```
+
+`$@[target: args]` 用于 app 自身运行需求。例如某个 tool app 的正常功能就需要
+GPU，那么对应后端的 GPU 参数应该写在 `src/main.taf` 中，不应该要求每个用户每次手动提供。
 
 对于已经安装好的 `taf-*` 命令，或者直接使用 `taffish` 编译时，可以用
 `TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` 强制泛化容器标签，而不需要
@@ -397,6 +407,17 @@ TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
 
 这个运行时环境变量不会覆盖显式 backend 标签。本地项目测试时，
 `taf run --backend ...` 的优先级高于它。
+
+如果是和 app 实现无关的单次本地策略，则使用 backend runtime 参数环境变量：
+
+```sh
+TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_APPTAINER_RUN_ARGS="--bind /scratch:/scratch" taf-my-tool ...
+```
+
+这些变量用于机器、集群、站点、平台或单次运行差异。它们会追加到生成的 runtime
+命令末尾，位于 app 在 tag 中声明的参数之后。
 
 也可以直接测试容器：
 

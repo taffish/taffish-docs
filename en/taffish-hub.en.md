@@ -449,9 +449,9 @@ summary = "BLAST+ wrapper for sequence similarity search."
 keywords = ["blast", "alignment", "sequence-search"]
 ```
 
-TAFFISH `0.8.1` documents `category` and `summary` as compact app-side fields.
-The index also accepts `categories` and `description`, then emits both forms in
-JSON for Hub compatibility.
+Since TAFFISH `0.8.1`, `category` and `summary` are documented as compact
+app-side fields. The index also accepts `categories` and `description`, then
+emits both forms in JSON for Hub compatibility.
 
 ## Upstream Source Metadata
 

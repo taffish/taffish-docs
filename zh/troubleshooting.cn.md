@@ -156,9 +156,9 @@ taf publish --release --yes --build
 `taf publish --release` 会读取被 ignore 的 `release.md` 草稿。如果 GitHub
 Release 标题或说明不对，编辑 `release.md`：第一行会成为 publish message，整个
 文件会成为 GitHub Release notes。
-TAFFISH `0.8.1` 只会拒绝第一行仍为默认占位符 `TODO` 或
-`TODO: release summary` 的 release notes；真实 summary 中正常出现 `todo`
-这个词不会被误拒绝。
+从 TAFFISH `0.8.1` 开始，`taf publish --release` 只会拒绝第一行仍为默认占位符
+`TODO` 或 `TODO: release summary` 的 release notes；真实 summary 中正常出现
+`todo` 这个词不会被误拒绝。
 
 ## GHCR 镜像拉取失败
 
@@ -433,6 +433,16 @@ TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
 ```
 
 这仍然不会覆盖显式的 `<docker:...>`、`<podman:...>` 或 `<apptainer:...>` 标签。
+
+如果问题不是后端选择，而是单次 runtime 策略，应使用 backend-specific runtime 参数环境变量。例如在 ARM 主机上需要运行 amd64 Docker/Podman 镜像：
+
+```sh
+TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+```
+
+这些变量只用于本地策略。如果 app 本身正常运行就需要 backend-specific 参数，例如
+GPU 访问，应在 app 源码中用 `$@[target: args]` 声明。
 
 ## 获取更多上下文
 

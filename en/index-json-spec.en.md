@@ -254,8 +254,8 @@ Current fields:
 | `summary` | string/null | One-sentence description. |
 | `description` | string/null | Same human-facing description, kept for Hub compatibility. |
 
-TAFFISH `0.8.1` documents the compact app-side fields `category` and
-`summary`. `taffish-index` also accepts the richer Hub-side aliases
+Since TAFFISH `0.8.1`, the compact app-side fields `category` and `summary`
+are documented. `taffish-index` also accepts the richer Hub-side aliases
 `categories` and `description`, then emits both forms so older and newer
 consumers can read the same record.
 

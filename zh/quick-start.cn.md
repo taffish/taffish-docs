@@ -61,11 +61,10 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
 ```
 
-TAFFISH `0.8.1` 是第一个开源 `0.8.x` 本地 CLI/编译器系列中的当前稳定
-patch release。大多数用户仍然建议使用上面的安装器；源码构建和 release 校验说明见
+TAFFISH `0.9.0` 是当前公开 release。大多数用户仍然建议使用上面的安装器；源码构建和 release 校验说明见
 [taffish/taffish README](https://github.com/taffish/taffish)。
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
@@ -168,7 +167,7 @@ taf update --url <INDEX-URL>
 ## 运行时配置与镜像源
 
 从 TAFFISH `0.2.0` 开始，`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义
-来源。当前公开版本是 `0.8.1`。
+来源。当前公开版本是 `0.9.0`。
 
 默认配置路径：
 
@@ -370,6 +369,24 @@ TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 --compile -- --help
 这个环境变量不会覆盖显式的 `<docker:...>`、`<podman:...>` 或
 `<apptainer:...>` 标签。本地项目运行时，`taf run --backend ...` 的优先级
 高于这个环境变量。
+
+TAFFISH `0.9.0` 还支持 backend-specific container runtime arguments。app
+自身运行需求应使用结构化 `.taf` 标签参数，例如某个 app 本身需要 GPU：
+
+```taf
+<container:ghcr.io/taffish/my-gpu-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+  my-gpu-tool --help
+```
+
+机器、站点或单次运行差异则使用运行时环境变量，不应写进 app 实现：
+
+```sh
+TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_APPTAINER_RUN_ARGS="--bind /scratch:/scratch" taf-my-tool ...
+```
+
+简言之：app 特有运行需求写进 `.taf`；本地执行策略放进环境变量。
 
 如果容器后端在 app 启动前就报错，先检查后端本身。例如：
 

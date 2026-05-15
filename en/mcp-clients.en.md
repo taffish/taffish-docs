@@ -26,7 +26,7 @@ new machine or a new client version.
 
 ## Prerequisites
 
-Install the current TAFFISH release, `0.8.1` or later, for the current MCP tool surface:
+Install the current TAFFISH release, `0.9.0` or later, for the current MCP tool surface:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -111,6 +111,15 @@ list if the client provides a reload action. Some clients read MCP server
 definitions only at startup. If `taffish-mcp` works in the terminal but does not
 appear inside the client immediately, the first thing to try is usually a client
 restart or MCP reload rather than changing TAFFISH itself.
+
+TAFFISH `0.9.0` also allows MCP server environments to include
+`TAFFISH_DOCKER_RUN_ARGS`, `TAFFISH_PODMAN_RUN_ARGS`, and
+`TAFFISH_APPTAINER_RUN_ARGS`. These variables are useful for local machine,
+cluster, mirror, platform, or one-off runtime policy during compile previews.
+They are not a replacement for app implementation requirements: if an app
+itself needs GPU devices, host networking, or another backend-specific runtime
+option, that requirement should be declared in the `.taf` source with
+`$@[target: args]`.
 
 ## Codex
 

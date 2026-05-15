@@ -6,9 +6,11 @@
 AI 客户端可以用结构化方式检查 TAFFISH 项目、查询本地 Hub 状态、读取部分资源，
 验证或编译 `.taf` 源码但不执行它，并准备相对安全的项目操作。
 
-TAFFISH `0.8.1` 是当前推荐的 MCP 使用版本。它保留了 `0.5.0` 引入的只读
+TAFFISH `0.9.0` 是当前推荐的 MCP 使用版本。它保留了 `0.5.0` 引入的只读
 TAF 源码/文件编译器辅助工具、`0.6.0` 新增的 app/project inspection 和安全
-app invocation 编译、`0.7.0` 的运行时容器 backend override 对齐，并在不运行容器的前提下暴露 app 和项目的 smoke/trust 元数据。
+app invocation 编译、`0.7.0` 的运行时容器 backend override 对齐，暴露 app
+和项目的 smoke/trust 元数据，并会在 compile preview 中识别 `0.9.0` 的
+backend-specific 容器运行参数设置。MCP 仍然不会运行容器。
 
 它的设计是保守的。接口主要服务于检查、规划和低风险项目维护，不暴露
 `taf run`、`taf publish`、容器镜像构建或其他高影响执行路径。
@@ -54,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定版本安装：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
 ```
 
 验证：

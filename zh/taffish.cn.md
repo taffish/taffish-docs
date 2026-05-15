@@ -53,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.8.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
 ```
 
 中国大陆用户可以使用 Gitee 安装器，减少安装阶段对 GitHub raw content 的依赖，
@@ -405,6 +405,35 @@ TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- [ARGS...]
 `<apptainer:...>` 标签。使用 `taf run` 时，`--backend` 的优先级高于
 `TAFFISH_CONTAINER_BACKEND`。
 
+TAFFISH `0.9.0` 增加了容器标签内部的结构化 backend-specific runtime 参数。
+它们写在 `$` 后面的 `@[target: args]` block 中：
+
+```taf
+<container:ghcr.io/taffish/my-tool:1.0.0-r1$@[all: --network host][docker/podman: --security-opt=label=disable]>
+my-tool --help
+```
+
+target 可以是 `all`、作为 `all` 别名的 `container`、`docker`、`podman`、
+`apptainer`，也可以是 `docker/podman` 这样的后端组合。这类 tag 参数用于 app
+实现本身的运行需求。例如某个被封装的 app 必须使用 GPU 才能正常工作时，应在
+`src/main.taf` 中声明对应后端的 GPU 参数：
+
+```taf
+<container:ghcr.io/taffish/my-gpu-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+my-gpu-tool --help
+```
+
+本地 runtime policy 则应放在环境变量里：
+
+```sh
+TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_APPTAINER_RUN_ARGS="--bind /scratch:/scratch" taf-my-tool ...
+```
+
+这些变量用于单次运行、机器、集群、平台或站点策略。它们会追加 backend-specific
+runtime 参数，但不会修改 app 源码。
+
 本地测试未发布镜像时，构建镜像和运行项目应使用一致后端：
 
 ```sh
@@ -702,7 +731,7 @@ shell，并准备安全的项目操作，而不是一开始就依赖非结构化
 
 ## 运行时配置与镜像源
 
-从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前公开版本是 `0.8.1`。默认配置路径是：
+从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前公开版本是 `0.9.0`。默认配置路径是：
 
 ```text
 用户级 = ~/.local/share/taffish/config.toml
@@ -752,8 +781,7 @@ TAFFISH index schema。
 
 ## 开源与源码构建
 
-TAFFISH `0.8.1` 是第一个开源 `0.8.x` 本地 CLI/编译器系列中的当前稳定
-patch release。Common Lisp 实现已经在 [taffish/taffish](https://github.com/taffish/taffish) 中发布，
+TAFFISH `0.9.0` 是当前公开 release。Common Lisp 实现已经在 [taffish/taffish](https://github.com/taffish/taffish) 中发布，
 使用 Apache License 2.0 授权。
 
 源码仓库会构建三个命令行入口：
@@ -774,11 +802,11 @@ taffish-mcp
 - [贡献指南](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [安全策略](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-在 `0.8.1` 中，官方 macOS Apple Silicon 二进制由 SBCL 构建，Linux x86_64
-二进制由 LispWorks 手动构建。`0.8.1` 保持 `0.8.0` 的公开接口稳定，修复
-`taf publish --release` 对 `release.md` 占位符的误判，补充可选 `[meta]`
-和 `[upstream]` 元数据说明，并在 release 载荷中提供 `SHA256SUMS`、
-`SHA256SUMS.asc` 和 `TAFFISH-RELEASE-KEY.asc`，用于手动 checksum 和 GPG 签名校验。
+在 `0.9.0` 中，官方 macOS Apple Silicon 二进制由 SBCL 构建，Linux x86_64
+二进制由 LispWorks 手动构建。`0.9.0` 增加了结构化 backend-specific container
+runtime arguments、本机 backend runtime 参数环境变量、外部 binary-level 测试，并刷新
+release 载荷。release 中提供 `SHA256SUMS`、`SHA256SUMS.asc` 和
+`TAFFISH-RELEASE-KEY.asc`，用于手动 checksum 和 GPG 签名校验。
 
 ## TAFFISH app 项目结构
 

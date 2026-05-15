@@ -273,6 +273,19 @@ TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
 This does not override explicit `<docker:...>`, `<podman:...>`, or
 `<apptainer:...>` tags.
 
+For app-specific backend runtime requirements, use structured container
+arguments:
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-gpu-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+my-gpu-tool ::*ARGV*::
+```
+
+Use this when the app implementation itself needs those flags. Use
+`TAFFISH_DOCKER_RUN_ARGS`, `TAFFISH_PODMAN_RUN_ARGS`, or
+`TAFFISH_APPTAINER_RUN_ARGS` for local one-off policy, such as forcing
+`--platform linux/amd64` on one machine.
+
 Image building currently uses Docker or Podman:
 
 ```sh
