@@ -182,7 +182,7 @@ Notes:
   `metadata-overrides.toml` only for display metadata or upstream attribution
   fields on already published immutable records.
 - `command_mode = true` matters for tool apps because users can run helper
-  commands inside the same container.
+  commands inside the same app runtime/container.
 - Do not add fields that current tools do not understand.
 
 ## `src/main.taf`
@@ -194,14 +194,16 @@ Most containerized tool apps should use a thin wrapper:
 my-tool ::*ARGV*::
 ```
 
-This gives users a default entry:
+This gives users a default entry for option-like calls:
 
 ```sh
 taf-my-tool -- --help
 taf-my-tool -- --input data.txt
 ```
 
-It also gives them explicit command mode:
+It also gives them automatic command mode. If the first runtime argument is not
+option-like, TAFFISH runs that argv as the command inside the same app
+runtime/container:
 
 ```sh
 taf-my-tool my-tool --help
@@ -214,6 +216,9 @@ Notes:
   Apptainer.
 - Use `<taf-app:docker:...>` or `<taf-app:podman:...>` only when a backend must
   be fixed.
+- Do not forget automatic command mode: a tool app can expose helper
+  executables from the same image without declaring a separate TAFFISH app for
+  each one.
 - Do not copy large amounts of upstream logic into `.taf` unless you are truly
   unifying parameters or composing steps.
 - If the default action would be expensive, use `docs/help.md` to guide users

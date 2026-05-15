@@ -159,7 +159,17 @@ pipe = false
 command_mode = false
 ```
 
-Use `command_mode = true` for wrappers that should behave like ordinary tool commands. Use `command_mode = false` for structured flow commands.
+Use `command_mode = true` for wrappers that should behave like ordinary tool
+commands. Use `command_mode = false` for structured flow commands.
+
+For a `<taf-app:...>` tool app, TAFFISH can automatically switch into command
+mode. If the first runtime argument is not option-like, for example
+`taf-my-tool helper-command --help`, TAFFISH treats the user-provided argv as
+the command to run inside the same app runtime/container. This lets one tool app
+expose multiple executables from the same image without writing one wrapper per
+executable. If the first runtime argument is option-like, for example
+`taf-my-tool -- --help`, the app keeps the default body in `src/main.taf` and
+binds the arguments normally.
 
 ## `[container]`
 

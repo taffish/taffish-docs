@@ -59,6 +59,8 @@ A tool app usually:
 - Uses `runtime.pipe = true`.
 - Uses `runtime.command_mode = true`.
 - Exposes a command that behaves like a normal CLI tool.
+- Can automatically run a user-provided command inside the same app runtime
+  when the first runtime argument is not option-like.
 
 ### Flow App
 
@@ -244,15 +246,34 @@ Tool apps usually use `<taf-app:...>`:
 
 ```taf
 <taf-app:shell>
-my-tool --input ::input:: --output ::output::
+my-tool ::*ARGV*::
 ```
 
 Containerized tool app:
 
 ```taf
 <taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
-my-tool --input ::input:: --output ::output::
+my-tool ::*ARGV*::
 ```
+
+This thin wrapper has two useful modes:
+
+```sh
+taf-my-tool -- --help
+taf-my-tool -- --input sample.fa --output result.txt
+```
+
+These option-like calls use the default body in `src/main.taf`. But tool apps
+also have automatic command mode:
+
+```sh
+taf-my-tool my-tool --help
+taf-my-tool helper-command --help
+```
+
+When the first runtime argument is not option-like, TAFFISH runs the
+user-provided command in the same app runtime/container. Use this for
+containerized tool apps that expose several upstream executables.
 
 Flow apps usually use `<taffish>`:
 

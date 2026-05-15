@@ -144,6 +144,13 @@ pipe = false
 command_mode = false
 ```
 
+对 `<taf-app:...>` 类型的 tool app，TAFFISH 会自动切换命令模式。如果运行时
+第一个参数不像选项，例如 `taf-my-tool helper-command --help`，TAFFISH 会把
+用户给出的 argv 当成要在同一个 app 运行环境/容器中执行的命令。这样一个 tool
+app 可以暴露同一镜像里的多个可执行程序，而不需要为每个可执行程序单独写一层
+wrapper。如果第一个参数是选项式参数，例如 `taf-my-tool -- --help`，则保留
+`src/main.taf` 中的默认主体，并按普通参数绑定运行。
+
 ## `[container]`
 
 可选。用于容器化 app。

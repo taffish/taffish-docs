@@ -292,12 +292,26 @@ A simple tool app normally keeps the upstream CLI intact:
 my-tool ::*ARGV*::
 ```
 
-This means:
+This gives the app a default entry. Option-like runtime arguments are bound to
+the default body:
 
 ```sh
 taf-my-tool -- --help
 taf-my-tool -- --input sample.fa --output result.txt
 ```
+
+`<taf-app:...>` also supports automatic command mode. If the first runtime
+argument is not option-like, TAFFISH replaces the default body with the
+user-provided command and runs it in the same app runtime/container:
+
+```sh
+taf-my-tool my-tool --help
+taf-my-tool helper-command --help
+```
+
+This is important for tool apps that package several executables in one image.
+You do not need to create one TAFFISH app per helper executable just to make it
+reachable.
 
 Do not add shell builtins such as `exec` unless the generated runtime actually
 runs through a shell context that supports them. In a container command wrapper,

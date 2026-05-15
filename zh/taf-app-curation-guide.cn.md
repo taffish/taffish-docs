@@ -166,7 +166,8 @@ test = ["my-tool --help"]
 - 新 release 应该把 `[meta]` 和 `[upstream]` 写在这里；index 侧
   `metadata-overrides.toml` 只用于已经发布且不可变的历史 record 的展示元数据或
   上游归属/引用字段。
-- `command_mode = true` 对 tool app 很重要，用户可以运行容器内的辅助命令。
+- `command_mode = true` 对 tool app 很重要，用户可以在同一个 app 运行环境/容器中
+  运行辅助命令。
 - 不要添加当前工具链不理解的字段。
 
 ## `src/main.taf`
@@ -178,14 +179,15 @@ test = ["my-tool --help"]
 my-tool ::*ARGV*::
 ```
 
-这种形式有两个入口：
+这种形式为选项式调用提供默认入口：
 
 ```sh
 taf-my-tool -- --help
 taf-my-tool -- --input data.txt
 ```
 
-也可以用 command mode 显式运行容器内命令：
+它也支持自动命令模式。如果运行时第一个参数不像选项，TAFFISH 会把这个 argv 当成
+命令放进同一个 app 运行环境/容器中运行：
 
 ```sh
 taf-my-tool my-tool --help
@@ -196,6 +198,8 @@ taf-my-tool helper-command --help
 
 - 优先使用 `<taf-app:container:...>`，让运行时按环境选择 Docker、Podman 或 Apptainer。
 - 只有在必须固定 backend 时，才使用 `<taf-app:docker:...>` 或 `<taf-app:podman:...>`。
+- 不要忘记自动命令模式：一个 tool app 可以暴露同一镜像里的辅助可执行程序，不需要
+  为每个辅助程序单独声明一个 TAFFISH app。
 - 不要在 `.taf` 里复制大量上游逻辑，除非确实需要统一参数或组合步骤。
 - 如果第一屏默认运行会很昂贵，考虑让 `docs/help.md` 引导用户使用 `-- --help`。
 

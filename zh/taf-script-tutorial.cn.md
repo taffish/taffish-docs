@@ -283,12 +283,23 @@ taf build --image --backend podman
 my-tool ::*ARGV*::
 ```
 
-这意味着：
+这会给 app 一个默认入口。选项式运行参数会绑定到默认主体：
 
 ```sh
 taf-my-tool -- --help
 taf-my-tool -- --input sample.fa --output result.txt
 ```
+
+`<taf-app:...>` 还支持自动命令模式。如果运行时第一个参数不像选项，TAFFISH 会用
+用户给出的命令替换默认主体，并在同一个 app 运行环境/容器中运行它：
+
+```sh
+taf-my-tool my-tool --help
+taf-my-tool helper-command --help
+```
+
+这对一个镜像里包含多个可执行程序的 tool app 很重要。为了让辅助程序可访问，
+不需要给每个辅助程序单独创建一个 TAFFISH app。
 
 除非确定生成的运行环境会经过支持 shell builtin 的 shell，否则不要随便添加
 `exec` 这类 shell builtin。在容器命令 wrapper 中，`exec` 可能被当作可执行文件名，
