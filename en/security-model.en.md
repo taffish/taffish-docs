@@ -7,8 +7,10 @@ map of how source code, release artifacts, installers, Hub index metadata,
 container checks, local installation, and MCP tools fit together.
 
 This is not a claim that TAFFISH solves all supply-chain security problems.
-TAFFISH `0.8.0` establishes a layered trust model that can be audited and
-improved over time.
+TAFFISH `0.8.0` established the Hub smoke/trust metadata foundation, and
+TAFFISH `0.10.0` extends the local side with conservative maintenance commands
+for installed Hub apps. The model remains layered, auditable, and designed to
+improve over time.
 
 ## Table Of Contents
 
@@ -56,7 +58,7 @@ artifact integrity.
 
 ## Release Payload Integrity
 
-Current TAFFISH `0.9.0` release payloads include:
+Current TAFFISH `0.10.0` release payloads include:
 
 ```text
 target/SHA256SUMS
@@ -94,7 +96,7 @@ are selected from a fixed release tag through `--version`.
 Example:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
 ```
 
 This separates installer updates from versioned release payloads. For
@@ -180,6 +182,20 @@ index.
 preserve local smoke metadata, but it is not the same as being accepted by the
 public Hub index trust gate.
 
+TAFFISH `0.10.0` adds local package-maintenance commands that operate on local
+install metadata and the current local index:
+
+```sh
+taf outdated
+taf upgrade
+taf prune
+```
+
+`taf upgrade` and `taf prune` are conservative by default and require explicit
+confirmation such as `--yes` before they modify local app source or wrapper
+files. Public-index upgrades do not silently replace local/private apps
+installed with `taf install --from`.
+
 ## Container Runtime Boundaries
 
 TAFFISH can call Docker, Podman, or Apptainer, but it does not make arbitrary
@@ -218,6 +234,8 @@ It can expose read-only or preview-oriented capabilities such as:
 - inspecting installed or indexed apps;
 - inspecting the current project;
 - exposing smoke/trust metadata to AI clients;
+- planning local package maintenance operations such as outdated checks,
+  install-all, upgrades, and pruning;
 - providing resources and prompts.
 
 It does not expose:

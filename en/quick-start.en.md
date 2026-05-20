@@ -14,6 +14,7 @@ assume that you want to write `.taf` scripts or maintain app repositories.
 - [Update The Hub Index](#update-the-hub-index)
 - [Find Apps](#find-apps)
 - [Install An App](#install-an-app)
+- [Maintain Installed Apps](#maintain-installed-apps)
 - [Run An Installed App](#run-an-installed-app)
 - [List, Locate, And Remove Apps](#list-locate-and-remove-apps)
 - [Container Backends](#container-backends)
@@ -62,10 +63,10 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
 ```
 
-TAFFISH `0.9.0` is the current public release. Most users should use the
+TAFFISH `0.10.0` is the current public release. Most users should use the
 installer above, but source builds and release verification are documented in the
 [taffish/taffish README](https://github.com/taffish/taffish).
 
@@ -175,7 +176,7 @@ taf update --url <INDEX-URL>
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current public release is `0.9.0`.
+mirror and custom source support. The current public release is `0.10.0`.
 
 Default config paths:
 
@@ -299,6 +300,59 @@ versioned command wrapper, and records the origin as
 `[local-project] <PROJECT-ROOT>`. The path may be the project root or any child
 directory under it. This mode does not require `taf update` and does not
 auto-install dependencies.
+
+## Maintain Installed Apps
+
+TAFFISH `0.10.0` adds conservative local package-maintenance commands for apps
+installed from the Hub index.
+
+Install every indexed app as a preview first:
+
+```sh
+taf install --all
+taf install --all --tools
+taf install --all --flows
+```
+
+`taf install --all` is dry-run by default. Add `--yes` to actually install the
+planned set:
+
+```sh
+taf install --all --tools --yes
+```
+
+Check whether locally installed Hub apps have newer indexed versions:
+
+```sh
+taf update
+taf outdated
+taf outdated --json
+```
+
+Plan or apply upgrades:
+
+```sh
+taf upgrade
+taf upgrade --yes
+taf upgrade taf-augustus --yes --prune-old
+```
+
+`taf upgrade` is also dry-run by default. It compares local install metadata
+with the current local index, so run `taf update` first. Local/private apps
+installed with `taf install --from` are not silently replaced by public-index
+upgrades.
+
+Remove older local versions while keeping the newest installed version:
+
+```sh
+taf prune
+taf prune --yes
+taf prune --kind flow --yes
+```
+
+`taf uninstall`, `taf upgrade --prune-old`, and `taf prune` remove TAFFISH app
+source/wrapper files only. They do not remove shared Docker, Podman, Apptainer,
+or SIF image caches.
 
 ## Run An Installed App
 

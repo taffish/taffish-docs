@@ -560,6 +560,8 @@ app-repo/
 taf update
 taf search blast
 taf install blast
+taf outdated
+taf upgrade
 taf list
 taf which taf-blast-v2.16.0-r1
 ```
@@ -580,6 +582,17 @@ index/snapshots/
 5. clone 对应 source tag
 6. 构建版本化 command wrapper
 7. 写入本地 app 数据和命令路径
+
+从 TAFFISH `0.10.0` 开始，本地包维护命令也会消费同一份本地
+index 和安装元数据：
+
+- `taf install --all` 用于预览或安装全部已索引 app，也可以限制为 tools 或 flows。
+- `taf outdated` 用于报告本地已安装 Hub app 中有更新 index 版本的项目。
+- `taf upgrade` 用于预览或执行已安装 Hub app 的升级。
+- `taf prune` 用于删除较旧本地版本，并保留本地已安装的最新版本。
+
+这些都是本地操作，不会修改公开 Hub index。通过 `taf install --from` 安装的
+本地/私有 app 也不会被公开 index 中的版本静默替换。
 
 安装命令可以是：
 

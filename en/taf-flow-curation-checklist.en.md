@@ -1,0 +1,212 @@
+# TAFFISH Flow Curation Checklist
+
+Use this checklist before publishing or reviewing a taf-flow app.
+
+It pairs with the TAFFISH Flow Developer Guide. The guide explains how to build a flow; this checklist decides whether the flow is clear, reliable, and publishable.
+
+## 0. Basic conclusion
+
+Start the release review with a clear conclusion:
+
+```text
+Conclusion: publishable / not publishable yet
+Main reasons:
+- ...
+Blockers:
+- ...
+```
+
+Do not publish while any blocker remains.
+
+## 1. Identity and scope
+
+- [ ] The flow name describes the task, not only a tool.
+- [ ] `taffish.toml` type, version, description, and keywords are accurate.
+- [ ] README explains what problem the flow solves.
+- [ ] README explains what the flow does not solve.
+- [ ] The flow is not a duplicate wrapper around one tool.
+- [ ] The steps are common or easy to justify in the field.
+- [ ] Defaults do not overpromise.
+
+## 2. Dependencies and reproducibility
+
+- [ ] All core bioinformatics commands come from explicit TAFFISH dependencies.
+- [ ] Dependency versions in `taffish.toml` are exact.
+- [ ] `[[taf: ...]]` calls in `src/main.taf` match `taffish.toml`.
+- [ ] The flow does not use host `fastqc`, `samtools`, `bwa`, `STAR`, or similar tools.
+- [ ] Shell/coreutils assumptions are covered by smoke tests.
+- [ ] Normal execution does not download core resources from the network.
+- [ ] Large databases, reference genomes, and models are not embedded in the flow image.
+- [ ] Platform limits, GPU needs, commercial licenses, or non-free licenses are documented.
+
+## 3. Input contract
+
+- [ ] Required inputs are clear.
+- [ ] Optional parameters and defaults are clear.
+- [ ] Sample-sheet format has an example.
+- [ ] Sample-sheet columns, path rules, and sample-name rules are documented.
+- [ ] Missing files, duplicate samples, empty sample names, and malformed sheets fail early.
+- [ ] Paired-end, single-end, long-read, or other mode boundaries are clear.
+- [ ] Reference, index, and database parameters have format requirements.
+- [ ] Documentation says which inputs are read and which may be indexed or cached.
+
+## 4. Output directory and writes
+
+- [ ] The flow requires explicit `--outdir`.
+- [ ] All generated content is written under `<outdir>/...`.
+- [ ] The current directory is not polluted.
+- [ ] Input and reference files are not modified.
+- [ ] Existing output directories are rejected by default.
+- [ ] `--force`, if present, is documented and cannot delete inputs.
+- [ ] `--resume`, if present, documents reusable steps and risks.
+- [ ] Temporary files live under `<outdir>/02_intermediate/` or `<outdir>/.tmp/`.
+- [ ] Logs remain available under `<outdir>/01_logs/` after failure.
+
+Recommended layout:
+
+```text
+<outdir>/
+  00_inputs/
+  01_logs/
+  02_intermediate/
+  03_results/
+  04_reports/
+  run.manifest.json
+```
+
+## 5. Steps and data flow
+
+- [ ] README explains how data moves from input to output.
+- [ ] Each step has input, tool, and output descriptions.
+- [ ] Major step logs are saved separately.
+- [ ] Key intermediate files have stable names.
+- [ ] Final results and intermediate files are separated.
+- [ ] A failure can be traced to a specific step.
+- [ ] Important upstream tool parameters are recorded.
+
+## 6. Results and reports
+
+- [ ] `03_results/` stores machine-readable primary results.
+- [ ] `04_reports/` stores user-facing reports.
+- [ ] A project-level or sample-level summary exists, such as `flow_summary.tsv`.
+- [ ] README explains what each report is for.
+- [ ] HTML, PDF, TSV, JSON, or other formats match field practice.
+- [ ] Empty, low-quality, or failed samples are marked clearly.
+- [ ] Documentation says which outputs are for downstream analysis and which are for manual inspection.
+
+## 7. Provenance
+
+- [ ] `04_reports/commands.sh` is produced.
+- [ ] `04_reports/versions.tsv` is produced.
+- [ ] `04_reports/methods.txt` is produced.
+- [ ] `<outdir>/run.manifest.json` is produced.
+- [ ] `commands.sh` records key commands and actual parameters.
+- [ ] `versions.tsv` records the flow and main dependency versions.
+- [ ] `run.manifest.json` records inputs, parameters, dependencies, outputs, and timestamps.
+- [ ] Provenance files do not contain tokens, passwords, or other secrets.
+
+## 8. Resource requirements
+
+- [ ] README states minimum resources.
+- [ ] README states recommended resources.
+- [ ] Disk use is related to input scale.
+- [ ] CPU/thread behavior is explained.
+- [ ] Memory-heavy steps are identified.
+- [ ] Database or index size is documented separately.
+- [ ] amd64-only dependencies on arm64 hosts document emulation impact.
+
+## 9. Smoke and validation
+
+- [ ] Smoke does more than `--help`.
+- [ ] Smoke checks that the flow command exists.
+- [ ] Smoke checks main dependency versions.
+- [ ] Smoke runs a tiny fixture through a real data path.
+- [ ] Smoke checks key result files.
+- [ ] Smoke checks `commands.sh`, `versions.tsv`, and `run.manifest.json`.
+- [ ] Smoke checks that the current directory has no unexpected new files.
+- [ ] Smoke is fast and small enough for local or CI use.
+- [ ] Local maintenance smoke respects an existing `TAFFISH_CONTAINER_BACKEND` and defaults to `podman` when it is unset.
+- [ ] Smoke does not hard-code the Docker backend.
+- [ ] Smoke does not call `docker pull`, `podman pull`, or re-download dependency images.
+- [ ] Missing dependency app images fail with a clear preparation message.
+- [ ] Documentation states that smoke is not scientific validation.
+
+## 10. Documentation
+
+- [ ] README explains task, inputs, outputs, examples, and limits.
+- [ ] `docs/help.md` is plain terminal manual text.
+- [ ] `docs/help.md` has no Markdown headings, fenced code blocks, Markdown links, or tables.
+- [ ] README has a minimal run example.
+- [ ] README has an output directory example.
+- [ ] README has troubleshooting hints.
+- [ ] README lists main dependency apps and versions.
+- [ ] Documentation avoids unsupported scientific claims.
+
+## 11. Metadata and Hub
+
+- [ ] `taffish.toml` name, version, release, description, license, homepage, and source fields are accurate.
+- [ ] Keywords cover domain, data type, and main task.
+- [ ] Dependency declarations match README.
+- [ ] Dockerfile has no unrelated large build residue.
+- [ ] Image platform declaration is accurate.
+- [ ] Publishing will not overwrite existing Git tags, GitHub Releases, image tags, or Hub index records.
+- [ ] If `taf build`, local wrapper tests, or any validation generated target artifacts, generated wrapper files and `.taf-*` frozen directories under `target/` have been cleaned before publication or handoff, leaving only intended placeholders such as `target/.gitkeep`.
+
+## 12. Hard blockers
+
+Do not publish if any of these are true:
+
+- [ ] No explicit `--outdir`.
+- [ ] Unexpected files are written into the current directory or input directories.
+- [ ] Core bioinformatics commands depend on the host environment.
+- [ ] Dependency versions are not fixed.
+- [ ] Normal execution must download databases, models, or references.
+- [ ] Large databases or reference genomes are embedded in the flow image.
+- [ ] `commands.sh`, `versions.tsv`, or `run.manifest.json` is missing.
+- [ ] Smoke does not run a real data path.
+- [ ] Smoke hard-codes the Docker backend or downloads dependency images.
+- [ ] The source tree prepared for publication still contains temporary `target/` wrappers, `.taf-*` frozen directories, or generated test files.
+- [ ] Documentation does not explain inputs, outputs, resources, or limits.
+- [ ] Result filenames or output layout are unstable enough that users cannot reuse them.
+
+## 13. Final review template
+
+Use this format before release:
+
+```text
+Flow: taf-example-flow
+Version: 0.1.0-r1
+Conclusion: publishable / not publishable yet
+
+Entrypoint:
+- ...
+
+Dependencies:
+- ...
+
+Output directory:
+- ...
+
+Inputs and outputs:
+- ...
+
+Provenance:
+- ...
+
+Smoke:
+- ...
+
+Documentation:
+- ...
+
+Resources and limits:
+- ...
+
+Blockers:
+- ...
+
+Follow-ups:
+- ...
+```
+
+The report can be short, but it must let maintainers judge whether the flow is transparent, reproducible, and portable.

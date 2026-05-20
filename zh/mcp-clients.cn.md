@@ -23,7 +23,7 @@ tools、resources、prompts 和安全模型，请阅读 [TAFFISH MCP 指南](taf
 
 ## 前置条件
 
-安装当前 TAFFISH 版本，即 `0.9.0` 或后续版本，以获得当前 MCP 工具接口：
+安装当前 TAFFISH 版本，即 `0.10.0` 或后续版本，以获得当前 MCP 工具接口：
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
@@ -102,7 +102,7 @@ TAFFISH 会使用这个环境变量。这是 TAFFISH 运行时设置，不是某
 `taffish-mcp` 在终端中可以正常运行，但没有立刻出现在客户端里，优先尝试重启客户端或
 reload MCP，而不是先修改 TAFFISH 本身。
 
-TAFFISH `0.9.0` 也允许在 MCP server 环境中设置 `TAFFISH_DOCKER_RUN_ARGS`、
+TAFFISH `0.9.0` 及后续版本也允许在 MCP server 环境中设置 `TAFFISH_DOCKER_RUN_ARGS`、
 `TAFFISH_PODMAN_RUN_ARGS` 和 `TAFFISH_APPTAINER_RUN_ARGS`。这些变量适合表达
 本机、集群、镜像、平台或单次运行策略，并会影响 compile preview。它们不应该替代
 app 实现需求：如果某个 app 自身需要 GPU device、host network 或其他

@@ -601,6 +601,8 @@ The core user path:
 taf update
 taf search blast
 taf install blast
+taf outdated
+taf upgrade
 taf list
 taf which taf-blast-v2.16.0-r1
 ```
@@ -621,6 +623,20 @@ index/snapshots/
 5. clones the corresponding source tag
 6. builds the versioned command wrapper
 7. writes local app data and command paths
+
+Starting with TAFFISH `0.10.0`, local package-maintenance commands also consume
+the same local index and install metadata:
+
+- `taf install --all` previews or installs all indexed apps, optionally limited
+  to tools or flows.
+- `taf outdated` reports installed Hub apps with newer indexed versions.
+- `taf upgrade` previews or applies upgrades for installed Hub apps.
+- `taf prune` removes older local versions while keeping the newest installed
+  version.
+
+These commands are local operations. They do not change the public Hub index,
+and local/private apps installed with `taf install --from` are not silently
+replaced by public-index upgrades.
 
 Install commands can be:
 

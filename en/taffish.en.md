@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -600,6 +600,9 @@ taf update
 taf search
 taf info
 taf install
+taf outdated
+taf upgrade
+taf prune
 taf uninstall
 taf list
 taf which
@@ -683,6 +686,30 @@ Install an app:
 taf install blast 2.16.0-r1
 ```
 
+Install all indexed apps as a dry-run preview, then apply the plan if desired:
+
+```sh
+taf install --all
+taf install --all --tools --yes
+```
+
+Check local Hub installs against the current local index:
+
+```sh
+taf update
+taf outdated
+taf upgrade
+taf upgrade --yes
+taf prune
+taf prune --yes
+```
+
+`taf outdated` reports installed apps with newer indexed versions. `taf upgrade`
+is dry-run by default and requires `--yes` to modify local installs. `taf prune`
+removes older local versions while keeping the newest installed version. Apps
+installed with `taf install --from` are treated as local/private installs and
+are not silently replaced by public-index upgrades.
+
 Install a private or local TAFFISH app project without publishing it to the
 public Hub:
 
@@ -713,7 +740,9 @@ helpers, and TAFFISH `0.6.0` added app/project inspection, AI-oriented usage
 summaries, safe app invocation compilation, current project resources, and
 publish-preparation prompts. TAFFISH `0.7.0` aligns MCP compile tools with the
 runtime container backend override. TAFFISH `0.8.0` exposes smoke/trust metadata
-for app and project inspection without running smoke tests or containers. The interface exposes safe project, app, Hub,
+for app and project inspection without running smoke tests or containers.
+TAFFISH `0.10.0` adds safe planners for `taf outdated`, `taf install --all`,
+`taf upgrade`, and `taf prune`. The interface exposes safe project, app, Hub,
 config, history, resource, prompt, validation, compilation, and summarization
 operations. It does not expose `taf run`, `taf publish`, or image-building
 actions.
@@ -748,7 +777,7 @@ and generic MCP client configuration examples, see
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current public release is `0.9.0`. The default
+custom source support. The current public release is `0.10.0`. The default
 config paths are:
 
 ```text
@@ -800,7 +829,7 @@ same TAFFISH index schema.
 
 ## Open Source And Source Builds
 
-TAFFISH `0.9.0` is the current public release. The Common Lisp implementation is published in
+TAFFISH `0.10.0` is the current public release. The Common Lisp implementation is published in
 [taffish/taffish](https://github.com/taffish/taffish) under Apache License 2.0.
 
 The source repository builds three command-line entry points:
@@ -822,12 +851,15 @@ Useful source-side documents:
 - [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-At `0.9.0`, official macOS Apple Silicon binaries are built with SBCL and
-Linux x86_64 binaries are built manually with LispWorks. The `0.9.0` release
-adds structured backend-specific container runtime arguments, local backend
-runtime-argument environment variables, external binary-level tests, and
-refreshed release payloads. It includes `SHA256SUMS`, `SHA256SUMS.asc`, and
-`TAFFISH-RELEASE-KEY.asc` for manual checksum and GPG signature verification.
+At `0.10.0`, official macOS Apple Silicon binaries are built with SBCL and
+Linux x86_64 binaries are built manually with LispWorks. The `0.10.0` release
+adds local package-maintenance commands for installed Hub apps:
+`taf install --all`, `taf outdated`, `taf upgrade`, and `taf prune`. The
+`0.9.0` structured backend-specific container runtime arguments and local
+backend runtime-argument environment variables remain the current runtime
+argument model. The release payload includes `SHA256SUMS`, `SHA256SUMS.asc`,
+and `TAFFISH-RELEASE-KEY.asc` for manual checksum and GPG signature
+verification.
 
 ## TAFFISH App Project Structure
 

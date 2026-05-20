@@ -14,6 +14,7 @@
 - [更新 Hub 索引](#更新-hub-索引)
 - [查找 app](#查找-app)
 - [安装 app](#安装-app)
+- [维护已安装 app](#维护已安装-app)
 - [运行已安装 app](#运行已安装-app)
 - [列出、定位和卸载 app](#列出定位和卸载-app)
 - [容器后端](#容器后端)
@@ -61,10 +62,10 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
 ```
 
-TAFFISH `0.9.0` 是当前公开 release。大多数用户仍然建议使用上面的安装器；源码构建和 release 校验说明见
+TAFFISH `0.10.0` 是当前公开 release。大多数用户仍然建议使用上面的安装器；源码构建和 release 校验说明见
 [taffish/taffish README](https://github.com/taffish/taffish)。
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
@@ -167,7 +168,7 @@ taf update --url <INDEX-URL>
 ## 运行时配置与镜像源
 
 从 TAFFISH `0.2.0` 开始，`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义
-来源。当前公开版本是 `0.9.0`。
+来源。当前公开版本是 `0.10.0`。
 
 默认配置路径：
 
@@ -286,6 +287,55 @@ taf which taf-my-private-tool
 复制到选定的 TAFFISH home、构建带版本的 command wrapper，并把来源记录为
 `[local-project] <PROJECT-ROOT>`。路径可以是项目根目录，也可以是项目内任意
 子目录。这个模式不需要先运行 `taf update`，也不会自动安装依赖。
+
+## 维护已安装 app
+
+TAFFISH `0.10.0` 增加了面向 Hub app 的保守本地维护命令。
+
+预览安装 index 中的全部 app：
+
+```sh
+taf install --all
+taf install --all --tools
+taf install --all --flows
+```
+
+`taf install --all` 默认只是 dry-run。加上 `--yes` 才会真正安装计划中的 app：
+
+```sh
+taf install --all --tools --yes
+```
+
+检查本地已安装 Hub app 是否有更新版本：
+
+```sh
+taf update
+taf outdated
+taf outdated --json
+```
+
+预览或执行升级：
+
+```sh
+taf upgrade
+taf upgrade --yes
+taf upgrade taf-augustus --yes --prune-old
+```
+
+`taf upgrade` 默认也是 dry-run。它会用本地安装元数据和当前本地 index 比较，
+所以建议先运行 `taf update`。通过 `taf install --from` 安装的本地/私有 app
+不会被公开 index 中的版本静默替换。
+
+移除旧的本地版本，并保留本地已安装的最新版本：
+
+```sh
+taf prune
+taf prune --yes
+taf prune --kind flow --yes
+```
+
+`taf uninstall`、`taf upgrade --prune-old` 和 `taf prune` 只删除 TAFFISH app
+源码与 wrapper 文件，不会删除共享的 Docker、Podman、Apptainer 或 SIF 镜像缓存。
 
 ## 运行已安装 app
 

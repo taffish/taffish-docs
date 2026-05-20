@@ -7,13 +7,15 @@ It gives AI clients a structured way to inspect TAFFISH projects, query local Hu
 state, read selected resources, validate or compile `.taf` source without
 executing it, and prepare safe project actions.
 
-TAFFISH `0.9.0` is the current recommended release for MCP use. It keeps the
+TAFFISH `0.10.0` is the current recommended release for MCP use. It keeps the
 read-only TAF source/file compiler helpers introduced in `0.5.0`, the
 app/project inspection and safe app invocation compilation added in `0.6.0`,
 the runtime container backend override alignment from `0.7.0`, exposes
 smoke/trust metadata for app and project inspection, and recognizes the
-`0.9.0` backend-specific container runtime argument settings during compile
-previews. MCP still does not run containers.
+backend-specific container runtime argument settings introduced in `0.9.0`
+during compile previews. It also adds conservative package-maintenance planners
+for `taf outdated`, `taf install --all`, `taf upgrade`, and `taf prune`. MCP
+still does not run containers.
 
 It is intentionally conservative. The interface is designed for inspection,
 planning, and low-risk project maintenance. It does not expose `taf run`,
@@ -61,7 +63,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.9.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
 ```
 
 Verify:
@@ -193,6 +195,10 @@ Install and uninstall planning:
 | --- | --- |
 | `taffish_install_app` | Install apps or commands from the local index. Defaults to `dryRun=true` for safety. |
 | `taffish_uninstall_app` | Uninstall local apps or commands. Defaults to `dryRun=true` for safety. |
+| `taffish_check_outdated` | Compare local Hub installs with the current local index and report upgrade candidates without installing them. |
+| `taffish_plan_install_all` | Plan a batch `taf install --all` operation, optionally limited to tools or flows. |
+| `taffish_plan_upgrade` | Plan upgrades for locally installed Hub apps. Mutating CLI upgrades still require explicit user confirmation outside MCP. |
+| `taffish_plan_prune` | Plan removal of older local versions while keeping the newest installed version. |
 
 Project work:
 
