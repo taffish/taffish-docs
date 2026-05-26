@@ -209,7 +209,47 @@ podman machine start
 crun: create keyring ... Disk quota exceeded
 ```
 
-这通常是 Podman/crun 状态或资源配额问题，不是 TAFFISH app 自身问题。
+这通常是 Podman/crun 状态或 Linux kernel keyring 配额问题，不是 TAFFISH app
+自身问题。这里的 `Disk quota exceeded` 不一定表示文件系统磁盘满了。Podman/crun
+可能会为容器创建 keyring；而 TAFFISH flow 在组合多个 taf app 时，可能会频繁启动
+短生命周期容器，因此更容易暴露较低的 per-user keyring quota。
+
+在 Linux 上，或者 macOS Podman Machine 使用的 Linux VM 内部，可以检查当前限制和
+key 使用情况：
+
+```sh
+sysctl kernel.keys.maxkeys kernel.keys.maxbytes
+cat /proc/key-users
+```
+
+macOS 用户需要先进入 Podman VM：
+
+```sh
+podman machine ssh
+```
+
+如果 key quota 对当前工作负载太小，可以由管理员调高。下面只是示例值，不是通用
+默认值：
+
+```sh
+sudo sysctl -w kernel.keys.maxkeys=20000
+sudo sysctl -w kernel.keys.maxbytes=2000000
+```
+
+如果需要在 Linux 中持久化：
+
+```sh
+sudo tee /etc/sysctl.d/99-taffish-podman-keyring.conf >/dev/null <<'EOF'
+kernel.keys.maxkeys = 20000
+kernel.keys.maxbytes = 2000000
+EOF
+
+sudo sysctl --system
+```
+
+具体数值应根据本机策略、用户数量和工作负载决定。共享服务器上不要随意修改 kernel
+sysctl 设置，应先联系系统管理员。更多背景可参考 Linux kernel key service 文档以及
+你的 Podman/Linux 发行版文档。
 
 谨慎检查和清理：
 

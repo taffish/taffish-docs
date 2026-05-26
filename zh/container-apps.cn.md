@@ -377,6 +377,9 @@ taf build --image --backend podman
 taf run --backend podman -- --help
 ```
 
+如果频繁运行 Podman 时出现 `crun: create keyring ... Disk quota exceeded`，见
+[Podman machine 或 crun 报错](troubleshooting.cn.md#podman-machine-或-crun-报错)。
+
 `taf run --backend` 只影响 `<container:...>` / `<taf-app:container:...>` 这种泛化标签。显式标签会固定后端：
 
 ```taf

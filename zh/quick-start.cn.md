@@ -447,6 +447,10 @@ podman machine stop
 podman machine start
 ```
 
+如果 Podman 报 `crun: create keyring ... Disk quota exceeded`，见
+[Podman machine 或 crun 报错](troubleshooting.cn.md#podman-machine-或-crun-报错)。
+这可能是 Linux keyring quota 限制，不一定是文件系统磁盘空间不足。
+
 容器化 app 建议从项目目录、数据目录或临时工作目录运行。不要从 `/usr/bin` 或
 `/usr/local/bin` 这类宿主机系统目录运行：TAFFISH 会把当前 workdir 挂载进容器，
 这个挂载可能遮住镜像内部的重要目录。
