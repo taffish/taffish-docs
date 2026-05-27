@@ -60,6 +60,12 @@ System install, useful on shared servers:
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sudo sh -s -- --system
 ```
 
+If a shared system install will run apps with Apptainer, remember that the
+installed `taf-*` commands can be visible to all users while first-run SIF image
+caching still needs a writable image directory. See
+[Apptainer SIF cache permissions](troubleshooting.en.md#apptainer-says-no-writable-apptainer-image-directory-found)
+before deploying TAFFISH for multiple users.
+
 Pinned version install:
 
 ```sh
@@ -426,6 +432,11 @@ apptainer --version
 You only need the backend you plan to use. On HPC or shared Linux servers,
 Apptainer is often the most practical backend. On laptops, Docker or Podman are
 often simpler.
+
+For system-wide installs with Apptainer, app commands and SIF image caches have
+different permission requirements. If normal users see
+`no writable apptainer image directory found`, use the
+[Apptainer SIF cache FAQ](troubleshooting.en.md#apptainer-says-no-writable-apptainer-image-directory-found).
 
 For installed `taf-*` commands or direct `taffish` compilation, set
 `TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` to force generic

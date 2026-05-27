@@ -16,6 +16,7 @@
 - [Docker permission denied](#docker-permission-denied)
 - [Podman machine 或 crun 报错](#podman-machine-或-crun-报错)
 - [Apptainer 缺少 `mksquashfs`](#apptainer-缺少-mksquashfs)
+- [Apptainer 提示 `no writable apptainer image directory found`](#apptainer-提示-no-writable-apptainer-image-directory-found)
 - [构建镜像时 backend 不接受 Apptainer](#构建镜像时-backend-不接受-apptainer)
 - [`taf check` 拒绝 `[smoke]`](#taf-check-拒绝-smoke)
 - [smoke 命令因为嵌套引号失败](#smoke-命令因为嵌套引号失败)
@@ -294,6 +295,43 @@ sudo apt-get install -y squashfuse
 ```sh
 sudo apt-get install -y fuse2fs gocryptfs
 ```
+
+## Apptainer 提示 `no writable apptainer image directory found`
+
+这个问题通常发生在共享机器上：app 通过 `taf install --system` 做了系统级安装，
+但它对应的 Apptainer SIF 镜像还没有缓存到当前用户可写的目录中。
+
+系统级安装会让 app launcher 对用户可见，但不会在安装阶段自动拉取所有
+Apptainer SIF 镜像。首次运行时，TAFFISH 会查找：
+
+```text
+${TAFFISH_SYSTEM_HOME:-/opt/taffish}/images/sif
+${TAFFISH_USER_HOME:-$HOME/.local/share/taffish}/images/sif
+```
+
+如果没有找到已有 SIF，至少需要其中一个目录可写，TAFFISH 才能拉取或创建镜像。
+
+常见策略：
+
+```sh
+# 每个用户使用自己的缓存，通常最稳妥。
+taf doctor --init --user
+```
+
+```sh
+# 管理员预先把 SIF 缓存到系统 TAFFISH home。
+sudo taf-<app>-v<version>-r<release> -- --help
+```
+
+```sh
+# 给可信本地用户共享一个可写系统缓存。
+sudo mkdir -p /opt/taffish/images/sif
+sudo chmod 1777 /opt/taffish/images/sif
+```
+
+`1777` 类似 `/tmp`：本地用户可以创建文件，但不能删除其他用户拥有的文件。只有
+管理员明确允许可信本地用户共享可写 SIF 缓存时才建议这样设置。更严格的共享系统
+应优先使用管理员预缓存或用户级缓存。
 
 ## 构建镜像时 backend 不接受 Apptainer
 

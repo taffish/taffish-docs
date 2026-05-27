@@ -16,6 +16,7 @@ from the error message, then check the relevant section.
 - [Docker Permission Denied](#docker-permission-denied)
 - [Podman Machine Or crun Errors](#podman-machine-or-crun-errors)
 - [Apptainer Missing `mksquashfs`](#apptainer-missing-mksquashfs)
+- [Apptainer Says `no writable apptainer image directory found`](#apptainer-says-no-writable-apptainer-image-directory-found)
 - [Build Backend Rejects Apptainer](#build-backend-rejects-apptainer)
 - [`taf check` Rejects `[smoke]`](#taf-check-rejects-smoke)
 - [Smoke Command Fails Because Of Nested Quotes](#smoke-command-fails-because-of-nested-quotes)
@@ -301,6 +302,47 @@ Optional packages that remove common warnings:
 ```sh
 sudo apt-get install -y fuse2fs gocryptfs
 ```
+
+## Apptainer Says `no writable apptainer image directory found`
+
+This usually happens on a shared machine after an app was installed with
+`taf install --system`, but its Apptainer SIF image has not yet been cached in a
+directory writable by the current user.
+
+System install makes the app launcher visible to users. It does not
+automatically pull every Apptainer SIF image during installation. On first run,
+TAFFISH checks for SIF images in:
+
+```text
+${TAFFISH_SYSTEM_HOME:-/opt/taffish}/images/sif
+${TAFFISH_USER_HOME:-$HOME/.local/share/taffish}/images/sif
+```
+
+If no SIF is found, at least one of those directories must be writable so
+TAFFISH can pull or create the image.
+
+Common policies:
+
+```sh
+# Per-user cache, usually safest for normal users.
+taf doctor --init --user
+```
+
+```sh
+# Administrator pre-cache in the system TAFFISH home.
+sudo taf-<app>-v<version>-r<release> -- --help
+```
+
+```sh
+# Shared writable system cache for trusted local users.
+sudo mkdir -p /opt/taffish/images/sif
+sudo chmod 1777 /opt/taffish/images/sif
+```
+
+Mode `1777` is similar to `/tmp`: local users can create files, but cannot
+delete files owned by other users. Use it only when the administrator
+intentionally allows trusted local users to share a writable SIF cache. On
+stricter shared systems, prefer administrator pre-caching or per-user caches.
 
 ## Build Backend Rejects Apptainer
 

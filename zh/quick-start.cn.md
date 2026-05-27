@@ -59,6 +59,11 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sudo sh -s -- --system
 ```
 
+如果系统级安装会配合 Apptainer 给多用户运行 app，需要注意：安装后的 `taf-*`
+命令可以对所有用户可见，但首次运行时的 SIF 镜像缓存仍然需要一个可写镜像目录。
+多用户部署前建议先阅读
+[Apptainer SIF 缓存权限说明](troubleshooting.cn.md#apptainer-提示-no-writable-apptainer-image-directory-found)。
+
 固定安装某个版本：
 
 ```sh
@@ -406,6 +411,10 @@ apptainer --version
 
 你只需要安装自己打算使用的后端。在 HPC 或共享 Linux 服务器上，Apptainer
 通常更合适；在个人电脑上，Docker 或 Podman 通常更简单。
+
+如果是系统级安装并使用 Apptainer，需要区分 app 命令可见性和 SIF 镜像缓存权限。
+普通用户看到 `no writable apptainer image directory found` 时，见
+[Apptainer SIF 缓存 FAQ](troubleshooting.cn.md#apptainer-提示-no-writable-apptainer-image-directory-found)。
 
 对于已经安装好的 `taf-*` 命令，或者直接使用 `taffish` 编译时，可以设置
 `TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`，在运行时强制通用
