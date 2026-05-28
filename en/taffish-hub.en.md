@@ -20,6 +20,9 @@ You can browse the current TAFFISH Hub at [taffish.github.io](https://taffish.gi
 The website reads static JSON from `taffish-index`, so it displays apps currently
 discovered by the official index.
 
+For a complete public flow-family example built on top of Hub apps, see the
+[RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) portal.
+
 Each real app repository can also have its own GitHub Actions workflow, for
 example to build GHCR images from a Dockerfile. That responsibility belongs to
 the app repository itself and is not centrally handled by `taffish-hub`.
@@ -29,6 +32,7 @@ the app repository itself and is not centrally handled by `taffish-hub`.
 - [Why Hub Exists](#why-hub-exists)
 - [Access And Publishing Policy](#access-and-publishing-policy)
 - [Current Repository Layout](#current-repository-layout)
+- [Flow-Family Example Portal](#flow-family-example-portal)
 - [Data Flow](#data-flow)
 - [`taffish-index`](#taffish-index)
 - [App Discovery Rules](#app-discovery-rules)
@@ -120,6 +124,28 @@ repos/taffish-index       -> github.com/taffish/taffish-index
 repos/taffish.github.io   -> github.com/taffish/taffish.github.io
 repos/.github             -> github.com/taffish/.github
 ```
+
+Some public documentation and case-study repositories can be staged under the
+domain area they describe. For example:
+
+```text
+repos/apps/bio/flows/rna-seq/rnaseq-flows -> github.com/taffish/rnaseq-flows
+```
+
+## Flow-Family Example Portal
+
+`taffish/rnaseq-flows` is a static documentation and example-report portal for
+the TAFFISH RNA-seq flow family. It is not itself a taf-flow package. Instead,
+it explains how independently published flow apps connect, links their manuals,
+and hosts a live yeast SNF2 standard report:
+
+- [RNA-seq Flow Family portal](https://taffish.github.io/rnaseq-flows/)
+- [Yeast standard report](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html)
+- [Report interpretation guide](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html)
+
+This kind of portal is useful when a group of `taf-*` commands forms a coherent
+analysis route and needs human-facing manuals, figures, and example outputs
+beside the machine-readable Hub index.
 
 ## Data Flow
 

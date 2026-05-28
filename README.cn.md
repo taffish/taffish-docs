@@ -11,6 +11,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 ## 目录
 
 - [推荐阅读路径](#推荐阅读路径)
+- [完整 Flow 案例](#完整-flow-案例)
 - [文档分工](#文档分工)
 - [核心概念](#核心概念)
 - [用户指南](#用户指南)
@@ -37,6 +38,7 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 | 封装一个容器化生信工具 | [App 开发者指南](zh/app-developer-guide.cn.md) -> [容器化 app 最佳实践](zh/container-apps.cn.md) -> [官方 taf-app 精修手册](zh/taf-app-curation-guide.cn.md) -> [故障排查](zh/troubleshooting.cn.md) |
 | 精修官方 Hub app | [官方 taf-app 精修手册](zh/taf-app-curation-guide.cn.md) -> [Augustus app 模板](https://github.com/taffish/augustus) -> [容器化 app 最佳实践](zh/container-apps.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
 | 写一个带依赖的 flow app | [TAF 脚本教程](zh/taf-script-tutorial.cn.md) -> [Flow 与依赖指南](zh/flow-dependencies.cn.md) -> [TAFFISH Flow 开发者指南](zh/taf-flow-developer-guide.cn.md) -> [TAFFISH Flow 精修 Checklist](zh/taf-flow-curation-checklist.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
+| 查看完整 RNA-seq flow 案例 | [RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) -> [yeast 在线报告](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html) -> [Flow 与依赖指南](zh/flow-dependencies.cn.md) |
 | 理解 Hub 和 index 内部逻辑 | [什么是 TAFFISH Hub](zh/taffish-hub.cn.md) -> [TAFFISH Index JSON 规范](zh/index-json-spec.cn.md) -> [`taffish.toml` 规范](zh/taffish-toml-spec.cn.md) |
 | 理解安全与可信模型 | [TAFFISH 安全模型](zh/security-model.cn.md) -> [TAFFISH Index JSON 规范](zh/index-json-spec.cn.md) -> [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) |
 | 连接 TAFFISH 到 AI 客户端 | [在 AI 客户端中使用 TAFFISH MCP](zh/mcp-clients.cn.md) -> [TAFFISH MCP 指南](zh/taffish-mcp.cn.md) -> 需要背景再看 [什么是 TAFFISH](zh/taffish.cn.md#mcp--ai-集成) |
@@ -44,6 +46,21 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。TAF
 
 如果你完全不了解 TAFFISH，建议先读 [快速开始](zh/quick-start.cn.md)，再读
 [什么是 TAFFISH](zh/taffish.cn.md)。
+
+## 完整 Flow 案例
+
+[RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) 是一个完整的公开
+flow-family 案例，展示如何把可版本化的 `taf-*` 命令组合成从参考基因组准备到最终
+报告交付的 RNA-seq 分析路线。它包含每个 flow 的使用手册、yeast SNF2 标准示例
+报告，以及报告解读手册：
+
+- [RNA-seq Flow Family 门户](https://taffish.github.io/rnaseq-flows/)
+- [Yeast 标准报告](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html)
+- [报告解读手册](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html)
+
+这个例子用于展示 TAFFISH 的 command-level reproducibility 在真实分析中的用法：
+它把 shell-native app 命令组合成轻量 flow，但并不把 TAFFISH 变成传统 workflow
+engine 的替代品。
 
 ## 文档分工
 

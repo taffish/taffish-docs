@@ -20,6 +20,7 @@
 - [容器后端](#容器后端)
 - [运行时配置与镜像源](#运行时配置与镜像源)
 - [网络说明](#网络说明)
+- [查看完整 Flow 案例](#查看完整-flow-案例)
 - [继续阅读](#继续阅读)
 
 ## 你会安装什么
@@ -475,6 +476,21 @@ TAFFISH 仍然会使用 app package 中声明的容器镜像，通常是 GHCR。
 - 配置系统代理或 Git 代理；
 - 初始化中国镜像 profile，或用 `taf update --url <INDEX-URL>` 做一次性 index 覆盖；
 - 确认运行 app 的机器可以访问 GHCR 镜像。
+
+## 查看完整 Flow 案例
+
+如果想看 TAFFISH app 如何组成一条完整分析路线，可以打开
+[RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) 门户。它把
+RNA-seq 子流程、标准端到端流程、各 flow 使用手册，以及 yeast SNF2 在线示例报告
+串在一起：
+
+- [RNA-seq Flow Family 门户](https://taffish.github.io/rnaseq-flows/)
+- [Yeast 标准报告](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html)
+- [报告解读手册](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html)
+
+这个例子覆盖参考基因组准备、基于 Salmon 的表达定量、差异表达、富集分析、可选的
+alignment/count/QC 证据路线，以及最终报告生成。它展示的是如何把已安装的 `taf-*`
+命令组合成 command-level reproducible 的轻量 flow，而不是替代传统 workflow engine。
 
 ## 继续阅读
 

@@ -17,6 +17,9 @@ taf install <app>
 
 现在可以通过 [taffish.github.io](https://taffish.github.io) 在线查看 TAFFISH Hub。这个网页读取 `taffish-index` 的静态 JSON，因此它展示的是当前已被官方索引发现的 app。
 
+如果想查看一个基于 Hub app 组织起来的完整 flow-family 公开案例，可以打开
+[RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) 门户。
+
 另外，每个真正的 app 仓库也会有自己的 GitHub Actions，例如基于 Dockerfile 构建 GHCR 镜像。这部分由 app 仓库自己负责，不由 `taffish-hub` 统一代管。
 
 ## 目录
@@ -24,6 +27,7 @@ taf install <app>
 - [为什么需要 Hub](#为什么需要-hub)
 - [访问与发布权限](#访问与发布权限)
 - [当前仓库布局](#当前仓库布局)
+- [Flow-family 示例门户](#flow-family-示例门户)
 - [数据流](#数据流)
 - [`taffish-index`](#taffish-index)
 - [app 发现规则](#app-发现规则)
@@ -99,6 +103,25 @@ repos/taffish-index       -> github.com/taffish/taffish-index
 repos/taffish.github.io   -> github.com/taffish/taffish.github.io
 repos/.github             -> github.com/taffish/.github
 ```
+
+一些公开文档和案例仓库也可以放在它描述的业务域下面。例如：
+
+```text
+repos/apps/bio/flows/rna-seq/rnaseq-flows -> github.com/taffish/rnaseq-flows
+```
+
+## Flow-family 示例门户
+
+`taffish/rnaseq-flows` 是 TAFFISH RNA-seq flow family 的静态文档与示例报告门户。
+它本身不是 taf-flow package，而是用来说明多个已发布 flow app 如何连接，集中链接每个
+flow 的手册，并展示 yeast SNF2 标准示例报告：
+
+- [RNA-seq Flow Family 门户](https://taffish.github.io/rnaseq-flows/)
+- [Yeast 标准报告](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html)
+- [报告解读手册](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html)
+
+当一组 `taf-*` 命令形成了完整分析路线，并且需要面向人的手册、图示和示例输出时，
+这种门户可以作为机器可读 Hub index 之外的解释层。
 
 ## 数据流
 

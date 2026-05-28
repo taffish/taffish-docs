@@ -13,6 +13,7 @@ discover, install, and manage TAFFISH apps.
 ## Table of Contents
 
 - [Recommended Reading Paths](#recommended-reading-paths)
+- [Complete Flow Example](#complete-flow-example)
 - [Document Roles](#document-roles)
 - [Core Concepts](#core-concepts)
 - [User Guides](#user-guides)
@@ -39,6 +40,7 @@ Choose a path based on what you want to do.
 | Package a containerized bioinformatics tool | [App Developer Guide](en/app-developer-guide.en.md) -> [Containerized App Best Practices](en/container-apps.en.md) -> [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) -> [Troubleshooting](en/troubleshooting.en.md) |
 | Curate an official Hub app | [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) -> [Augustus app template](https://github.com/taffish/augustus) -> [Containerized App Best Practices](en/container-apps.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
 | Write a flow app with dependencies | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [Flow And Dependencies Guide](en/flow-dependencies.en.md) -> [TAFFISH Flow Developer Guide](en/taf-flow-developer-guide.en.md) -> [TAFFISH Flow Curation Checklist](en/taf-flow-curation-checklist.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
+| Explore a complete RNA-seq flow example | [RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) -> [live yeast report](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html) -> [Flow And Dependencies Guide](en/flow-dependencies.en.md) |
 | Understand Hub and index internals | [What Is TAFFISH Hub](en/taffish-hub.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
 | Understand security and trust | [TAFFISH Security Model](en/security-model.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [TAFFISH MCP Guide](en/taffish-mcp.en.md) |
 | Connect TAFFISH to an AI client | [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) -> [TAFFISH MCP Guide](en/taffish-mcp.en.md) -> [What Is TAFFISH](en/taffish.en.md#mcp--ai-integration) for background |
@@ -46,6 +48,21 @@ Choose a path based on what you want to do.
 
 If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
 [What Is TAFFISH](en/taffish.en.md).
+
+## Complete Flow Example
+
+The [RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) portal is a
+complete public case study for composing versioned `taf-*` commands into a
+reference-to-report RNA-seq route. It includes per-flow manuals, a live yeast
+SNF2 standard report, and a report interpretation guide:
+
+- [RNA-seq Flow Family portal](https://taffish.github.io/rnaseq-flows/)
+- [Yeast standard report](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html)
+- [Report interpretation guide](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html)
+
+This example demonstrates TAFFISH's command-level reproducibility model in a
+real analysis setting. It shows how shell-native app commands can be composed
+into lightweight flows without replacing workflow engines.
 
 ## Document Roles
 

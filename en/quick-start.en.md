@@ -20,6 +20,7 @@ assume that you want to write `.taf` scripts or maintain app repositories.
 - [Container Backends](#container-backends)
 - [Runtime Config And Mirrors](#runtime-config-and-mirrors)
 - [Network Notes](#network-notes)
+- [Explore A Complete Flow Example](#explore-a-complete-flow-example)
 - [Where To Read Next](#where-to-read-next)
 
 ## What You Install
@@ -504,6 +505,23 @@ If GitHub is slow or blocked in your environment:
 - configure your system proxy or Git proxy;
 - initialize the China profile or use `taf update --url <INDEX-URL>` for a one-off index override;
 - confirm that GHCR images are reachable from the machine that will run apps.
+
+## Explore A Complete Flow Example
+
+To see TAFFISH apps used as a complete analysis route, open the
+[RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) portal. It links
+the individual RNA-seq subflows, the standard end-to-end flow, per-flow manuals,
+and a live yeast SNF2 example report:
+
+- [RNA-seq Flow Family portal](https://taffish.github.io/rnaseq-flows/)
+- [Yeast standard report](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html)
+- [Report interpretation guide](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html)
+
+The example covers reference preparation, Salmon-based expression
+quantification, differential expression, enrichment, optional alignment/count/QC
+evidence, and final reporting. It is a public example of command-level
+reproducibility composed from installed `taf-*` commands, not a replacement for
+workflow engines.
 
 ## Where To Read Next
 
