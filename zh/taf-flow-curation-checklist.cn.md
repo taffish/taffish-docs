@@ -33,6 +33,15 @@ Blocker：
 - [ ] 所有核心生信命令都来自显式 taf 依赖。
 - [ ] `taffish.toml` 中依赖版本是精确版本。
 - [ ] `src/main.taf` 中 `[[taf: ...]]` 调用和 `taffish.toml` 依赖一致。
+- [ ] `[[taf: ...]]` 写在真实执行该工具的 call site，而不是集中放在开头的
+      `if false` / dummy block 中，再通过 `taffish_step_*`、`*_STEP`、
+      `TAF_CMD` 或裸 `taf-xxx-v...` wrapper 间接运行。
+- [ ] 如果 `[[taf: ...]]` 使用运行时 shell 变量，变量在生成后的 shell 中仍会正确展开；
+      没有在 TAFFISH 编译 step 时提前展开为空值或错误值。
+- [ ] 使用 `'"$var"'` 的变量已在调用前 `export`；循环中的 taf 调用使用
+      `</dev/null`，不会消耗 `while read ... < file` 的输入。
+- [ ] 动态长度参数没有通过裸 wrapper、`eval` 或宿主机 PATH 执行；如需 helper script，
+      它写在输出目录中，并通过真实 call site 的 `[[taf: ...]]` 执行。
 - [ ] 没有依赖宿主机 PATH 中的 `fastqc`、`samtools`、`bwa`、`STAR` 等生信工具。
 - [ ] 基础 shell/coreutils 依赖已经在 smoke 中覆盖。
 - [ ] 正常运行不需要联网下载核心资源。
@@ -119,7 +128,11 @@ Blocker：
 
 - [ ] smoke 不是只跑 `--help`。
 - [ ] smoke 检查 flow 命令存在。
-- [ ] smoke 检查主要依赖版本。
+- [ ] smoke 检查 flow 输出的版本记录/provenance，而不是直接用底层依赖版本命令替代 flow 验证。
+- [ ] smoke/formal 先 `taf build`，并以本 flow 的 `target/taf-<flow>-v...` 为核心被测对象。
+- [ ] smoke/formal 的通过条件来自 flow wrapper 生成的输出、日志和 provenance。
+- [ ] 下游 smoke/formal 需要上游产物时，优先调用上游 subflow 的 target wrapper 生成输入。
+- [ ] 测试脚本中直接调用 dependency wrapper 只用于没有合适上游 subflow 可用的 fixture 准备或环境探针，且不替代 flow wrapper 主路径验证。
 - [ ] smoke 使用极小 fixture 跑通真实数据路径。
 - [ ] smoke 检查关键结果文件存在。
 - [ ] smoke 检查 `commands.sh`、`versions.tsv`、`run.manifest.json` 存在。
@@ -159,6 +172,7 @@ Blocker：
 - [ ] 没有显式 `--outdir`。
 - [ ] 会在当前目录或输入目录写入非预期文件。
 - [ ] 核心生信命令依赖宿主机环境。
+- [ ] `[[taf: ...]]` 只作为开头 dummy 声明存在，真实步骤看不到直接 taf 调用。
 - [ ] 依赖版本没有固定。
 - [ ] 正常运行必须联网下载数据库、模型或参考文件。
 - [ ] 大型数据库或参考基因组被塞进 flow 镜像。

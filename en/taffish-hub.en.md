@@ -20,7 +20,9 @@ You can browse the current TAFFISH Hub at [taffish.github.io](https://taffish.gi
 The website reads static JSON from `taffish-index`, so it displays apps currently
 discovered by the official index.
 
-For a complete public flow-family example built on top of Hub apps, see the
+For human-facing maps of official flow families, see the
+[TAFFISH Flow Portal](https://taffish.github.io/flows/). For the most complete
+public flow-family case study, see the
 [RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) portal.
 
 Each real app repository can also have its own GitHub Actions workflow, for
@@ -32,7 +34,7 @@ the app repository itself and is not centrally handled by `taffish-hub`.
 - [Why Hub Exists](#why-hub-exists)
 - [Access And Publishing Policy](#access-and-publishing-policy)
 - [Current Repository Layout](#current-repository-layout)
-- [Flow-Family Example Portal](#flow-family-example-portal)
+- [Flow Portals](#flow-portals)
 - [Data Flow](#data-flow)
 - [`taffish-index`](#taffish-index)
 - [App Discovery Rules](#app-discovery-rules)
@@ -132,13 +134,19 @@ domain area they describe. For example:
 repos/apps/bio/flows/rna-seq/rnaseq-flows -> github.com/taffish/rnaseq-flows
 ```
 
-## Flow-Family Example Portal
+## Flow Portals
 
-`taffish/rnaseq-flows` is a static documentation and example-report portal for
-the TAFFISH RNA-seq flow family. It is not itself a taf-flow package. Instead,
-it explains how independently published flow apps connect, links their manuals,
-and hosts a live yeast SNF2 standard report:
+The [TAFFISH Flow Portal](https://taffish.github.io/flows/) is part of
+`taffish.github.io`. It is a human-facing map for official flow families, route
+pages, example reports, and Hub links. It does not replace the machine-readable
+index; it explains curated routes built from indexed `taf-*` commands.
 
+`taffish/rnaseq-flows` is a deeper static documentation and example-report
+portal for the TAFFISH RNA-seq flow family. It is not itself a taf-flow package.
+Instead, it explains how independently published flow apps connect, links their
+manuals, and hosts public yeast reports:
+
+- [TAFFISH Flow Portal](https://taffish.github.io/flows/)
 - [RNA-seq Flow Family portal](https://taffish.github.io/rnaseq-flows/)
 - [Yeast standard report](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html)
 - [Report interpretation guide](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html)

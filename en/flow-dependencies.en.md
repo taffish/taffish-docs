@@ -95,6 +95,60 @@ For official releases, fixed versions are recommended because:
 - `taf install` can install the correct versions.
 - Future upstream app releases will not silently change workflow behavior.
 
+Place `[[taf: ...]]` at the actual call site where the tool is executed. A good
+mental model is: write the flow as ordinary shell first, then replace each core
+bioinformatics command with `[[taf: taf-xxx-vA.B.C-rN ...]]`.
+
+Example:
+
+```taf
+export bam flagstat log
+if [[taf: taf-samtools-v1.23.1-r1 samtools flagstat '"$bam"' ]] </dev/null > "$flagstat" 2> "$log"; then
+    :
+else
+    echo "samtools flagstat failed; see $log" >&2
+    exit 1
+fi
+```
+
+Inside loops, call the dependency inside the loop body where that step really
+runs:
+
+```taf
+while IFS="$(printf '\t')" read -r sample_id bam || [ -n "$sample_id" ]; do
+    [[taf: taf-rseqc-v5.0.4-r2 bam_stat.py -i '"$bam"' -q '"$mapq"' ]] \
+        </dev/null \
+        > "$outdir/03_results/rseqc/$sample_id.bam_stat.txt" \
+        2>> "$outdir/01_logs/steps/03_rseqc.log"
+done < "$outdir/00_inputs/bam_files.tsv"
+```
+
+Do not collect all `[[taf: ...]]` calls in an `if false` block, dummy block, or
+"dependency declaration" section at the top of the file and then run them
+indirectly through `taffish_step_*`, `*_STEP`, `TAF_CMD`, or bare
+`taf-xxx-v...` wrappers. That pattern may expose dependencies to the compiler,
+but it hides the real execution path from the source code and weakens review.
+
+When arguments come from runtime shell variables, preserve runtime expansion.
+In the examples above, `'"$bam"'` keeps `"$bam"` in the generated shell script
+instead of expanding it while TAFFISH compiles the step. Export those variables
+before the call, because dependency invocations may be materialized as separate
+step shells. Inside `while read ... < file` loops, add `</dev/null` to taf calls
+so a tool or container entrypoint cannot consume the loop input.
+
+For variable-length argument lists, prefer a small number of explicit branches
+so the `[[taf: ...]]` call remains fixed and readable. If the number of
+arguments can only be known at runtime, write a concrete helper script under
+`<outdir>/02_intermediate/` and execute it through the relevant taf dependency at
+the real call site, for example:
+
+```taf
+[[taf: taf-tool-vX-rY sh '"$script"' ]] </dev/null
+```
+
+This keeps dependency execution auditable; `commands.sh` remains provenance text
+only.
+
 ## `@:` Parameter Blocks
 
 Flows often need to connect user-facing domain parameters with low-level tool parameters. `(@:)` block parameters are designed for this.
@@ -287,4 +341,3 @@ Same app appears twice:
 - Check `[dependencies].taf-x`.
 - Use an array only when both versions are truly required.
 - Do not use arrays to mean "choose one".
-

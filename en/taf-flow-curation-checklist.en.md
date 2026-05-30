@@ -33,6 +33,19 @@ Do not publish while any blocker remains.
 - [ ] All core bioinformatics commands come from explicit TAFFISH dependencies.
 - [ ] Dependency versions in `taffish.toml` are exact.
 - [ ] `[[taf: ...]]` calls in `src/main.taf` match `taffish.toml`.
+- [ ] `[[taf: ...]]` appears at the real call site where the tool is executed,
+      not only in an `if false` / dummy block at the top followed by indirect
+      execution through `taffish_step_*`, `*_STEP`, `TAF_CMD`, or bare
+      `taf-xxx-v...` wrappers.
+- [ ] Runtime shell variables used inside `[[taf: ...]]` still expand in the
+      generated shell script; they are not expanded too early while TAFFISH
+      compiles the step.
+- [ ] Variables referenced as `'"$var"'` are exported before the call; taf calls
+      inside loops use `</dev/null` and cannot consume `while read ... < file`
+      input.
+- [ ] Variable-length argument lists are not executed through bare wrappers,
+      `eval`, or the host PATH; if a helper script is needed, it lives in the
+      output directory and is executed through a real call-site `[[taf: ...]]`.
 - [ ] The flow does not use host `fastqc`, `samtools`, `bwa`, `STAR`, or similar tools.
 - [ ] Shell/coreutils assumptions are covered by smoke tests.
 - [ ] Normal execution does not download core resources from the network.
@@ -119,7 +132,17 @@ Recommended layout:
 
 - [ ] Smoke does more than `--help`.
 - [ ] Smoke checks that the flow command exists.
-- [ ] Smoke checks main dependency versions.
+- [ ] Smoke checks version/provenance records produced by the flow, rather than
+      replacing flow validation with direct dependency version commands.
+- [ ] Smoke/formal runs `taf build` first and uses this flow's
+      `target/taf-<flow>-v...` as the primary subject under test.
+- [ ] Smoke/formal pass conditions come from outputs, logs, and provenance
+      produced by the flow wrapper.
+- [ ] Downstream smoke/formal tests that need upstream outputs prefer upstream
+      subflow target wrappers to generate those inputs.
+- [ ] Direct dependency wrapper calls in tests are limited to fixture setup when no
+      suitable upstream subflow exists, or to environment probes, and do not replace
+      the main flow-wrapper validation.
 - [ ] Smoke runs a tiny fixture through a real data path.
 - [ ] Smoke checks key result files.
 - [ ] Smoke checks `commands.sh`, `versions.tsv`, and `run.manifest.json`.
@@ -159,6 +182,8 @@ Do not publish if any of these are true:
 - [ ] No explicit `--outdir`.
 - [ ] Unexpected files are written into the current directory or input directories.
 - [ ] Core bioinformatics commands depend on the host environment.
+- [ ] `[[taf: ...]]` exists only as a dummy declaration at the top, while real
+      steps do not show direct taf calls.
 - [ ] Dependency versions are not fixed.
 - [ ] Normal execution must download databases, models, or references.
 - [ ] Large databases or reference genomes are embedded in the flow image.

@@ -192,10 +192,31 @@ Use exact versions in `taffish.toml`:
 Call dependencies from `src/main.taf`:
 
 ```taf
-@: [[taf: taf-fastqc-v0.12.1-r1]] fastqc --version
-@: [[taf: taf-fastp-v0.24.1-r1]] fastp --version
-@: [[taf: taf-multiqc-v1.27.1-r1]] multiqc --version
+[[taf: taf-fastqc-v0.12.1-r1 fastqc --version]]
+[[taf: taf-fastp-v0.24.1-r1 fastp --version]]
+[[taf: taf-multiqc-v1.27.1-r1 multiqc --version]]
 ```
+
+More importantly, put `[[taf: ...]]` at the actual call site. Implement the flow
+as ordinary shell control flow first:
+
+```sh
+samtools flagstat "$bam" > "$flagstat"
+```
+
+Then replace the core bioinformatics command with the taf call:
+
+```taf
+[[taf: taf-samtools-v1.23.1-r1 samtools flagstat '"$bam"' ]] > "$flagstat"
+```
+
+Do not place all `[[taf: ...]]` calls in an `if false` block, dummy block, or
+separate "dependency declaration" area and then execute them indirectly through
+`taffish_step_*`, `*_STEP`, `TAF_CMD`, or bare `taf-xxx-v...` wrappers. That
+source shape is harder to audit and can disconnect the real data path from the
+dependency call. `commands.sh` may record user-readable command text, but the
+actual execution path in `src/main.taf` must show `[[taf: ...]]` at the call
+site.
 
 Small shell/coreutils usage is acceptable for file and table handling. Core bioinformatics commands must come from explicit TAFFISH dependencies.
 

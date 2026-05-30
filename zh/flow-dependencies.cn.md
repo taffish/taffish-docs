@@ -95,6 +95,55 @@ taf-multiqc = "1.19-r1"
 - 用户安装时能安装正确版本。
 - 未来上游 app 更新不会悄悄改变 flow 行为。
 
+`[[taf: ...]]` 应写在真正执行该工具的位置。推荐心智模型是：先把 flow 写成普通
+shell 脚本，再把核心生信命令那一行替换成 `[[taf: taf-xxx-vA.B.C-rN ...]]`。
+
+例如：
+
+```taf
+export bam flagstat log
+if [[taf: taf-samtools-v1.23.1-r1 samtools flagstat '"$bam"' ]] </dev/null > "$flagstat" 2> "$log"; then
+    :
+else
+    echo "samtools flagstat failed; see $log" >&2
+    exit 1
+fi
+```
+
+循环中也应该在循环体的实际步骤处调用：
+
+```taf
+while IFS="$(printf '\t')" read -r sample_id bam || [ -n "$sample_id" ]; do
+    [[taf: taf-rseqc-v5.0.4-r2 bam_stat.py -i '"$bam"' -q '"$mapq"' ]] \
+        </dev/null \
+        > "$outdir/03_results/rseqc/$sample_id.bam_stat.txt" \
+        2>> "$outdir/01_logs/steps/03_rseqc.log"
+done < "$outdir/00_inputs/bam_files.tsv"
+```
+
+不要把所有 `[[taf: ...]]` 集中放在文件开头的 `if false`、dummy block 或“依赖声明区”中，
+再通过 `taffish_step_*`、`*_STEP`、`TAF_CMD` 或裸 `taf-xxx-v...` wrapper 间接运行。
+这种写法虽然可能让编译器看到依赖，但会让 flow 源码的真实执行路径不清楚，也容易绕过
+依赖审计。
+
+当参数来自运行时 shell 变量时，注意保留运行时展开语义。上面例子中的 `'"$bam"'`
+表示把 `"$bam"` 保留到生成后的 shell 脚本中，而不是在 TAFFISH 编译 step 时提前展开。
+这些变量还应该在调用前 `export`，因为依赖调用可能被物化为独立的 step shell。
+在 `while read ... < file` 循环中，taf 调用通常要接 `</dev/null`，避免底层工具或容器
+入口读取 stdin 时消耗循环输入。
+
+如果底层工具需要动态长度参数列表，优先用少量显式分支保持 `[[taf: ...]]` 参数固定可读。
+确实只能运行时决定参数数目时，可在 `<outdir>/02_intermediate/` 生成包含具体参数的
+helper script，再在真实 call site 用相应 taf 依赖执行，例如：
+
+```taf
+[[taf: taf-tool-vX-rY sh '"$script"' ]] </dev/null
+```
+
+这仍然保持依赖调用可审计，`commands.sh` 只记录 provenance。
+`commands.sh` 中可以另外记录便于审计和复现的命令文本，但实际执行入口仍应是源码
+call site 处的 `[[taf: ...]]`。
+
 ## `@:` 参数块
 
 Flow 经常需要把“面向用户的领域参数”和“底层工具的原生参数”连接起来。`(@:)` 块参数就是为这个场景准备的。
