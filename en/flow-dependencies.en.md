@@ -39,8 +39,8 @@ Flow apps are not ideal for:
 
 ```taf
 <taffish>
-[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 .]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
+[[taf: taf-multiqc-v1.19-r1 multiqc .]]
 ```
 
 `taffish.toml`:
@@ -80,7 +80,7 @@ Syntax:
 Prefer exact versioned commands in published flows:
 
 ```taf
-[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
 ```
 
 During development, the base command can be used:
@@ -129,6 +129,14 @@ indirectly through `taffish_step_*`, `*_STEP`, `TAF_CMD`, or bare
 `taf-xxx-v...` wrappers. That pattern may expose dependencies to the compiler,
 but it hides the real execution path from the source code and weakens review.
 
+In formal flows, apart from a small amount of shell/coreutils usage, any
+bioinformatics, statistical, plotting, database, model, or other domain tool
+that a user would otherwise need to install should first be versioned as a taf
+app and then called through a real call-site `[[taf: ...]]`. In other words, the
+flow source should show which taf app, which version, and which arguments are
+used for a step. That information should not appear only in documentation,
+`commands.sh`, or an indirect variable.
+
 When arguments come from runtime shell variables, preserve runtime expansion.
 In the examples above, `'"$bam"'` keeps `"$bam"` in the generated shell script
 instead of expanding it while TAFFISH compiles the step. Export those variables
@@ -160,34 +168,66 @@ ARGS
 <!(--/-i)input>
 <(--/-o)outdir>
   qc
+<(--/-t)threads>
+  4
 
 <(@:)fastqc-step>
-  --threads ::(--/-t)threads=4::
-  --outdir ::outdir::
-  ::(--/-e)fastqc-extra=::
 
 RUN
 <taffish>
 mkdir -p ::outdir::
-[[taf: taf-fastqc-v0.12.1-r1 ::(@:)fastqc-step:: ::input::]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc --threads ::threads:: --outdir ::outdir:: ::input:: ::(@:)fastqc-step::]]
 ```
 
-`(@:)fastqc-step` creates a block parameter named `fastqc-step`. Its default value is a whole argument fragment, not a single string. That fragment can contain ordinary parameter DSL:
+`(@:)fastqc-step` creates a step parameter slot named `fastqc-step`. In formal
+flows, this slot should be empty by default: stable parameters managed by the
+flow itself, such as `threads`, `outdir`, and `input`, are written directly in
+the command body. `::(@:)fastqc-step::` is only for native FastQC arguments that
+the user explicitly appends for this run.
 
-- `threads` exposes thread count.
-- `outdir` reuses the flow output directory.
-- `fastqc-extra` keeps an advanced extra-argument entry point.
+- `threads` is exposed as a common top-level flow parameter.
+- `outdir` and `input` are part of the flow-managed contract.
+- `fastqc-step` is an advanced argument slot and expands only when the user
+  passes `@fastqc-step: ... @:`.
 
 Inside an `ARGS` body, prefer `::name::` for ordinary parameter references. `@name` and `@{name}` are also supported, but they are better reserved for default-value composition such as `::(--/-p)prefix=out-@{input}::`.
 
 This pattern is useful because it:
 
-- Keeps arguments for one tool step together in `ARGS`.
-- Keeps `[[taf: ...]]` calls short and readable.
+- Exposes stable, common, result-relevant settings as top-level flow parameters.
+- Keeps the upstream executable and flow-managed arguments explicit in `RUN`.
 - Avoids promoting every low-level tool argument into a top-level flow concept.
 - Lets advanced users pass extra tool arguments without disrupting the workflow structure.
 
 If a flow has multiple steps, create one block parameter per step, such as `fastqc-step`, `align-step`, and `call-variants-step`. A block parameter should correspond to one clear step.
+
+For formal flows, this should be treated as the default rule: each real
+analytical `[[taf: ...]]` call site that affects results, resource use, or major
+report content should have a unique and descriptive `(@:)<step-name>` parameter
+block, and the call site should include `::(@:)<step-name>::`. Version probes,
+dependency anchors, and very lightweight existence checks may be exceptions
+when they do not carry real analytical semantics.
+
+If the same taf app is called multiple times in one flow, split block names by
+call site. For example, one `taf-salmon` dependency may need
+`salmon-index-step`, `salmon-quant-pe-step`, and `salmon-quant-se-step`. Do not
+use one broad `salmon-step` or `extra-step` to control semantically different
+calls.
+
+`@:` blocks are advanced entry points for passing native low-level tool
+arguments. They should not be required for normal execution.
+`::(@:)<step-name>::` must expand to nothing by default; do not prefill it in
+flow source code, templates, shell variables, or helper scripts. Default tool
+arguments that belong to the flow should be written directly in the command body
+and documented as normal behavior. A flow should run its standard path, produce
+results, reports, and provenance with only domain parameters and common options.
+User-supplied step parameters should also be recorded in `commands.sh`,
+`run.manifest.json`, or equivalent provenance.
+
+If a step must execute the underlying tool through a helper script,
+`::(@:)<step-name>::` should be included in the real tool command generated by
+that helper script, not merely appended after `sh "$script"`. Otherwise the
+user's low-level arguments may never reach the intended tool.
 
 ## Dependency Declaration
 

@@ -110,31 +110,45 @@ Inline defaults are useful for short values:
 
 ```taf
 ARGS
-<(--/-t)threads=4>
-<(--/-v)verbose?>
+<(--/-t)threads>
+  4
 
 RUN
 <shell>
 echo "threads: ::threads::"
-echo "verbose: ::verbose::"
+echo "verbose: ::(--/-v)verbose?::"
 ```
 
-`?` declares a boolean flag. If the user provides `--verbose`, the value becomes
-true; otherwise it is false.
+Boolean flags should be declared inline at the point where they are used, for
+example `::(--/-v)verbose?::`. `?` declares a boolean flag. If the user provides
+the flag, the value is truthy; otherwise it is empty or false-like in argument
+binding. Use boolean flags for branching or presence checks; do not rely on a
+specific textual representation such as `true` or `false`.
 
 ## Positional Parameters
 
 Use `$1`, `$2`, and so on for positional arguments:
 
 ```taf
+RUN
+<shell>
+echo "input: ::$1::"
+echo "output: ::$2::"
+```
+
+Positional parameters are read directly from input arguments. Do not define
+positional parameters inside an `ARGS` block, and do not assign defaults to
+them. If an output needs a default, prefer a named parameter:
+
+```taf
 ARGS
-<!$1>
-<$2>
+<output>
   result.txt
 
 RUN
 <shell>
-cp ::$1:: ::$2::
+echo "input: ::$1::"
+echo "output: ::output::"
 ```
 
 For public app commands, named options are usually clearer than positional
@@ -175,28 +189,28 @@ sequences are preserved as ordinary text.
 
 ## Block Parameters
 
-`(@:)name` creates a block parameter. It is useful when a flow step needs a
-whole argument fragment:
+`(@:)name` creates a block parameter. In formal flows, it is best used as an
+empty append-only argument slot for one real analytical step:
 
 ```taf
 ARGS
 <!(--/-q)query>
 <(--/-d)db>
   nt
+<(--/-f)outfmt>
+  6
 
 <(@:)blast-step>
-  --query ::query::
-  --db ::db::
-  --outfmt ::(--/-f)outfmt=6::
-  ::(--/-e)extra=::
 
 RUN
 <taffish>
-[[taf: taf-blast-v2.16.0-r1 ::(@:)blast-step::]]
+[[taf: taf-blast-v2.16.0-r1 blastn -query ::query:: -db ::db:: -outfmt ::outfmt:: ::(@:)blast-step::]]
 ```
 
-This keeps the main flow readable while still exposing important low-level
-options.
+This keeps the main flow readable: `query`, `db`, and `outfmt` are stable
+flow-managed parameters, while `::(@:)blast-step::` expands to nothing by
+default and appends native BLAST arguments only when the user explicitly passes
+`@blast-step: ... @:`.
 
 ## Built-In Parameters
 
@@ -343,8 +357,8 @@ ARGS
 RUN
 <taffish>
 mkdir -p ::outdir::
-[[taf: taf-fastqc-v0.12.1-r1 ::input:: --outdir ::outdir::]]
-[[taf: taf-multiqc-v1.19-r1 ::outdir::]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc ::input:: --outdir ::outdir::]]
+[[taf: taf-multiqc-v1.19-r1 multiqc ::outdir::]]
 ```
 
 Declare dependencies in `taffish.toml`:

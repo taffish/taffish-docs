@@ -276,8 +276,8 @@ Flow app 通常使用 `<taffish>`：
 
 ```taf
 <taffish>
-[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 .]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
+[[taf: taf-multiqc-v1.19-r1 multiqc .]]
 ```
 
 参数使用 `::...::`：
@@ -313,46 +313,50 @@ RUN
 my-tool --input ::input:: --output ::output:: --threads ::threads::
 ```
 
-`@:` 块参数适合封装“某一步的参数片段”：
+`@:` 块参数适合作为“某一步的高级追加参数槽”：
 
 ```taf
 ARGS
 <!(--/-i)input>
 <(--/-o)outdir>
   qc
+<(--/-t)threads>
+  4
 
 <(@:)fastqc-step>
-  --threads ::(--/-t)threads=4::
-  --outdir ::outdir::
-  ::(--/-e)fastqc-extra=::
 
 <(@:)multiqc-step>
-  ::(--/-m)multiqc-extra=::
 
 RUN
 <taffish>
 mkdir -p ::outdir::
-[[taf: taf-fastqc-v0.12.1-r1 ::(@:)fastqc-step:: ::input::]]
-[[taf: taf-multiqc-v1.19-r1 ::(@:)multiqc-step:: ::outdir::]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc --threads ::threads:: --outdir ::outdir:: ::input:: ::(@:)fastqc-step::]]
+[[taf: taf-multiqc-v1.19-r1 multiqc ::outdir:: ::(@:)multiqc-step::]]
 ```
 
 这个例子里：
 
 - `input` 和 `outdir` 是 flow 的领域参数。
-- `fastqc-step` 是一整段 FastQC 参数块。
-- `multiqc-step` 是一整段 MultiQC 参数块。
-- `threads`、`fastqc-extra`、`multiqc-extra` 是嵌在参数块内部的可调参数。
+- `threads` 是 flow 顶层常用参数。
+- `fastqc-step` 和 `multiqc-step` 默认都是空槽。
+- 用户只有显式传入 `@fastqc-step: ... @:` 或 `@multiqc-step: ... @:` 时，才会追加底层工具原生参数。
 
-这种写法的好处是：flow 的主逻辑保持清晰，用户仍然可以调整关键参数，而底层工具的参数结构不会散落在多条 `[[taf: ...]]` 调用里。
+这种写法的好处是：flow 的主逻辑保持清晰，普通用户调整的是稳定领域参数，高级用户仍能在必要时按步骤追加底层工具原生参数。
 
 在 `ARGS` 的正文中，普通参数引用优先使用 `::name::`。`@name` 和 `@{name}` 也可以引用参数，但更适合用在默认值表达式或拼接场景，例如 `::(--/-p)prefix=out-@{input}::`。
 
 建议：
 
 - 对外暴露稳定、领域化的参数名，例如 `input`、`outdir`、`genome`、`threads`。
-- 用 `(@:)step-name` 封装一个工具调用步骤的参数片段。
-- 为每个步骤保留一个 `extra` 参数，例如 `fastqc-extra`，方便高级用户传递少量上游工具原生参数。
-- 不要把互相无关的工具参数塞进同一个块参数；一个块参数最好对应一个清晰步骤。
+- 用 `(@:)step-name` 为一个工具调用步骤提供默认空的高级追加参数槽。
+- 在正式 flow 中，每个会影响分析结果、资源占用或主要报告内容的真实 `[[taf: ...]]`
+  call site 都应有对应的 `::(@:)step-name::` 高级参数入口。
+- 同一个 taf app 多次调用时，按 call site 拆分 block 名称，例如 `salmon-index-step`
+  和 `salmon-quant-step`，不要用一个宽泛的 app 级 block 同时控制多个步骤。
+- `::(@:)step-name::` 默认展开为空；不要在源码、模板、shell 变量或 helper script 中预填默认参数。
+- flow 自己需要的默认工具参数直接写在命令本体中，并作为正常行为文档化。
+- 不传任何 `@step:` 参数时，flow 默认路径仍应完整可用；`@:` 是高级扩展入口，不是普通用户的必填参数。
+- 用户实际传入的 step 参数应记录到 `commands.sh`、`run.manifest.json` 或等价 provenance。
 - 发布后尽量不要修改已有参数名，必要时新增参数并保持旧参数兼容。
 
 ## 编写帮助文档

@@ -39,8 +39,8 @@ Flow 不适合：
 
 ```taf
 <taffish>
-[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 .]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
+[[taf: taf-multiqc-v1.19-r1 multiqc .]]
 ```
 
 `taffish.toml`：
@@ -80,7 +80,7 @@ taf-multiqc = "1.19-r1"
 推荐使用 exact versioned command：
 
 ```taf
-[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
 ```
 
 也可以在开发期写基础 command：
@@ -126,6 +126,11 @@ done < "$outdir/00_inputs/bam_files.tsv"
 这种写法虽然可能让编译器看到依赖，但会让 flow 源码的真实执行路径不清楚，也容易绕过
 依赖审计。
 
+正式 flow 中，除少量 shell/coreutils 通用命令外，任何需要用户额外安装的生信、统计、
+绘图、数据库、模型或其他领域工具，都应先作为 taf app 版本化，再通过真实 call site 的
+`[[taf: ...]]` 调用。也就是说，flow 源码里应该能直接看到“这个步骤调用哪个 taf app、
+哪个版本、传递哪些参数”，而不是只在文档、`commands.sh` 或某个变量中间接出现。
+
 当参数来自运行时 shell 变量时，注意保留运行时展开语义。上面例子中的 `'"$bam"'`
 表示把 `"$bam"` 保留到生成后的 shell 脚本中，而不是在 TAFFISH 编译 step 时提前展开。
 这些变量还应该在调用前 `export`，因为依赖调用可能被物化为独立的 step shell。
@@ -155,34 +160,56 @@ ARGS
 <!(--/-i)input>
 <(--/-o)outdir>
   qc
+<(--/-t)threads>
+  4
 
 <(@:)fastqc-step>
-  --threads ::(--/-t)threads=4::
-  --outdir ::outdir::
-  ::(--/-e)fastqc-extra=::
 
 RUN
 <taffish>
 mkdir -p ::outdir::
-[[taf: taf-fastqc-v0.12.1-r1 ::(@:)fastqc-step:: ::input::]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc --threads ::threads:: --outdir ::outdir:: ::input:: ::(@:)fastqc-step::]]
 ```
 
-`(@:)fastqc-step` 会创建一个名为 `fastqc-step` 的块参数。它的默认值是一整段参数片段，而不是单个字符串。这个参数片段内部还可以包含普通参数 DSL：
+`(@:)fastqc-step` 会创建一个名为 `fastqc-step` 的 step 参数槽。对正式 flow 来说，
+这个槽默认应为空：`threads`、`outdir`、`input` 这类 flow 自己管理的稳定参数直接写在
+命令本体中，`::(@:)fastqc-step::` 只用于用户显式追加本次运行需要的底层 FastQC 原生参数。
 
-- `threads` 暴露线程数。
-- `outdir` 复用 flow 的输出目录。
-- `fastqc-extra` 为高级用户保留额外参数入口。
+- `threads` 暴露为 flow 顶层常用参数。
+- `outdir` 和 `input` 属于 flow-managed 契约。
+- `fastqc-step` 是高级用户的追加参数入口，只有用户传入 `@fastqc-step: ... @:` 时才展开。
 
 在 `ARGS` 正文里，普通参数引用优先使用 `::name::`。`@name` 和 `@{name}` 也可用，但更适合默认值拼接，例如 `::(--/-p)prefix=out-@{input}::`。
 
 这种方式适合 flow：
 
-- 把一个工具调用步骤的参数集中写在 `ARGS` 里。
-- 让 `RUN` 中的 `[[taf: ...]]` 保持短而清楚。
+- 把稳定、常用、影响结果解释的参数作为 flow 顶层领域参数。
+- 在 `RUN` 中明确写出上游命令和 flow-managed 参数。
 - 避免把每个底层工具参数都提升成 flow 顶层概念。
 - 在不破坏主流程结构的情况下给用户提供扩展能力。
 
 如果一个 flow 有多个步骤，可以为每个步骤准备一个块参数，例如 `fastqc-step`、`align-step`、`call-variants-step`。一个块参数最好只对应一个步骤，不要混入其他步骤的参数。
+
+对正式 flow，推荐把这条规则提升为默认规范：每个会影响分析结果、资源占用或主要报告内容的
+真实 `[[taf: ...]]` call site，都应有一个唯一、语义清楚的 `(@:)<step-name>` 参数块，并在
+调用点使用 `::(@:)<step-name>::`。版本探针、dependency anchor、极轻量存在性检查等不承载
+真实分析语义的调用可以例外。
+
+同一个 taf app 在同一 flow 中多次调用时，也应按 call site 拆分参数块名称。例如同一个
+`taf-salmon` 可以有 `salmon-index-step`、`salmon-quant-pe-step` 和
+`salmon-quant-se-step`。不要用一个宽泛的 `salmon-step` 或 `extra-step` 同时控制多种
+语义不同的调用。
+
+`@:` 参数块是高级用户传递底层工具原生参数的入口，不应该成为普通运行路径的必需条件。
+`::(@:)<step-name>::` 默认展开必须为空；不要在 flow 源码、模板、shell 变量或 helper
+script 中给它预填默认参数。flow 固有的默认工具参数应直接写在命令本体中，并作为正常
+行为文档化。不传任何 `@step:` 参数时，flow 仍应能用领域级参数和常用参数跑通标准路径，
+并产出结果、报告和 provenance。用户实际传入的 step 参数也应记录到 `commands.sh`、
+`run.manifest.json` 或等价 provenance 中。
+
+如果某个步骤必须通过 helper script 间接运行底层工具，`::(@:)<step-name>::` 应体现在
+helper script 生成的真实工具命令中，而不是只追加到 `sh "$script"` 后面；否则用户传入的
+底层参数可能并没有真正作用到目标工具。
 
 ## 依赖声明
 

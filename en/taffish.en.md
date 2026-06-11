@@ -236,9 +236,11 @@ Common prefixes and suffixes:
 
 - `!` marks a required argument.
 - `%` marks a hidden argument, useful for internal defaults or non-user-facing settings.
-- `?` marks a boolean flag. Present means true, absent means false.
+- `?` marks a boolean flag. Present is truthy in argument binding; absent is
+  empty or false-like. Do not rely on a fixed textual representation such as
+  `true` or `false`.
 - `=` sets a default value.
-- `$1`, `$2` define positional arguments.
+- `$1`, `$2` read positional arguments from user input.
 - `--` can expand to a long option name, for example `(--/-)name` maps to `--name` and `-n`.
 - `-` can expand to a short option name, for example `(--/-)threads` maps to `--threads` and `-t`.
 
@@ -281,25 +283,43 @@ Use `@{name}` when the reference is followed immediately by letters, numbers, `-
 
 ```taf
 ARGS
+<!(--/-q)query>
+<(--/-d)db>
+  nt
+<(--/-of)outfmt>
+  6
+
 <(@:)blast-step>
-  --db ::(--/-d)db=nt::
-  --query ::!(--/-q)query::
-  --outfmt ::(--/-of)outfmt=6::
-  ::(--/-e)extra=::
 
 RUN
 <taffish>
-[[taf: taf-blast-v2.16.0-r1 ::(@:)blast-step::]]
+[[taf: taf-blast-v2.16.0-r1 blastn -db ::db:: -query ::query:: -outfmt ::outfmt:: ::(@:)blast-step::]]
 ```
 
-Here `blast-step` is not a plain string parameter. It is a composable parameter block. Its default block can contain ordinary parameter DSL entries such as `db`, `query`, `outfmt`, and `extra`. TAFFISH extracts these inner parameters, so developers can:
+Here `blast-step` is not a plain string parameter. It is a named step parameter
+slot. In formal flows, this slot should be empty by default: stable parameters
+managed by the flow itself, such as `db`, `query`, and `outfmt`, are written
+directly in the command body. `::(@:)blast-step::` appends native BLAST
+arguments only when the user explicitly passes `@blast-step: ... @:`. This lets
+developers:
 
 - Expose domain-oriented parameters such as `query`, `db`, and `outfmt`.
-- Package a group of low-level tool arguments as one step parameter.
-- Keep `[[taf: ...]]` calls readable in flow apps.
-- Preserve an advanced escape hatch such as `extra`.
+- Keep flow-managed defaults separate from advanced user-supplied arguments.
+- Keep the real `[[taf: ...]]` call clear and auditable.
+- Preserve a per-step entry point for native low-level arguments.
 
-At the command-line layer, `(@:)blast-step` corresponds to the `@blast-step:` slot. Ordinary users usually do not need to pass slot blocks directly. App authors mainly use them inside `.taf` files to organize step defaults, domain parameters, and extra arguments.
+At the command-line layer, `(@:)blast-step` corresponds to the `@blast-step:`
+slot. Ordinary users usually do not need to pass slot blocks directly. App
+authors mainly use them inside `.taf` files to provide an empty advanced append
+slot for a real tool call.
+
+In flow apps, each real analytical `[[taf: ...]]` call site should usually have
+a descriptive `(@:)xxx-step` block, and the call site should include
+`::(@:)xxx-step::`. This lets ordinary users work with flow-level domain
+parameters while advanced users can pass native low-level tool arguments step by
+step. `::(@:)xxx-step::` must expand to nothing by default and should not be
+prefilled in source code, templates, shell variables, or helper scripts. A flow
+should still run completely without any `@step:` arguments.
 
 ### Built-In Parameters
 
@@ -497,8 +517,8 @@ my-tool --help
 
 ```taf
 <taffish>
-[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 .]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
+[[taf: taf-multiqc-v1.19-r1 multiqc .]]
 ```
 
 Embedding syntax:
@@ -509,12 +529,20 @@ Embedding syntax:
 
 At compile time, TAFFISH compiles those taf apps into temporary shell steps, then executes them inside the current workflow. This makes it possible for flow apps to compose existing tools while preserving explicit dependency relationships.
 
+In formal flows, `[[taf: ...]]` should appear at the code location where the
+tool is really executed. Do not collect all taf dependencies in a dummy block or
+`if false` section at the top and then run them indirectly through variables,
+bare wrappers, or generated scripts. Apart from a small amount of
+shell/coreutils usage, non-shell-native bioinformatics, statistical, plotting,
+database, and model-related commands should be called through explicit
+versioned taf apps.
+
 Simplified compiled shape:
 
 ```sh
 taffish_tmpdir=$(mktemp -d)
-taf-fastqc-v0.12.1-r1 --compile sample.fq > "$taffish_tmpdir/step-1.sh"
-taf-multiqc-v1.19-r1 --compile . > "$taffish_tmpdir/step-2.sh"
+taf-fastqc-v0.12.1-r1 --compile fastqc sample.fq > "$taffish_tmpdir/step-1.sh"
+taf-multiqc-v1.19-r1 --compile multiqc . > "$taffish_tmpdir/step-2.sh"
 chmod +x "$taffish_tmpdir"/step-*.sh
 "$taffish_tmpdir/step-1.sh"
 "$taffish_tmpdir/step-2.sh"

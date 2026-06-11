@@ -279,8 +279,8 @@ Flow apps usually use `<taffish>`:
 
 ```taf
 <taffish>
-[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 .]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
+[[taf: taf-multiqc-v1.19-r1 multiqc .]]
 ```
 
 Parameters use `::...::`:
@@ -316,46 +316,62 @@ RUN
 my-tool --input ::input:: --output ::output:: --threads ::threads::
 ```
 
-`@:` block parameters are good for packaging one step's argument fragment:
+`@:` block parameters are good for providing one step's advanced append-only
+argument slot:
 
 ```taf
 ARGS
 <!(--/-i)input>
 <(--/-o)outdir>
   qc
+<(--/-t)threads>
+  4
 
 <(@:)fastqc-step>
-  --threads ::(--/-t)threads=4::
-  --outdir ::outdir::
-  ::(--/-e)fastqc-extra=::
 
 <(@:)multiqc-step>
-  ::(--/-m)multiqc-extra=::
 
 RUN
 <taffish>
 mkdir -p ::outdir::
-[[taf: taf-fastqc-v0.12.1-r1 ::(@:)fastqc-step:: ::input::]]
-[[taf: taf-multiqc-v1.19-r1 ::(@:)multiqc-step:: ::outdir::]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc --threads ::threads:: --outdir ::outdir:: ::input:: ::(@:)fastqc-step::]]
+[[taf: taf-multiqc-v1.19-r1 multiqc ::outdir:: ::(@:)multiqc-step::]]
 ```
 
 In this example:
 
 - `input` and `outdir` are flow domain parameters.
-- `fastqc-step` is a whole FastQC argument block.
-- `multiqc-step` is a whole MultiQC argument block.
-- `threads`, `fastqc-extra`, and `multiqc-extra` are adjustable parameters embedded inside blocks.
+- `threads` is a common top-level flow parameter.
+- `fastqc-step` and `multiqc-step` are empty slots by default.
+- Native low-level tool arguments are appended only when the user explicitly
+  passes `@fastqc-step: ... @:` or `@multiqc-step: ... @:`.
 
-This keeps the flow logic clear, gives users useful controls, and prevents low-level tool arguments from being scattered across many `[[taf: ...]]` calls.
+This keeps the flow logic clear: ordinary users control stable domain
+parameters, while advanced users can append native low-level tool arguments at a
+specific step when needed.
 
 Inside an `ARGS` body, prefer `::name::` for ordinary parameter references. `@name` and `@{name}` also work, but are better suited for default-expression composition, such as `::(--/-p)prefix=out-@{input}::`.
 
 Advice:
 
 - Expose stable domain parameters such as `input`, `outdir`, `genome`, and `threads`.
-- Use `(@:)step-name` to package one tool-call step's arguments.
-- Preserve an `extra` parameter for each step when advanced users may need native upstream arguments.
-- Do not mix unrelated tool arguments into one block.
+- Use `(@:)step-name` to provide an empty advanced append-only slot for one
+  tool-call step.
+- In formal flows, each real `[[taf: ...]]` call site that affects results,
+  resource use, or major report content should have a corresponding
+  `::(@:)step-name::` advanced parameter entry point.
+- If the same taf app is called multiple times, split block names by call site,
+  such as `salmon-index-step` and `salmon-quant-step`, instead of using one
+  broad app-level block for several steps.
+- `::(@:)step-name::` expands to nothing by default; do not prefill it in source
+  code, templates, shell variables, or helper scripts.
+- Default tool arguments that belong to the flow should be written directly in
+  the command body and documented as normal behavior.
+- The default flow path should remain complete without any `@step:` arguments;
+  `@:` is an advanced extension entry point, not a required normal-use
+  parameter.
+- User-supplied step parameters should be recorded in `commands.sh`,
+  `run.manifest.json`, or equivalent provenance.
 - Avoid renaming released parameters; add compatible new parameters instead.
 
 ## Writing Help Documentation

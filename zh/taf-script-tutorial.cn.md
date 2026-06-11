@@ -109,30 +109,43 @@ my-tool --input ::input:: --output ::output::
 
 ```taf
 ARGS
-<(--/-t)threads=4>
-<(--/-v)verbose?>
+<(--/-t)threads>
+  4
 
 RUN
 <shell>
 echo "threads: ::threads::"
-echo "verbose: ::verbose::"
+echo "verbose: ::(--/-v)verbose?::"
 ```
 
-`?` 表示布尔 flag。用户提供 `--verbose` 时为 true，否则为 false。
+布尔 flag 推荐在使用位置 inline 声明，例如 `::(--/-v)verbose?::`。`?` 表示
+布尔 flag：用户提供该 flag 时，它在参数绑定中为真；未提供时为空或类似 false 的空值。
+这类参数适合用于分支或存在性检查，不应依赖它在 shell 中一定输出 `true` 或 `false`
+这样的固定文本。
 
 ## 位置参数
 
 用 `$1`、`$2` 等表示位置参数：
 
 ```taf
+RUN
+<shell>
+echo "input: ::$1::"
+echo "output: ::$2::"
+```
+
+位置参数直接从用户输入参数中读取。不要在 `ARGS` block 中定义位置参数，也不要给位置参数
+设置默认值。如果 output 需要默认值，推荐使用命名参数：
+
+```taf
 ARGS
-<!$1>
-<$2>
+<output>
   result.txt
 
 RUN
 <shell>
-cp ::$1:: ::$2::
+echo "input: ::$1::"
+echo "output: ::output::"
 ```
 
 公开 app 命令通常用命名参数更清楚，但位置参数适合小型 wrapper。
@@ -171,26 +184,26 @@ TAFFISH 只解释明确支持的转义形式。大多数反斜杠序列会按普
 
 ## 块参数
 
-`(@:)name` 会创建一个块参数。它适合把一个分析步骤需要的一整段参数封装起来：
+`(@:)name` 会创建一个块参数。正式 flow 中推荐把它用作某个真实分析步骤的默认空追加参数槽：
 
 ```taf
 ARGS
 <!(--/-q)query>
 <(--/-d)db>
   nt
+<(--/-f)outfmt>
+  6
 
 <(@:)blast-step>
-  --query ::query::
-  --db ::db::
-  --outfmt ::(--/-f)outfmt=6::
-  ::(--/-e)extra=::
 
 RUN
 <taffish>
-[[taf: taf-blast-v2.16.0-r1 ::(@:)blast-step::]]
+[[taf: taf-blast-v2.16.0-r1 blastn -query ::query:: -db ::db:: -outfmt ::outfmt:: ::(@:)blast-step::]]
 ```
 
-这样可以让 flow 主逻辑保持清楚，同时仍然暴露关键底层参数。
+这样可以让 flow 主逻辑保持清楚：`query`、`db`、`outfmt` 是 flow 管理的稳定参数，
+`::(@:)blast-step::` 默认展开为空，只在用户显式传入 `@blast-step: ... @:` 时追加本次
+运行需要的 BLAST 原生参数。
 
 ## 内置参数
 
@@ -329,8 +342,8 @@ ARGS
 RUN
 <taffish>
 mkdir -p ::outdir::
-[[taf: taf-fastqc-v0.12.1-r1 ::input:: --outdir ::outdir::]]
-[[taf: taf-multiqc-v1.19-r1 ::outdir::]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc ::input:: --outdir ::outdir::]]
+[[taf: taf-multiqc-v1.19-r1 multiqc ::outdir::]]
 ```
 
 在 `taffish.toml` 中声明依赖：

@@ -36,6 +36,19 @@ Blocker：
 - [ ] `[[taf: ...]]` 写在真实执行该工具的 call site，而不是集中放在开头的
       `if false` / dummy block 中，再通过 `taffish_step_*`、`*_STEP`、
       `TAF_CMD` 或裸 `taf-xxx-v...` wrapper 间接运行。
+- [ ] 每个会影响分析结果、资源占用或主要报告内容的真实 `[[taf: ...]]` call site，
+      都有唯一、语义清楚的 `(@:)<step-name>` 参数块，并在调用点使用
+      `::(@:)<step-name>::` 作为高级参数入口；版本探针、dependency anchor 和
+      极轻量存在性检查已有明确例外理由。
+- [ ] 同一个 taf app 在同一 flow 中多次调用时，`@:` block 按 call site 拆分命名；
+      没有用一个宽泛的 `extra-step` 或 app 级 block 同时控制多个语义不同的步骤。
+- [ ] 不使用任何 `@step:` 参数时，flow 默认路径仍能完整运行并产出标准结果、报告和
+      provenance；`@:` 只是专家扩展入口，不是正常分析必需参数。
+- [ ] 每个 `::(@:)<step-name>::` 默认展开为空；源码、模板或 helper script 没有为其
+      设置非空 default，也没有用变量预填内容。flow 固有默认工具参数写在命令本体中，
+      只有用户显式传入 `@step-name: ... @:` 时才进入该槽位。
+- [ ] 用户实际传入的 step 参数块内容会进入 `commands.sh`、`run.manifest.json` 或
+      等价 provenance，便于审计和复现。
 - [ ] 如果 `[[taf: ...]]` 使用运行时 shell 变量，变量在生成后的 shell 中仍会正确展开；
       没有在 TAFFISH 编译 step 时提前展开为空值或错误值。
 - [ ] 使用 `'"$var"'` 的变量已在调用前 `export`；循环中的 taf 调用使用
@@ -100,6 +113,26 @@ Blocker：
 - [ ] 有一个项目级或样本级 summary 文件，例如 `flow_summary.tsv`。
 - [ ] 报告文件的用途在 README 中说明。
 - [ ] HTML、PDF、TSV、JSON 等输出格式符合该领域常见使用方式。
+- [ ] 如果生成最终 HTML 报告，HTML 尽量是 self-contained / standalone：主要
+      CSS/JS/logo/PNG 图/关键摘要表格/解释文本已内嵌，单独复制该 HTML 后仍能
+      离线阅读主要结果。
+- [ ] 如果生成正式 HTML 报告，报告结构基于 TAFFISH 共享 flow-report 模板契约；
+      没有为当前 flow 临时自造一套不兼容的报告外壳、目录、语言切换或交付结构。
+- [ ] HTML 报告中的外部文件链接只是增强入口；完整矩阵、PDF、日志、MultiQC、
+      commands、manifest 等仍保留在结果目录用于审计和二次分析，但不应成为阅读
+      主要报告内容的必需依赖。
+- [ ] 如果 HTML 报告嵌入 MultiQC、FastQC、Qualimap 等 QC 子报告，嵌入的是工具真实
+      生成的原始 HTML bundle，而不是手写仿制页面；原始 bundle 仍保留在结果目录用于审计。
+- [ ] 嵌入的 HTML/QC 子报告从单个主 HTML 中打开时，默认在独立本地页面运行；对 MultiQC/
+      Plotly 等重型 JavaScript 报告，不默认使用顶层 `blob:`、iframe 或 `srcdoc`，以避免
+      图表初始化异常或空白模块。
+- [ ] 子报告嵌入有 provenance：记录 source path、source bytes、embedded bytes、status
+      和 unresolved resources；主 HTML 中的 payload JSON 能完整解析，不会被嵌套
+      `</script>` 截断。
+- [ ] 对本来就是 self-contained single HTML 的 MultiQC/FastQC 报告，嵌入 payload 与
+      原始 HTML 字节一致或 hash 一致，除非文档说明了必要转换。
+- [ ] 大型交互式 QC 报告优先通过静态 payload/resource 检查和普通浏览器人工抽查验收；
+      不把某个自动化浏览器对真实 MultiQC 大页面的点击失败作为唯一判据。
 - [ ] 空结果、低质量结果或失败样本有清楚标记。
 - [ ] 文档说明哪些输出适合下游分析，哪些只适合人工检查。
 
@@ -173,6 +206,8 @@ Blocker：
 - [ ] 会在当前目录或输入目录写入非预期文件。
 - [ ] 核心生信命令依赖宿主机环境。
 - [ ] `[[taf: ...]]` 只作为开头 dummy 声明存在，真实步骤看不到直接 taf 调用。
+- [ ] 主要分析型 `[[taf: ...]]` 调用没有按 call site 暴露 `@:` step 参数块，也没有说明
+      这是版本探针、dependency anchor 或轻量检查等合理例外。
 - [ ] 依赖版本没有固定。
 - [ ] 正常运行必须联网下载数据库、模型或参考文件。
 - [ ] 大型数据库或参考基因组被塞进 flow 镜像。

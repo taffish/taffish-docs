@@ -199,9 +199,10 @@ $1                   positional argument
 
 - `!` 表示必需参数。
 - `%` 表示隐藏参数，适合内部默认值或不希望暴露给普通用户的参数。
-- `?` 表示布尔 flag，出现为 true，不出现为 false。
+- `?` 表示布尔 flag。出现时在参数绑定中为真，未出现时为空或类似 false 的空值；不要依赖固定的
+  `true` / `false` 文本输出。
 - `=` 表示默认值。
-- `$1`、`$2` 表示位置参数。
+- `$1`、`$2` 表示从用户输入中读取的位置参数。
 - `--` 可以自动展开成长参数名，例如 `(--/-)name` 对应 `--name` 和 `-n`。
 - `-` 可以自动展开成短参数名，例如 `(--/-)threads` 对应 `--threads` 和 `-t`。
 
@@ -244,25 +245,37 @@ echo ::(--/-p)prefix=out-@{name}::
 
 ```taf
 ARGS
+<!(--/-q)query>
+<(--/-d)db>
+  nt
+<(--/-of)outfmt>
+  6
+
 <(@:)blast-step>
-  --db ::(--/-d)db=nt::
-  --query ::!(--/-q)query::
-  --outfmt ::(--/-of)outfmt=6::
-  ::(--/-e)extra=::
 
 RUN
 <taffish>
-[[taf: taf-blast-v2.16.0-r1 ::(@:)blast-step::]]
+[[taf: taf-blast-v2.16.0-r1 blastn -db ::db:: -query ::query:: -outfmt ::outfmt:: ::(@:)blast-step::]]
 ```
 
-这里 `blast-step` 不是一个普通字符串参数，而是一整段可组合的参数块。它的默认块中还可以继续嵌入普通参数 DSL，例如 `db`、`query`、`outfmt` 和 `extra`。TAFFISH 会从块默认值中抽取这些内层参数，使开发者可以：
+这里 `blast-step` 不是一个普通字符串参数，而是一个命名 step 参数槽。正式 flow 中推荐让它默认
+为空：`db`、`query`、`outfmt` 这类 flow 自己管理的稳定参数直接写在命令本体中，
+`::(@:)blast-step::` 只在用户显式传入 `@blast-step: ... @:` 时追加底层 BLAST 原生参数。
+这样开发者可以：
 
 - 对外暴露领域化参数，例如 `query`、`db`、`outfmt`。
-- 把底层工具需要的一组参数封装成一个步骤参数。
-- 在 flow 中保持 `[[taf: ...]]` 调用简洁。
-- 给高级用户保留 `extra` 之类的扩展入口。
+- 把 flow-managed 默认参数和高级用户追加参数区分开。
+- 在 flow 中保持真实 `[[taf: ...]]` 调用清楚可审计。
+- 给高级用户保留按步骤追加原生参数的入口。
 
-从命令行层面看，`(@:)blast-step` 对应 `@blast-step:` 这个 slot。普通用户通常不需要直接使用 slot；app 作者更多是用它在 `.taf` 内部组织默认步骤、领域参数和额外参数。
+从命令行层面看，`(@:)blast-step` 对应 `@blast-step:` 这个 slot。普通用户通常不需要直接使用
+slot；app 作者更多是用它在 `.taf` 内部为真实工具调用提供默认空的高级追加参数入口。
+
+在 flow app 中，推荐让每个真实分析型 `[[taf: ...]]` 调用点都有一个语义清楚的
+`(@:)xxx-step` 参数块，并在调用处写入 `::(@:)xxx-step::`。这样普通用户可以继续使用
+flow 的领域级参数，而高级用户仍能按步骤传递底层工具原生参数。`::(@:)xxx-step::` 默认
+必须展开为空，不应在源码、模板、shell 变量或 helper script 中预填默认参数；不传任何
+`@step:` 参数时，flow 仍应能完整运行。
 
 ### 内置参数
 
@@ -454,8 +467,8 @@ my-tool --help
 
 ```taf
 <taffish>
-[[taf: taf-fastqc-v0.12.1-r1 sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 .]]
+[[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
+[[taf: taf-multiqc-v1.19-r1 multiqc .]]
 ```
 
 嵌入语法是：
@@ -466,12 +479,17 @@ my-tool --help
 
 编译时，TAFFISH 会把这些 taf app 先编译成临时 shell step，然后在当前流程中执行。这个机制让 flow 可以组合已有工具，并且保留明确的依赖关系。
 
+在正式 flow 中，`[[taf: ...]]` 应写在真正执行该工具的代码位置。不要把所有 taf 依赖集中
+放在文件开头的 dummy block 或 `if false` 中，再通过变量、裸 wrapper 或生成脚本间接运行。
+除少量 shell/coreutils 通用命令外，非 shell 原生的生信、统计、绘图、数据库和模型相关
+命令都应通过显式版本化的 taf app 调用。
+
 简化后的编译形态：
 
 ```sh
 taffish_tmpdir=$(mktemp -d)
-taf-fastqc-v0.12.1-r1 --compile sample.fq > "$taffish_tmpdir/step-1.sh"
-taf-multiqc-v1.19-r1 --compile . > "$taffish_tmpdir/step-2.sh"
+taf-fastqc-v0.12.1-r1 --compile fastqc sample.fq > "$taffish_tmpdir/step-1.sh"
+taf-multiqc-v1.19-r1 --compile multiqc . > "$taffish_tmpdir/step-2.sh"
 chmod +x "$taffish_tmpdir"/step-*.sh
 "$taffish_tmpdir/step-1.sh"
 "$taffish_tmpdir/step-2.sh"

@@ -122,6 +122,34 @@ taf-ngs-qc-flow --reads1 R1.fq.gz --reads2 R2.fq.gz --outdir qc-out --threads 4
 
 具体 flow 可以调整子目录名字，但应保持层次清楚：输入快照、日志、中间结果、最终结果、报告和 provenance 分开。
 
+如果 flow 会生成最终 HTML 报告，推荐默认生成 self-contained / standalone HTML：
+把主要 CSS、JS、logo、PNG 图、关键摘要表格和解释文本内嵌到 HTML 中，让用户只拿到
+这一个文件也能离线打开并阅读主要结果。完整矩阵、PDF、日志、MultiQC 原始报告、
+`commands.sh`、`versions.tsv` 和 `run.manifest.json` 仍应保留在结果目录中，用于审计、
+二次分析和复现。HTML 中可以链接这些文件，但这些链接应是增强入口，不应是阅读主要
+报告内容的必需条件。
+
+如果需要生成正式报告，推荐基于 TAFFISH 的共享 flow-report 模板契约来做，而不是每个
+flow 自己临时设计一套报告。报告可以有领域专属内容，但外壳、语言切换、左侧目录、
+dashboard、质量门控、警告与限制、图卡、表格预览、交付文件分组、provenance 和
+standalone HTML 规则应尽量保持一致。这样用户在不同 flow 的报告之间切换时，阅读方式、
+审计方式和交付文件位置是稳定的。
+
+如果报告中需要提供 MultiQC、FastQC、Qualimap 等工具真实生成的 HTML/QC 子报告，
+推荐把原始 HTML bundle 打包进主报告，而不是重新写一个仿制页面。主报告可以用普通
+链接或按钮打开子报告，但子报告应在独立本地页面中运行，避免其 CSS/JavaScript 污染
+主报告。对 MultiQC 这类包含大量 Plotly/JavaScript 的报告，不推荐默认用顶层 `blob:`
+页面或 iframe/srcdoc 打开，因为某些图表初始化逻辑可能在这些环境中表现不同，造成
+Salmon 等模块空白。更稳妥的默认方式是：用户点击链接时打开一个空白新页面，再把
+已经嵌入主报告的原始 HTML 写入新页面文档。
+
+嵌入子报告不是“把链接藏起来”这么简单。report-flow 应记录每个子报告的来源、原始大小、
+嵌入后大小、状态和未能内联的资源；主 HTML 中的 payload JSON 必须能完整解析，不应被
+嵌套的 `</script>` 截断。对本来就是单文件的 MultiQC/FastQC 报告，嵌入后的 payload
+通常应与原始 HTML 字节一致或 hash 一致。对于真实 MultiQC 这种较大的交互报告，优先做
+静态完整性检查，并在需要时用普通浏览器人工抽查；不要把某个自动化浏览器对大页面的点击
+失败直接等同于报告本身失败。
+
 ## 5. 输入设计
 
 flow 可以支持两种输入模型。
@@ -220,6 +248,8 @@ samtools flagstat "$bam" > "$flagstat"
 
 flow 可以使用少量 shell 基础工具整理文件和表格，例如 `mkdir`、`cp`、`printf`、`awk`、`sed`、`sort`。但核心生信分析命令必须来自显式 taf 依赖。
 
+更一般地说，任何需要普通用户在宿主机上额外安装的非 shell 原生命令，都不应该作为 flow 的隐藏依赖；应先封装为 tool app 或 data app，再由 flow 通过 `[[taf: ...]]` 调用。
+
 ## 8. 参数设计
 
 推荐把参数分成三层。
@@ -240,12 +270,47 @@ flow 可以使用少量 shell 基础工具整理文件和表格，例如 `mkdir`
 
 高级参数：
 
-- `--extra-aligner-args`
-- `--extra-qc-args`
-- `--extra-counter-args`
+- `@fastqc-step:`
+- `@align-step:`
+- `@count-step:`
 - `--dry-run`
 
-高级参数应该谨慎暴露。它们可以帮助熟悉底层工具的用户，但也容易破坏 flow 的稳定假设。所有 extra 参数都必须写入 `commands.sh` 和 `run.manifest.json`。
+常用、稳定、会影响资源或结果解释的参数应该作为 flow 顶层领域参数暴露。底层工具的完整
+原生参数面不建议全部提升成顶层 `--extra-*` 选项，而应按真实执行步骤组织成 step-scoped
+`@:` 参数块：
+
+```taf
+ARGS
+<!(--/-i)input>
+<(--/-o)outdir>
+  qc
+<(--/-t)threads>
+  4
+
+<(@:)fastqc-step>
+
+RUN
+<taffish>
+mkdir -p ::outdir::
+[[taf: taf-fastqc-v0.12.1-r1 fastqc --threads ::threads:: --outdir ::outdir:: ::input:: ::(@:)fastqc-step::]]
+```
+
+每个会影响分析结果、资源占用或主要报告内容的真实 `[[taf: ...]]` call site，推荐都有一个
+唯一的 `(@:)<step-name>` 参数块，并在调用点使用 `::(@:)<step-name>::`。如果同一个 taf app
+在同一 flow 中被多次调用，应按用途拆分，例如 `salmon-index-step`、
+`salmon-quant-pe-step` 和 `salmon-quant-se-step`，不要用一个宽泛的 `salmon-step`
+控制多种语义不同的调用。
+
+`@:` 参数块是高级逃生口，不应成为普通运行路径的必需条件。`::(@:)<step-name>::`
+默认展开必须为空；不要在源码、模板、shell 变量或 helper script 中给它预填默认参数。
+flow 自己需要的默认底层工具参数应直接写在命令本体中，并作为正常行为文档化。用户显式
+传入 `@step-name: ... @:` 时，才向该槽位追加本次运行的底层工具参数。
+
+不使用任何 `@step:` 参数时，flow 也应该能完整跑通默认路径，产出标准结果、报告和
+provenance。用户实际传入的 step 参数必须写入 `commands.sh` 和 `run.manifest.json`，
+必要时也应进入 `methods.txt` 或 flow summary。文档应说明每个公开 `@step:` 对应哪个
+底层 `[[taf: ...]]` 调用，以及哪些参数属于 flow-managed 契约、哪些属于高级用户自行承担
+的底层工具参数。
 
 ## 9. 数据如何流动
 
@@ -400,6 +465,8 @@ export TAFFISH_CONTAINER_BACKEND="${TAFFISH_CONTAINER_BACKEND:-podman}"
 - `docs/help.md`：面向命令行终端。
 - 输入示例：单样本或样本表。
 - 输出目录说明：关键结果文件逐项解释。
+- 报告说明：如果有 HTML 报告，说明它是否为 standalone，以及完整结果目录和单文件
+  报告各自适合什么用途。
 - 步骤说明：每一步输入、工具、输出。
 - 资源需求：最小和推荐资源。
 - 限制说明：哪些数据、物种、场景不适用。
