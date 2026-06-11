@@ -68,10 +68,10 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
 ```
 
-TAFFISH `0.10.0` 是当前公开 release。大多数用户仍然建议使用上面的安装器；源码构建和 release 校验说明见
+TAFFISH `0.10.1` 是当前公开 release。大多数用户仍然建议使用上面的安装器；源码构建和 release 校验说明见
 [taffish/taffish README](https://github.com/taffish/taffish)。
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
@@ -174,7 +174,7 @@ taf update --url <INDEX-URL>
 ## 运行时配置与镜像源
 
 从 TAFFISH `0.2.0` 开始，`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义
-来源。当前公开版本是 `0.10.0`。
+来源。当前公开版本是 `0.10.1`。
 
 默认配置路径：
 

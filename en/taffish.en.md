@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
 ```
 
 For users in China, the Gitee installer can avoid GitHub raw content during
@@ -805,7 +805,7 @@ and generic MCP client configuration examples, see
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current public release is `0.10.0`. The default
+custom source support. The current public release is `0.10.1`. The default
 config paths are:
 
 ```text
@@ -857,7 +857,7 @@ same TAFFISH index schema.
 
 ## Open Source And Source Builds
 
-TAFFISH `0.10.0` is the current public release. The Common Lisp implementation is published in
+TAFFISH `0.10.1` is the current public release. The Common Lisp implementation is published in
 [taffish/taffish](https://github.com/taffish/taffish) under Apache License 2.0.
 
 The source repository builds three command-line entry points:
@@ -879,7 +879,7 @@ Useful source-side documents:
 - [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-At `0.10.0`, official macOS Apple Silicon binaries are built with SBCL and
+At `0.10.1`, official macOS Apple Silicon binaries are built with SBCL and
 Linux x86_64 binaries are built manually with LispWorks. The `0.10.0` release
 adds local package-maintenance commands for installed Hub apps:
 `taf install --all`, `taf outdated`, `taf upgrade`, and `taf prune`. The

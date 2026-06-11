@@ -155,7 +155,7 @@ private mirror, enterprise environment, or security-sensitive workflow.
 
 ## Source Development
 
-TAFFISH `0.10.0` is the current public release. The source code, ASDF systems,
+TAFFISH `0.10.1` is the current public release. The source code, ASDF systems,
 source-tree developer docs, release payloads, contribution guide, and security
 policy live in
 [taffish/taffish](https://github.com/taffish/taffish).

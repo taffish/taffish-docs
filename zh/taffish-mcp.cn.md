@@ -6,7 +6,7 @@
 AI 客户端可以用结构化方式检查 TAFFISH 项目、查询本地 Hub 状态、读取部分资源，
 验证或编译 `.taf` 源码但不执行它，并准备相对安全的项目操作。
 
-TAFFISH `0.10.0` 是当前推荐的 MCP 使用版本。它保留了 `0.5.0` 引入的只读
+TAFFISH `0.10.1` 是当前推荐的 MCP 使用版本。它保留了 `0.5.0` 引入的只读
 TAF 源码/文件编译器辅助工具、`0.6.0` 新增的 app/project inspection 和安全
 app invocation 编译、`0.7.0` 的运行时容器 backend override 对齐，暴露 app
 和项目的 smoke/trust 元数据，并会在 compile preview 中识别 `0.9.0` 引入的
@@ -58,7 +58,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定版本安装：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
 ```
 
 验证：

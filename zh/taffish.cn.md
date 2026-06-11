@@ -53,7 +53,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
 ```
 
 中国大陆用户可以使用 Gitee 安装器，减少安装阶段对 GitHub raw content 的依赖，
@@ -777,7 +777,7 @@ shell，并准备安全的项目操作，而不是一开始就依赖非结构化
 
 ## 运行时配置与镜像源
 
-从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前公开版本是 `0.10.0`。默认配置路径是：
+从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前公开版本是 `0.10.1`。默认配置路径是：
 
 ```text
 用户级 = ~/.local/share/taffish/config.toml
@@ -827,7 +827,7 @@ TAFFISH index schema。
 
 ## 开源与源码构建
 
-TAFFISH `0.10.0` 是当前公开 release。Common Lisp 实现已经在 [taffish/taffish](https://github.com/taffish/taffish) 中发布，
+TAFFISH `0.10.1` 是当前公开 release。Common Lisp 实现已经在 [taffish/taffish](https://github.com/taffish/taffish) 中发布，
 使用 Apache License 2.0 授权。
 
 源码仓库会构建三个命令行入口：
@@ -848,7 +848,7 @@ taffish-mcp
 - [贡献指南](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [安全策略](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-在 `0.10.0` 中，官方 macOS Apple Silicon 二进制由 SBCL 构建，Linux x86_64
+在 `0.10.1` 中，官方 macOS Apple Silicon 二进制由 SBCL 构建，Linux x86_64
 二进制由 LispWorks 手动构建。`0.10.0` 增加了面向已安装 Hub app 的本地维护命令：
 `taf install --all`、`taf outdated`、`taf upgrade` 和 `taf prune`。`0.9.0`
 引入的结构化 backend-specific container runtime arguments 和本机 backend runtime

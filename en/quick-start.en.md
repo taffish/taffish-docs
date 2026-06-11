@@ -70,10 +70,10 @@ before deploying TAFFISH for multiple users.
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.0 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
 ```
 
-TAFFISH `0.10.0` is the current public release. Most users should use the
+TAFFISH `0.10.1` is the current public release. Most users should use the
 installer above, but source builds and release verification are documented in the
 [taffish/taffish README](https://github.com/taffish/taffish).
 
@@ -183,7 +183,7 @@ taf update --url <INDEX-URL>
 ## Runtime Config And Mirrors
 
 Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current public release is `0.10.0`.
+mirror and custom source support. The current public release is `0.10.1`.
 
 Default config paths:
 

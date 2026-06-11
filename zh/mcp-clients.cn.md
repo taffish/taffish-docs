@@ -23,7 +23,7 @@ tools、resources、prompts 和安全模型，请阅读 [TAFFISH MCP 指南](taf
 
 ## 前置条件
 
-安装当前 TAFFISH 版本，即 `0.10.0` 或后续版本，以获得当前 MCP 工具接口：
+安装当前 TAFFISH 版本，即 `0.10.1` 或后续版本，以获得当前 MCP 工具接口：
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
