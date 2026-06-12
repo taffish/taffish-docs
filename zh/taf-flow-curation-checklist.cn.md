@@ -42,6 +42,12 @@ Blocker：
       极轻量存在性检查已有明确例外理由。
 - [ ] 同一个 taf app 在同一 flow 中多次调用时，`@:` block 按 call site 拆分命名；
       没有用一个宽泛的 `extra-step` 或 app 级 block 同时控制多个语义不同的步骤。
+- [ ] 如果当前 flow 调用的是 taf-subflow，父 flow 优先桥接 subflow 内部已公开的
+      tool step blocks，例如
+      `@child-tool-step: ::(@:)parent-child-tool-step:: @:`；没有只用一个外层
+      `@<subflow>-step:` 代替内部 tool 参数开放。
+- [ ] 父 flow 桥接 subflow 内部 step blocks 时，父级槽位名称带有父流程步骤、
+      subflow 名称或其他清晰命名空间，避免多个 subflow 中同名 tool step 混淆。
 - [ ] 不使用任何 `@step:` 参数时，flow 默认路径仍能完整运行并产出标准结果、报告和
       provenance；`@:` 只是专家扩展入口，不是正常分析必需参数。
 - [ ] 每个 `::(@:)<step-name>::` 默认展开为空；源码、模板或 helper script 没有为其
@@ -133,6 +139,13 @@ Blocker：
       原始 HTML 字节一致或 hash 一致，除非文档说明了必要转换。
 - [ ] 大型交互式 QC 报告优先通过静态 payload/resource 检查和普通浏览器人工抽查验收；
       不把某个自动化浏览器对真实 MultiQC 大页面的点击失败作为唯一判据。
+- [ ] 如果报告会作为 GitHub Pages 等公开案例发布，生成的 HTML、manifest、commands、
+      provenance 和 embedded report 索引不泄漏 `/home/...`、`/Users/...`、临时目录等
+      维护者本地绝对路径；公开示例使用稳定占位符或相对路径。
+- [ ] 公开案例中的 generated HTML 通过 `git diff --check` 等空白检查，包括从真实
+      QC 工具复制或嵌入的 HTML。
+- [ ] 公开案例中的大型 standalone HTML 已做体积审查：超过 GitHub 推荐 50 MB 时原因明确，
+      且普通 tracked 文件不接近 GitHub 100 MB 硬限制。
 - [ ] 空结果、低质量结果或失败样本有清楚标记。
 - [ ] 文档说明哪些输出适合下游分析，哪些只适合人工检查。
 
@@ -179,6 +192,8 @@ Blocker：
 
 ## 10. 文档
 
+- [ ] 新建 flow 文档或大幅重写 README/help 时，已从
+      `repos/apps/templates/app-docs/flow/` 起步；如未使用，README 中说明了原因。
 - [ ] README 面向用户，解释任务、输入、输出、示例和限制。
 - [ ] `docs/help.md` 是纯文本命令手册风格。
 - [ ] `docs/help.md` 没有 Markdown 标题、三反引号代码围栏、Markdown 链接或表格。
@@ -186,6 +201,14 @@ Blocker：
 - [ ] README 中有输出目录示例。
 - [ ] README 中有常见问题或故障定位提示。
 - [ ] README 中列出主要依赖 app 和版本。
+- [ ] 如果 flow 暴露 `@step:` passthrough 参数块，`docs/help.md` 用纯文本列出所有
+      支持的槽位，说明语法、默认空和高级用途；大量槽位可以按 subflow/模块紧凑分组，
+      不必在终端 help 中展开完整长表。
+- [ ] 如果 flow 暴露 `@step:` passthrough 参数块，README 说明这些槽位默认展开为空、
+      是可选高级逃生口、只有显式传入时才影响对应 call site，并包含槽位表、示例和
+      flow 手册/checklist 链接。
+- [ ] 文档中的 `@step:` 槽位和源码中的 `::(@:)<step-name>::` 完全一致；没有只藏在
+      源码里、用户文档不可发现的公开槽位。
 - [ ] 文档中没有承诺 flow 无法保证的科学结论。
 
 ## 11. Metadata 与 Hub

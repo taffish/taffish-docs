@@ -148,6 +148,17 @@ Recommended layout:
       payload/resource validation and ordinary-browser manual inspection when
       needed; one automated browser click failure on a real MultiQC page is not
       used as the only acceptance criterion.
+- [ ] If reports are published as GitHub Pages or similar public examples,
+      generated HTML, manifests, commands, provenance, and embedded-report
+      indexes do not leak maintainer-local absolute paths such as `/home/...`,
+      `/Users/...`, or temporary directories; public examples use stable
+      placeholders or relative paths.
+- [ ] Generated HTML in public examples passes whitespace checks such as
+      `git diff --check`, including HTML copied or embedded from real QC tools.
+- [ ] Large standalone HTML files in public examples have been reviewed for
+      repository size: files above GitHub's 50 MB recommendation are
+      intentional and explained, and ordinary tracked files do not approach
+      GitHub's 100 MB hard limit.
 - [ ] Empty, low-quality, or failed samples are marked clearly.
 - [ ] Documentation says which outputs are for downstream analysis and which are for manual inspection.
 
@@ -200,6 +211,9 @@ Recommended layout:
 
 ## 10. Documentation
 
+- [ ] New flow docs or major README/help rewrites started from
+      `repos/apps/templates/app-docs/flow/`, unless the README documents a
+      reason to diverge.
 - [ ] README explains task, inputs, outputs, examples, and limits.
 - [ ] `docs/help.md` is plain terminal manual text.
 - [ ] `docs/help.md` has no Markdown headings, fenced code blocks, Markdown links, or tables.
@@ -207,6 +221,14 @@ Recommended layout:
 - [ ] README has an output directory example.
 - [ ] README has troubleshooting hints.
 - [ ] README lists main dependency apps and versions.
+- [ ] If the flow exposes `@step:` passthrough blocks, `docs/help.md` lists all
+      supported slots and their call sites in plain terminal text.
+- [ ] If the flow exposes `@step:` passthrough blocks, README explains that
+      slots default to empty, are optional expert escape hatches, affect only
+      the named call site when explicitly supplied, and includes a slot table,
+      example, and links to the flow guide/checklist.
+- [ ] The documented `@step:` slots match the source `::(@:)<step-name>::`
+      blocks exactly; no public slot is hidden in source only.
 - [ ] Documentation avoids unsupported scientific claims.
 
 ## 11. Metadata and Hub

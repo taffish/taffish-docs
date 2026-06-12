@@ -253,9 +253,18 @@ Acceptable tradeoffs:
 ## `docs/help.md`
 
 `docs/help.md` is what users see from `taf-xxx --help`. It should read like a
-command manual, not a project overview.
+terminal command manual, not a project overview. A user should be able to learn
+the basic run path, common options, input requirements, key outputs, and simple
+fixed examples from help alone. Longer background, domain rationale, complete
+data-format discussion, and maintenance notes belong in README or central docs.
+For new apps or major documentation rewrites, start from the shared templates in
+`repos/apps/templates/app-docs/` and then trim them to the app.
 
-Recommended shape:
+Illustrative shape:
+
+The templates are the canonical starting point. The outline below shows the
+style of terminal help, not a stricter source of truth than
+`repos/apps/templates/app-docs/`.
 
 ```text
 taf-my-tool 1.0.0-r1
@@ -303,6 +312,9 @@ Upstream:
 Notes:
 
 - Keep help short, accurate, and copyable.
+- Include plain-text URLs for the README, GitHub repository, or detailed manual
+  when useful; avoid Markdown link syntax because help is printed directly in
+  terminals.
 - Explain `--`, because `--help` and `--version` may be handled by the TAFFISH
   wrapper.
 - Explain command mode: `taf-my-tool COMMAND ...` runs `COMMAND` inside the same
@@ -312,8 +324,12 @@ Notes:
 
 ## `README.md`
 
-README is for the GitHub page and human review. It can explain the package
-structure more than `docs/help.md`.
+README is for the GitHub page, human review, and deeper users. It should explain
+the package structure more than `docs/help.md`, including background, domain
+role, dependency/version choices, upstream/downstream workflows, detailed input
+formats, output semantics, resource guidance, troubleshooting, citation/license,
+and maintenance checks. Do not put information required for a basic run only in
+README; help should still be self-sufficient for normal command-line use.
 
 Recommended sections:
 

@@ -161,6 +161,18 @@ checks and manual checks in an ordinary browser when needed; do not treat one
 automated browser click failure on a large real MultiQC page as the only
 acceptance signal.
 
+If these reports are committed as public examples to GitHub Pages or a similar
+static documentation repository, also run repository-level hygiene checks:
+generated HTML should pass `git diff --check`; HTML, manifests, commands,
+provenance files, and embedded-subreport indexes should not expose maintainer
+absolute paths such as `/home/...`, `/Users/...`, or temporary directories; use
+stable placeholders or relative paths in public examples. A single standalone
+HTML report may exceed GitHub's 50 MB recommendation when it intentionally
+embeds QC subreports, but this should be a conscious delivery choice; ordinary
+tracked files should not approach GitHub's 100 MB hard limit. If a report gets
+near that limit, consider a smaller public example, splitting the case, using
+external artifacts, or linking full raw outputs from the main report.
+
 ## 5. Input design
 
 Flows may support a simple mode:
@@ -316,6 +328,23 @@ must be recorded in `commands.sh` and `run.manifest.json`, and, when useful, in
 flow-managed contract parameters, and which are expert-level native tool
 arguments.
 
+If a flow exposes any public `@step:` blocks, make them discoverable in both
+user-facing documents:
+
+- In `docs/help.md`, add a short plain-text `Advanced step passthrough` section
+  that lists every supported `@xxx-step: ... @:` slot and the native call site
+  it controls. Keep it concise; terminal help should identify the escape hatch,
+  not replace upstream manuals.
+- In README, add an `Advanced Per-Step Passthrough` or equivalent section that
+  explains that slots default to empty, are unnecessary for normal runs, and
+  only affect the named call site when explicitly passed. Include a slot table,
+  one or two concrete examples, and links back to this guide and the curation
+  checklist.
+
+When adding, renaming, or removing `::(@:)<step-name>::` in source code or a
+generated helper script, update both `docs/help.md` and README in the same
+change. A hidden advanced slot is still a user-facing API leak.
+
 ## 9. Data flow
 
 Flow documentation should explain each step in input-tool-output form:
@@ -434,6 +463,8 @@ Each flow app needs at least:
 - Smoke fixture scope.
 
 README may use Markdown. `docs/help.md` must stay plain terminal manual text.
+For new flow apps or major documentation rewrites, start from
+`repos/apps/templates/app-docs/flow/` and adapt it to the specific flow family.
 
 ## 15. Versioning and publication
 
