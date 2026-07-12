@@ -9,6 +9,7 @@ assume that you want to write `.taf` scripts or maintain app repositories.
 
 - [What You Install](#what-you-install)
 - [Install TAFFISH](#install-taffish)
+- [Choose User Or System Scope](#choose-user-or-system-scope)
 - [Check The Environment](#check-the-environment)
 - [Shell Completion And Vim Files](#shell-completion-and-vim-files)
 - [Update The Hub Index](#update-the-hub-index)
@@ -40,10 +41,10 @@ also copies shell completion files and Vim syntax files into TAFFISH home.
 Typical user flow:
 
 ```sh
-taf update
-taf search augustus
-taf info augustus
-taf install augustus
+taf update --user
+taf search --user augustus
+taf info --user augustus
+taf install --user augustus
 taf-augustus -- --help
 ```
 
@@ -70,11 +71,13 @@ before deploying TAFFISH for multiple users.
 Pinned version install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
 ```
 
-TAFFISH `0.10.1` is the current public release. Most users should use the
-installer above, but source builds and release verification are documented in the
+Replace `X.Y.Z` with the release version you want to install.
+
+Most users should use the installer above. The current release, source builds,
+and release verification are documented in the
 [taffish/taffish README](https://github.com/taffish/taffish).
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
@@ -99,21 +102,39 @@ taffish --version
 taffish-mcp --version
 ```
 
-If `taf` is not found, add the user install bin directory to `PATH`:
+User installation uses one directory for core commands and another for apps
+installed later by `taf install`. Add both to `PATH`:
 
 ```sh
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
 ```
 
 Then open a new shell, or run `source ~/.zshrc` / `source ~/.bashrc` after
 adding it to your shell profile.
+
+## Choose User Or System Scope
+
+The rest of this Quick Start uses user scope. Scope-aware `taf` commands
+default to `--user`, even if the core binary was installed system-wide.
+
+Administrators must use `--system` consistently when managing shared state:
+
+```sh
+sudo taf update --system
+taf search --system fastqc
+sudo taf install --system fastqc
+taf list --system
+```
+
+Read [TAFFISH System Administration](system-administration.en.md) before
+deploying shared apps, global shell/editor integration, or an HPC backend.
 
 ## Check The Environment
 
 Run:
 
 ```sh
-taf doctor
+taf doctor --user
 ```
 
 The current installer normally initializes the standard TAFFISH directories
@@ -121,7 +142,7 @@ during installation. If this is a manual or repaired install, you can initialize
 missing directories with:
 
 ```sh
-taf doctor --init
+taf doctor --init --user
 ```
 
 `taf doctor` checks paths and common executables such as `git`, `docker`,
@@ -130,8 +151,8 @@ every use case. For example, if you only use Docker, you do not need Podman.
 
 ## Shell Completion And Vim Files
 
-Starting with TAFFISH `0.5.0`, the installer also installs shell completion
-files and Vim syntax files under TAFFISH home.
+The installer copies shell completion files and Vim syntax files under TAFFISH
+home, but it does not activate them automatically.
 
 For a user install, completion files are usually under:
 
@@ -154,11 +175,23 @@ autoload -Uz compinit
 compinit
 ```
 
+Example Fish setup:
+
+```sh
+mkdir -p ~/.config/fish/completions
+cp ~/.local/share/taffish/share/completions/fish/taf.fish ~/.config/fish/completions/
+cp ~/.local/share/taffish/share/completions/fish/taffish.fish ~/.config/fish/completions/
+```
+
 Vim syntax files are usually under:
 
 ```text
 ~/.local/share/taffish/share/vim
 ```
+
+Copy `syntax/taf.vim` and `ftdetect/taf.vim` into the corresponding Vim or
+Neovim user runtime. For system-wide activation, use the
+[System Administration Guide](system-administration.en.md).
 
 ## Update The Hub Index
 
@@ -166,7 +199,7 @@ The local `taf` command installs apps from a local copy of the TAFFISH Hub index
 Update it first:
 
 ```sh
-taf update
+taf update --user
 ```
 
 This downloads the official static index by default and stores it under the
@@ -175,15 +208,15 @@ selected TAFFISH home.
 If the network is unstable or you want to test another index:
 
 ```sh
-taf update --url <INDEX-URL>
+taf update --url INDEX_URL
 ```
 
 `TAFFISH_INDEX_URL` can also override the default URL.
 
 ## Runtime Config And Mirrors
 
-Since TAFFISH `0.2.0`, `taf` includes a small runtime config file for stable
-mirror and custom source support. The current public release is `0.10.1`.
+`taf` includes a small runtime config file for stable mirror and custom source
+support.
 
 Default config paths:
 
@@ -195,21 +228,21 @@ system = /opt/taffish/config.toml
 Inspect the effective config:
 
 ```sh
-taf config
-taf config path
+taf config --user
+taf config path --user
 ```
 
 Initialize the default GitHub profile:
 
 ```sh
-taf config init --github
+taf config init --user --github
 ```
 
 Initialize the China mirror profile:
 
 ```sh
-taf config init --china --force
-taf update
+taf config init --user --china --force
+taf update --user
 ```
 
 The China profile is a template:
@@ -310,8 +343,9 @@ auto-install dependencies.
 
 ## Maintain Installed Apps
 
-TAFFISH `0.10.0` adds conservative local package-maintenance commands for apps
-installed from the Hub index.
+These commands maintain apps installed from the Hub index. They do not upgrade
+the `taf`, `taffish`, or `taffish-mcp` core binaries. Upgrade the core by
+re-running the installer with the same scope and a selected `--version`.
 
 Install every indexed app as a preview first:
 
@@ -527,6 +561,7 @@ workflow engines.
 ## Where To Read Next
 
 - [What Is TAFFISH](taffish.en.md)
+- [TAFFISH System Administration](system-administration.en.md)
 - [TAFFISH App Developer Guide](app-developer-guide.en.md)
 - [Containerized App Best Practices](container-apps.en.md)
 - [Flow And Dependencies Guide](flow-dependencies.en.md)

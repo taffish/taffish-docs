@@ -120,10 +120,24 @@ Blocker：
 - [ ] 报告文件的用途在 README 中说明。
 - [ ] HTML、PDF、TSV、JSON 等输出格式符合该领域常见使用方式。
 - [ ] 如果生成最终 HTML 报告，HTML 尽量是 self-contained / standalone：主要
-      CSS/JS/logo/PNG 图/关键摘要表格/解释文本已内嵌，单独复制该 HTML 后仍能
+      CSS/JS/logo/PNG/SVG 图/关键摘要表格/解释文本已内嵌，单独复制该 HTML 后仍能
       离线阅读主要结果。
+- [ ] HTML 报告中的主图 `<img>` 均为非空 `data:image/...;base64,...`，没有
+      `data:image/...;base64,` 这类空 payload；`taffish-hub` 维护者工作区中的
+      shell renderer 使用模板提供的
+      `repos/apps/templates/flow-report/scripts/report_helpers.sh` 生成 data URI，避免
+      macOS/BSD 与 GNU `base64` 行为差异。
 - [ ] 如果生成正式 HTML 报告，报告结构基于 TAFFISH 共享 flow-report 模板契约；
       没有为当前 flow 临时自造一套不兼容的报告外壳、目录、语言切换或交付结构。
+- [ ] HTML 报告保留模板硬外壳：`data-template="taffish-flow-report"`、
+      `.report-shell`、`.report-sidebar`、`.report-main`、`.brand-link`、
+      `.language-switch`、`.section-nav`、`.sidebar-external`、`.hero`、`.section`
+      和 `.report-footer` 存在且语义正确；真实 TAFFISH logo 已内嵌。
+- [ ] 左侧目录顺序与正文顺序一致，长报告子目录只在当前大章节下展开，目录高亮不
+      反向跳回旧父章节；子报告按钮按内容宽度显示，长路径/表格名在卡片内换行，
+      `WARN`/`FAIL` 等状态词不被拆行。
+- [ ] 已运行 `repos/apps/templates/flow-report/scripts/check-rendered-report.py` 对 HTML 做
+      模板外壳结构检查；生产报告在真实 logo 可用时使用 `--require-logo-data-uri`。
 - [ ] HTML 报告中的外部文件链接只是增强入口；完整矩阵、PDF、日志、MultiQC、
       commands、manifest 等仍保留在结果目录用于审计和二次分析，但不应成为阅读
       主要报告内容的必需依赖。

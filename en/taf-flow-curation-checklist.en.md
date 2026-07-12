@@ -118,13 +118,34 @@ Recommended layout:
 - [ ] README explains what each report is for.
 - [ ] HTML, PDF, TSV, JSON, or other formats match field practice.
 - [ ] If a final HTML report is produced, it is self-contained / standalone
-      where possible: main CSS/JS/logo/PNG figures/key summary tables and
+      where possible: main CSS/JS/logo/PNG/SVG figures/key summary tables and
       explanatory text are embedded, so copying the HTML alone still preserves
       the main reading experience.
+- [ ] Reader-facing `<img>` elements use non-empty
+      `data:image/...;base64,...` payloads, with no empty
+      `data:image/...;base64,` values; shell renderers in the `taffish-hub`
+      maintainer workspace use
+      `repos/apps/templates/flow-report/scripts/report_helpers.sh` to avoid
+      GNU versus macOS/BSD `base64` differences.
 - [ ] If a formal HTML report is produced, its structure follows the shared
       TAFFISH flow-report template contract; the flow does not invent an
       incompatible one-off report shell, navigation model, language switch, or
       deliverable structure.
+- [ ] The report preserves the template shell:
+      `data-template="taffish-flow-report"`, `.report-shell`,
+      `.report-sidebar`, `.report-main`, `.brand-link`, `.language-switch`,
+      `.section-nav`, `.sidebar-external`, `.hero`, `.section`, and
+      `.report-footer` exist with the intended semantics, and the real TAFFISH
+      logo is embedded.
+- [ ] Navigation order matches section order; long-report subnavigation opens
+      only under the current parent section; highlighting does not jump back
+      to a stale parent; subreport buttons fit their labels; long paths and
+      table names wrap inside cards; status words such as `WARN` and `FAIL` do
+      not split across lines.
+- [ ] Rendered HTML has been checked with
+      `repos/apps/templates/flow-report/scripts/check-rendered-report.py`;
+      production reports use
+      `--require-logo-data-uri` when the real logo is available.
 - [ ] External file links in the HTML are enhancements only; full matrices,
       PDFs, logs, MultiQC bundles, commands, manifests, and other audit files
       remain in the output directory but are not required for reading the main

@@ -7,7 +7,8 @@ from the error message, then check the relevant section.
 
 ## Table Of Contents
 
-- [`taf: command not found`](#taf-command-not-found)
+- [`taf` Or An Installed App Command Is Not Found](#taf-or-an-installed-app-command-is-not-found)
+- [A System Install Looks Empty](#a-system-install-looks-empty)
 - [`taffish` Cannot Find Runtime Libraries On macOS](#taffish-cannot-find-runtime-libraries-on-macos)
 - [`taf update` Fails](#taf-update-fails)
 - [`taf install` Cannot Find An App](#taf-install-cannot-find-an-app)
@@ -26,14 +27,14 @@ from the error message, then check the relevant section.
 - [Container Image Exists In One Backend But Not Another](#container-image-exists-in-one-backend-but-not-another)
 - [Where To Get More Context](#where-to-get-more-context)
 
-## `taf: command not found`
+## `taf` Or An Installed App Command Is Not Found
 
-The install bin directory is not in `PATH`.
-
-For user install:
+The default user install uses `~/.local/bin` for the three core commands and
+`~/.local/share/taffish/bin` for apps installed by `taf install`. Add both to
+`PATH`:
 
 ```sh
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
 ```
 
 Then open a new shell or source your shell profile.
@@ -46,6 +47,33 @@ taf --version
 taffish --version
 taffish-mcp --version
 ```
+
+If you customized `TAFFISH_USER_HOME`, also add its `bin` subdirectory. System
+installs place core and app commands in `/usr/local/bin` by default; check
+`taf doctor --system` when a shared command is missing.
+
+## A System Install Looks Empty
+
+Scope-aware commands default to user scope even when `taf` itself came from a
+system installation. Use system scope explicitly:
+
+```sh
+taf doctor --system
+taf config --system
+taf list --system
+taf which --system APP_OR_COMMAND
+taf search --system QUERY
+```
+
+System writes normally require administrator permission:
+
+```sh
+sudo taf update --system
+sudo taf install --system APP
+```
+
+See [TAFFISH System Administration](system-administration.en.md) for the full
+scope and permissions matrix.
 
 ## `taffish` Cannot Find Runtime Libraries On macOS
 
@@ -72,17 +100,17 @@ Try:
 
 ```sh
 taf update
-taf update --url <INDEX-URL>
+taf update --url INDEX_URL
 ```
 
 For persistent mirror use in TAFFISH `0.2.0` or later, inspect and initialize
 runtime config:
 
 ```sh
-taf config
-taf config path
-taf config init --china --force
-taf update
+taf config --user
+taf config path --user
+taf config init --user --china --force
+taf update --user
 ```
 
 The generated China profile changes the index URL and rewrites canonical GitHub
@@ -110,7 +138,7 @@ taf update
 Then search:
 
 ```sh
-taf search <keyword>
+taf search KEYWORD
 taf list --online
 ```
 
@@ -180,8 +208,8 @@ Check:
 Manual test:
 
 ```sh
-docker pull ghcr.io/taffish/<app>:<version>-r<release>
-podman pull ghcr.io/taffish/<app>:<version>-r<release>
+docker pull ghcr.io/taffish/APP:VERSION-rRELEASE
+podman pull ghcr.io/taffish/APP:VERSION-rRELEASE
 ```
 
 ## Docker Permission Denied
@@ -330,7 +358,7 @@ taf doctor --init --user
 
 ```sh
 # Administrator pre-cache in the system TAFFISH home.
-sudo taf-<app>-v<version>-r<release> -- --help
+sudo taf-APP-vVERSION-rRELEASE -- --help
 ```
 
 ```sh
@@ -550,14 +578,17 @@ them with `$@[target: args]`.
 
 ## Where To Get More Context
 
+Start with the [TAFFISH Quick Start](quick-start.en.md) or, for a shared
+deployment, [TAFFISH System Administration](system-administration.en.md).
+
 Useful commands:
 
 ```sh
 taf doctor
 taf config
 taf history
-taf which <app-or-command>
-taf info <app-or-command>
+taf which APP_OR_COMMAND
+taf info APP_OR_COMMAND
 ```
 
 For app projects:

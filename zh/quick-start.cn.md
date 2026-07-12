@@ -9,6 +9,7 @@
 
 - [你会安装什么](#你会安装什么)
 - [安装 TAFFISH](#安装-taffish)
+- [选择用户级或系统级 Scope](#选择用户级或系统级-scope)
 - [检查环境](#检查环境)
 - [Shell 自动补全和 Vim 文件](#shell-自动补全和-vim-文件)
 - [更新 Hub 索引](#更新-hub-索引)
@@ -39,10 +40,10 @@ taffish-mcp 向 AI 客户端暴露安全 tools/resources/prompts 和 app/project
 典型流程是：
 
 ```sh
-taf update
-taf search augustus
-taf info augustus
-taf install augustus
+taf update --user
+taf search --user augustus
+taf info --user augustus
+taf install --user augustus
 taf-augustus -- --help
 ```
 
@@ -68,10 +69,12 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
 ```
 
-TAFFISH `0.10.1` 是当前公开 release。大多数用户仍然建议使用上面的安装器；源码构建和 release 校验说明见
+请把 `X.Y.Z` 替换为要安装的 release 版本。
+
+大多数用户仍然建议使用上面的安装器；当前 release、源码构建和 release 校验说明见
 [taffish/taffish README](https://github.com/taffish/taffish)。
 
 中国大陆用户访问 GitHub raw 可能较慢或被阻断。Gitee 安装器会从 Gitee 镜像下载
@@ -95,27 +98,45 @@ taffish --version
 taffish-mcp --version
 ```
 
-如果提示找不到 `taf`，把用户安装目录加入 `PATH`：
+用户级安装把核心命令和以后由 `taf install` 安装的 app 命令放在两个目录中，
+应把两者都加入 `PATH`：
 
 ```sh
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
 ```
 
 把它写入 shell 配置文件后，重新打开终端，或运行 `source ~/.zshrc` /
 `source ~/.bashrc`。
+
+## 选择用户级或系统级 Scope
+
+本快速开始后续使用 user scope。支持 scope 的 `taf` 命令即使在核心二进制系统级安装后，
+每次调用时仍默认使用 `--user`。
+
+管理员维护共享状态时必须始终显式使用 `--system`：
+
+```sh
+sudo taf update --system
+taf search --system fastqc
+sudo taf install --system fastqc
+taf list --system
+```
+
+在部署共享 app、全局 shell/编辑器集成或 HPC 后端前，请先阅读
+[TAFFISH 系统管理员指南](system-administration.cn.md)。
 
 ## 检查环境
 
 运行：
 
 ```sh
-taf doctor
+taf doctor --user
 ```
 
 当前安装器通常会在安装时初始化标准 TAFFISH 目录。如果是手动安装或修复安装，可以初始化缺失目录：
 
 ```sh
-taf doctor --init
+taf doctor --init --user
 ```
 
 `taf doctor` 会检查路径和常见命令，例如 `git`、`docker`、`podman`、
@@ -124,7 +145,7 @@ taf doctor --init
 
 ## Shell 自动补全和 Vim 文件
 
-TAFFISH `0.5.0` 及后续版本会把 shell 自动补全文件和 Vim 语法文件安装到 TAFFISH home。
+安装器会把 shell 自动补全文件和 Vim 语法文件复制到 TAFFISH home，但不会自动启用它们。
 
 用户级安装时，补全文件通常位于：
 
@@ -147,18 +168,29 @@ autoload -Uz compinit
 compinit
 ```
 
+Fish 示例：
+
+```sh
+mkdir -p ~/.config/fish/completions
+cp ~/.local/share/taffish/share/completions/fish/taf.fish ~/.config/fish/completions/
+cp ~/.local/share/taffish/share/completions/fish/taffish.fish ~/.config/fish/completions/
+```
+
 Vim 语法文件通常位于：
 
 ```text
 ~/.local/share/taffish/share/vim
 ```
 
+将 `syntax/taf.vim` 和 `ftdetect/taf.vim` 复制到对应的 Vim 或 Neovim 用户 runtime。
+系统级启用方式见 [系统管理员指南](system-administration.cn.md)。
+
 ## 更新 Hub 索引
 
 本地 `taf` 命令从本地缓存的 TAFFISH Hub index 安装 app。第一次使用前先更新：
 
 ```sh
-taf update
+taf update --user
 ```
 
 它默认下载官方静态 index，并写入当前 TAFFISH home。
@@ -166,15 +198,14 @@ taf update
 如果网络不稳定，或者要测试其他 index：
 
 ```sh
-taf update --url <INDEX-URL>
+taf update --url INDEX_URL
 ```
 
 也可以用 `TAFFISH_INDEX_URL` 覆盖默认 index URL。
 
 ## 运行时配置与镜像源
 
-从 TAFFISH `0.2.0` 开始，`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义
-来源。当前公开版本是 `0.10.1`。
+`taf` 提供一个很小的运行时配置文件，用来稳定支持镜像源和自定义来源。
 
 默认配置路径：
 
@@ -186,21 +217,21 @@ taf update --url <INDEX-URL>
 查看当前生效配置：
 
 ```sh
-taf config
-taf config path
+taf config --user
+taf config path --user
 ```
 
 初始化默认 GitHub profile：
 
 ```sh
-taf config init --github
+taf config init --user --github
 ```
 
 初始化中国镜像 profile：
 
 ```sh
-taf config init --china --force
-taf update
+taf config init --user --china --force
+taf update --user
 ```
 
 中国镜像 profile 是一个模板：
@@ -296,7 +327,9 @@ taf which taf-my-private-tool
 
 ## 维护已安装 app
 
-TAFFISH `0.10.0` 增加了面向 Hub app 的保守本地维护命令。
+本节命令维护从 Hub index 安装的 app，不会升级 `taf`、`taffish` 或
+`taffish-mcp` 核心二进制。升级核心时应使用相同 scope 重新运行安装器，并指定
+`--version`。
 
 预览安装 index 中的全部 app：
 
@@ -496,6 +529,7 @@ command-level reproducible 的轻量 flow，而不是替代传统 workflow engin
 ## 继续阅读
 
 - [什么是 TAFFISH](taffish.cn.md)
+- [TAFFISH 系统管理员指南](system-administration.cn.md)
 - [TAFFISH app 开发者指南](app-developer-guide.cn.md)
 - [容器化 app 最佳实践](container-apps.cn.md)
 - [Flow 与依赖指南](flow-dependencies.cn.md)

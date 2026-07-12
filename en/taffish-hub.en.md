@@ -6,7 +6,7 @@ bioinformatics tools and flows through:
 
 ```sh
 taf update
-taf install <app>
+taf install APP
 ```
 
 At the current stage, TAFFISH Hub mainly relies on GitHub automation and does
@@ -82,17 +82,16 @@ The TAFFISH Hub website and static index are public for users. Any user can open
 [taffish.github.io](https://taffish.github.io), and any user can download the
 public index through `taf update`.
 
-Official TAFFISH Hub app publishing and maintenance are not open self-service at
-the moment. Currently, only members of the `taffish` GitHub organization can
-create, publish, and maintain official app repositories. The official maintainer
-set is currently small. Developers who want their apps included in the official
-TAFFISH Hub should contact the maintainer to request organization membership or
-maintainer-assisted review and publication.
+Official TAFFISH Hub app publishing and maintenance are curated rather than
+open self-service. Only authorized members of the `taffish` GitHub organization
+can create or publish official app repositories. Developers who want an app
+included should contact the maintainers for review, ownership assignment, and
+either organization membership or maintainer-assisted publication.
 
-This design keeps early-ecosystem app metadata, version tags, Docker images,
-licenses, upstream sources, and dependency relationships consistent. If the
-maintainer group grows later, a more formal review, ownership, and contribution
-process can be added.
+This design keeps app metadata, version tags, container images, licenses,
+upstream sources, and dependency relationships consistent. Review, ownership,
+and contribution policy should become more explicit as the maintainer group
+and external contribution volume grow.
 
 ## Current Repository Layout
 
@@ -102,15 +101,14 @@ GitHub are staged under `repos/`:
 ```text
 taffish-hub/
   README.md
-  docs/
-    README.md
-    zh/
-      taffish.cn.md
-      taffish-hub.cn.md
-    en/
-      taffish.en.md
-      taffish-hub.en.md
+  taffish-hub.toml
+  hubctl/
+  update/
+  apps-archive/
+  taffish.com/
   repos/
+    apps/
+    taffish-docs/
     taffish-index/
     taffish.github.io/
     .github/
@@ -124,8 +122,13 @@ Current main repositories:
 ```text
 repos/taffish-index       -> github.com/taffish/taffish-index
 repos/taffish.github.io   -> github.com/taffish/taffish.github.io
+repos/taffish-docs        -> github.com/taffish/taffish-docs
 repos/.github             -> github.com/taffish/.github
 ```
+
+`repos/apps/` contains the local working trees for independently published
+taf-app repositories. `hubctl/`, `update/`, and `apps-archive/` are maintainer
+operations and records, not repositories consumed directly by users.
 
 Some public documentation and case-study repositories can be staged under the
 domain area they describe. For example:

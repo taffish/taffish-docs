@@ -637,6 +637,13 @@ checks remote tags, prepares the release message and release notes, and then
 commits, tags, pushes, and creates or updates the GitHub Release after
 confirmation.
 
+By default, publishing requires the candidate to be the latest remote version.
+To publish a non-latest prerelease intentionally, use:
+
+```sh
+taf publish --release --yes --pre
+```
+
 Do not publish directly if:
 
 - The repository URL is wrong.

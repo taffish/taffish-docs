@@ -257,6 +257,12 @@ This maps to the versioned command:
 taf-fastqc-v0.12.1-r1
 ```
 
+Do not put the version in the dependency key:
+
+```toml
+taf-fastqc-v0.12.1-r1 = "0.12.1-r1"
+```
+
 ## Multiple Versions
 
 One flow may require multiple versions of the same app:

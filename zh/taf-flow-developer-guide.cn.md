@@ -123,17 +123,37 @@ taf-ngs-qc-flow --reads1 R1.fq.gz --reads2 R2.fq.gz --outdir qc-out --threads 4
 具体 flow 可以调整子目录名字，但应保持层次清楚：输入快照、日志、中间结果、最终结果、报告和 provenance 分开。
 
 如果 flow 会生成最终 HTML 报告，推荐默认生成 self-contained / standalone HTML：
-把主要 CSS、JS、logo、PNG 图、关键摘要表格和解释文本内嵌到 HTML 中，让用户只拿到
+把主要 CSS、JS、logo、PNG/SVG 图、关键摘要表格和解释文本内嵌到 HTML 中，让用户只拿到
 这一个文件也能离线打开并阅读主要结果。完整矩阵、PDF、日志、MultiQC 原始报告、
 `commands.sh`、`versions.tsv` 和 `run.manifest.json` 仍应保留在结果目录中，用于审计、
 二次分析和复现。HTML 中可以链接这些文件，但这些链接应是增强入口，不应是阅读主要
 报告内容的必需条件。
+
+图片内嵌必须是可验证的，不只是看起来写了 `data:image` 前缀。主报告里用于阅读的
+`<img>` 应使用非空 `data:image/...;base64,...` payload；`data:image/...;base64,`
+这种空 payload 应视为报告失败。`taffish-hub` 维护者工作区中的 shell renderer
+应复用模板提供的
+`repos/apps/templates/flow-report/scripts/report_helpers.sh` 中的
+`taffish_report_file_data_uri`，不要在每个 flow 里重新手写 `base64 file` 逻辑；
+后者在 GNU coreutils 中可用，但在 macOS/BSD `base64` 下会失败或产生空图。
 
 如果需要生成正式报告，推荐基于 TAFFISH 的共享 flow-report 模板契约来做，而不是每个
 flow 自己临时设计一套报告。报告可以有领域专属内容，但外壳、语言切换、左侧目录、
 dashboard、质量门控、警告与限制、图卡、表格预览、交付文件分组、provenance 和
 standalone HTML 规则应尽量保持一致。这样用户在不同 flow 的报告之间切换时，阅读方式、
 审计方式和交付文件位置是稳定的。
+
+这里的“基于模板”不是只做一个视觉相似的页面，而是尽量保留模板的硬外壳和组件词汇：
+`data-template="taffish-flow-report"`、`.report-shell`、`.report-sidebar`、
+`.report-main`、`.brand-link`、`.language-switch`、`.section-nav`、
+`.sidebar-external`、`.hero`、`.section` 和 `.report-footer`。真实 TAFFISH logo、
+左侧目录、语言切换、外部链接、页脚、配色、间距和卡片组件应来自模板。领域内容可以
+扩展正文模块，但不要临场重写侧栏、导航、语言切换或子报告卡片。验收时应检查目录顺序
+与正文顺序一致、子目录展开不乱跳、子报告打开按钮按内容宽度显示、长路径和表格名在卡片
+内换行、`WARN` 等状态词不被拆成多行。该工作区的维护者可以用
+`repos/apps/templates/flow-report/scripts/check-rendered-report.py` 对生成的 HTML 做轻量
+结构检查；生产报告中真实 TAFFISH logo 应可用时，加 `--require-logo-data-uri`。这个脚本
+用于捕捉模板外壳漂移，不能替代普通浏览器里对真实 QC 子报告的视觉和交互抽查。
 
 如果报告中需要提供 MultiQC、FastQC、Qualimap 等工具真实生成的 HTML/QC 子报告，
 推荐把原始 HTML bundle 打包进主报告，而不是重新写一个仿制页面。主报告可以用普通

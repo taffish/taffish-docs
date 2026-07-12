@@ -2,20 +2,11 @@
 
 [English](taffish-mcp.en.md) | [中文](../zh/taffish-mcp.cn.md)
 
-`taffish-mcp` is the MCP stdio server distributed with TAFFISH `0.4.0` and later.
-It gives AI clients a structured way to inspect TAFFISH projects, query local Hub
-state, read selected resources, validate or compile `.taf` source without
-executing it, and prepare safe project actions.
-
-TAFFISH `0.10.1` is the current recommended release for MCP use. It keeps the
-read-only TAF source/file compiler helpers introduced in `0.5.0`, the
-app/project inspection and safe app invocation compilation added in `0.6.0`,
-the runtime container backend override alignment from `0.7.0`, exposes
-smoke/trust metadata for app and project inspection, and recognizes the
-backend-specific container runtime argument settings introduced in `0.9.0`
-during compile previews. It also adds conservative package-maintenance planners
-for `taf outdated`, `taf install --all`, `taf upgrade`, and `taf prune`. MCP
-still does not run containers.
+`taffish-mcp` is the MCP stdio server distributed with TAFFISH. It gives AI
+clients a structured way to inspect TAFFISH projects, query local Hub state,
+read selected resources, validate or compile `.taf` source without executing
+it, inspect smoke/trust metadata, preview backend-aware app invocations, and
+prepare conservative package-maintenance plans. MCP does not run containers.
 
 It is intentionally conservative. The interface is designed for inspection,
 planning, and low-risk project maintenance. It does not expose `taf run`,
@@ -63,8 +54,10 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned install:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
 ```
+
+Replace `X.Y.Z` with the release version you want to install.
 
 Verify:
 

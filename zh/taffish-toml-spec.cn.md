@@ -67,6 +67,18 @@ main = "src/main.taf"
 
 `name` 是 package name，不一定等于命令名。命令名由 `[command].name` 定义。
 
+`kind` 规则：
+
+```toml
+# tool app
+kind = "tool"
+
+# flow app
+kind = "flow"
+```
+
+封装单个可执行程序或上游工具时使用 `tool`；组合多个 taf app 时使用 `flow`。
+
 ## `[repository]`
 
 必需。
@@ -175,6 +187,13 @@ build_platforms = "linux/amd64,linux/arm64"
 - 如果写了 `dockerfile`，文件必须存在。
 - 如果写了 `image`，镜像 tag 应匹配 `<version>-r<release>`。
 - `taffish-index` 当前导出 `image` 和 `dockerfile`，`build_platforms` 主要用于本地构建和 GitHub Actions。
+
+`[container]` 描述镜像元数据；真正的运行时标签仍位于 `src/main.taf`，例如：
+
+```taf
+<taf-app:container:ghcr.io/taffish/my-tool:0.1.0-r1>
+my-tool --help
+```
 
 ## `[smoke]`
 

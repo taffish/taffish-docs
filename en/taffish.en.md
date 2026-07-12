@@ -1,17 +1,27 @@
 # What Is TAFFISH
 
-TAFFISH is a lightweight command delivery system for bioinformatics tools and workflows. It currently has three local entry points:
+TAFFISH is a shell-native reproducible execution and delivery layer for
+bioinformatics command-line tools and lightweight workflows. It brings
+command-level reproducibility to the shell commands that bioinformaticians
+already use, without requiring them to adopt a new workflow system first.
+
+TAFFISH has three local entry points:
 
 - `taffish`: the TAFFISH language compiler, which compiles `.taf` files into POSIX shell scripts.
 - `taf`: the developer and user CLI, used to create projects, check projects, build commands, publish apps, and install apps from TAFFISH Hub.
 - `taffish-mcp`: a conservative stdio MCP server that exposes safe TAFFISH tools, resources, prompts, app inspection, and project inspection to AI clients.
 
-In other words, a `.taf` file describes how a tool or workflow should run. `taffish` turns that description into shell code. `taf` organizes that code into versioned, publishable, indexable, installable TAFFISH apps. `taffish-mcp` lets AI clients inspect TAFFISH projects, apps, and Hub state through a structured interface.
+In other words, a `.taf` file describes how a tool or lightweight workflow
+should run. `taffish` turns that description into shell code. `taf` organizes
+that code into versioned, container-resolved, publishable, indexable,
+installable, and composable executable packages. `taffish-mcp` lets AI clients
+inspect TAFFISH projects, apps, and Hub state through a structured interface.
 
 ## Table Of Contents
 
 - [Design Goals](#design-goals)
 - [Installation](#installation)
+- [User And System Scope](#user-and-system-scope)
 - [The `taffish` Compiler](#the-taffish-compiler)
 - [`.taf` File Structure](#taf-file-structure)
 - [Parameter Syntax](#parameter-syntax)
@@ -27,14 +37,21 @@ In other words, a `.taf` file describes how a tool or workflow should run. `taff
 
 ## Design Goals
 
-TAFFISH does not try to replace shell, Docker, Conda, or workflow engines. It puts them into a more stable app delivery format:
+TAFFISH does not try to replace shell, containers, package managers, or
+workflow engines. It uses an executable package model to make tool invocations
+more stable, portable, and directly usable as ordinary shell commands:
 
 - Every app has an explicit name, version, release, and command name.
 - Every app stores its runtime logic in a `.taf` file.
 - Every app can optionally bind to a container image.
 - Every app can be built into a versioned command, such as `taf-blast-v2.16.0-r1`.
 - Every app can be indexed by TAFFISH Hub and installed with `taf update` / `taf install`.
-- Flow apps can declare and call other taf apps, forming traceable workflow dependencies.
+- Flow apps can declare and call other taf apps for lightweight composition.
+
+TAFFISH is not a general workflow engine. Systems such as Nextflow and
+Snakemake can continue to handle DAG orchestration, scheduling, caching, and
+pipeline-level reproducibility while calling installed `taf-*` commands as
+ordinary shell commands.
 
 ## Installation
 
@@ -56,8 +73,10 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 Pinned version installation:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
 ```
+
+Replace `X.Y.Z` with the release version you want to install.
 
 For users in China, the Gitee installer can avoid GitHub raw content during
 installation and initialize the China mirror config:
@@ -72,7 +91,7 @@ After installation:
 taf --version
 taffish --version
 taffish-mcp --version
-taf doctor
+taf doctor --user
 ```
 
 Installed commands:
@@ -83,34 +102,57 @@ taf
 taffish-mcp
 ```
 
-Starting with TAFFISH `0.5.0`, the installer also installs shell completion
-files and Vim syntax files under TAFFISH home, usually
+The installer also copies shell completion files and Vim syntax files under
+TAFFISH home, usually
 `~/.local/share/taffish/share/completions` and
 `~/.local/share/taffish/share/vim` for a user install.
 
-Default user paths:
+| Item | User installation | System installation |
+| --- | --- | --- |
+| Core commands | `~/.local/bin` | `/usr/local/bin` |
+| Installed `taf-*` commands | `~/.local/share/taffish/bin` | `/usr/local/bin` |
+| TAFFISH home | `~/.local/share/taffish` | `/opt/taffish` |
 
-```text
-bin  = ~/.local/bin
-home = ~/.local/share/taffish
-```
-
-Default system paths:
-
-```text
-bin  = /usr/local/bin
-home = /opt/taffish
-```
-
-The installer attempts to run `taf doctor --init` and `taf update` to initialize
-the local environment and index. If the network is unavailable, the installer
-prints a warning but does not roll back the installed binaries.
+The installer attempts to initialize the matching scope and update its index.
+If the network is unavailable, it prints a warning but does not roll back the
+installed binaries. It copies shell and editor integration files but does not
+edit personal or global startup files.
 
 `taf doctor` checks common local dependencies such as `git`, `gh`, `docker`, `podman`, `apptainer`, `sbcl`, and shell tools.
 
 For source builds, release verification, supported maintainer build paths, and
 contribution notes, see the
 [taffish/taffish README](https://github.com/taffish/taffish).
+
+## User And System Scope
+
+TAFFISH keeps user and system state separate. Scope-aware `taf` commands
+support `--user` / `-u` and `--system` / `-s`, and default to user scope on
+every invocation. A system-wide binary installation does not make later
+commands use system state automatically.
+
+Typical personal initialization:
+
+```sh
+taf doctor --init --user
+taf update --user
+taf install --user fastqc
+```
+
+Typical administrator workflow:
+
+```sh
+sudo taf doctor --init --system
+sudo taf update --system
+sudo taf install --system fastqc
+taf list --system
+```
+
+Use `sudo` for commands that write system state. Read-only commands such as
+`taf search --system`, `taf list --system`, and `taf which --system` normally
+do not require it. For shared workstations, servers, HPC login nodes, global
+completion, configuration inheritance, upgrades, and removal, see
+[TAFFISH System Administration](system-administration.en.md).
 
 ## The `taffish` Compiler
 
@@ -613,10 +655,10 @@ runtime tags. It also preserves app command semantics such as `::*ARGV*::`,
 ### Project Commands
 
 ```sh
-taf new
+taf new APP_NAME
 taf check
-taf compile
-taf run
+taf compile [ARGS...]
+taf run [ARGS...]
 taf build
 taf publish
 ```
@@ -625,16 +667,21 @@ taf publish
 
 ```sh
 taf update
-taf search
-taf info
-taf install
+taf search KEYWORD
+taf info APP_OR_COMMAND
+taf install APP_OR_COMMAND
 taf outdated
 taf upgrade
 taf prune
-taf uninstall
+taf uninstall APP_OR_COMMAND
 taf list
-taf which
+taf which TAF_COMMAND
 ```
+
+These commands operate on user state by default. Use `--user` or `--system`
+explicitly in scripts and administrative runbooks; installing the core
+binaries system-wide does not persist system scope. Commands that modify
+system state normally need `sudo`, while read-only system inspection does not.
 
 ### System Commands
 
@@ -674,6 +721,12 @@ Check a project:
 taf check
 ```
 
+Compile the current project and print shell code:
+
+```sh
+taf compile -- --input sample.fa
+```
+
 Run a project:
 
 ```sh
@@ -684,6 +737,18 @@ Build a versioned command:
 
 ```sh
 taf build
+```
+
+The generated command is written under:
+
+```text
+target/<command-name>-v<version>-r<release>
+```
+
+For example:
+
+```text
+target/taf-my-tool-v0.1.0-r1
 ```
 
 Publish preview with release notes:
@@ -708,7 +773,20 @@ Update the Hub index:
 taf update
 ```
 
-Install an app:
+Search the cached online index:
+
+```sh
+taf search blast
+taf list --online
+```
+
+Install the latest indexed version:
+
+```sh
+taf install blast
+```
+
+Install a specific version:
 
 ```sh
 taf install blast 2.16.0-r1
@@ -754,26 +832,28 @@ versioned command wrapper, and records the install origin as
 directory under it. It does not require `taf update` and does not auto-install
 dependencies.
 
-List installed apps:
+Command names and fully versioned command names are accepted too:
 
 ```sh
-taf list
+taf install taf-blast
+taf install taf-blast v2.16.0-r1
+taf install taf-blast-v2.16.0-r1
+```
+
+Uninstall or locate an app:
+
+```sh
+taf uninstall taf-blast
+taf which taf-blast-v2.16.0-r1
 ```
 
 ## MCP / AI Integration
 
-TAFFISH `0.4.0` added `taffish-mcp`, a conservative MCP stdio server for AI
-clients. TAFFISH `0.5.0` extended it with read-only TAF source/file compiler
-helpers, and TAFFISH `0.6.0` added app/project inspection, AI-oriented usage
-summaries, safe app invocation compilation, current project resources, and
-publish-preparation prompts. TAFFISH `0.7.0` aligns MCP compile tools with the
-runtime container backend override. TAFFISH `0.8.0` exposes smoke/trust metadata
-for app and project inspection without running smoke tests or containers.
-TAFFISH `0.10.0` adds safe planners for `taf outdated`, `taf install --all`,
-`taf upgrade`, and `taf prune`. The interface exposes safe project, app, Hub,
-config, history, resource, prompt, validation, compilation, and summarization
-operations. It does not expose `taf run`, `taf publish`, or image-building
-actions.
+`taffish-mcp` is a conservative MCP stdio server for AI clients. It exposes
+structured project, app, Hub, config, history, resource, prompt, validation,
+compilation, summarization, smoke/trust inspection, and package-maintenance
+planning operations. It does not expose `taf run`, `taf publish`, container
+execution, or image-building actions.
 
 For MCP compile tools, pass `containerBackend` when backend choice matters. If
 that argument is omitted, `TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker`
@@ -804,9 +884,8 @@ and generic MCP client configuration examples, see
 
 ## Runtime Config And Mirrors
 
-Since TAFFISH `0.2.0`, `taf` provides runtime configuration for mirror and
-custom source support. The current public release is `0.10.1`. The default
-config paths are:
+`taf` provides runtime configuration for mirror and custom source support. The
+default config paths are:
 
 ```text
 user   = ~/.local/share/taffish/config.toml
@@ -816,21 +895,21 @@ system = /opt/taffish/config.toml
 Inspect the effective config:
 
 ```sh
-taf config
-taf config path
+taf config --user
+taf config path --user
 ```
 
 Initialize the default GitHub profile:
 
 ```sh
-taf config init --github
+taf config init --user --github
 ```
 
 Initialize the China mirror profile:
 
 ```sh
-taf config init --china --force
-taf update
+taf config init --user --china --force
+taf update --user
 ```
 
 The China profile is a simple template:
@@ -857,7 +936,7 @@ same TAFFISH index schema.
 
 ## Open Source And Source Builds
 
-TAFFISH `0.10.1` is the current public release. The Common Lisp implementation is published in
+The Common Lisp implementation is published in
 [taffish/taffish](https://github.com/taffish/taffish) under Apache License 2.0.
 
 The source repository builds three command-line entry points:
@@ -879,15 +958,13 @@ Useful source-side documents:
 - [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-At `0.10.1`, official macOS Apple Silicon binaries are built with SBCL and
-Linux x86_64 binaries are built manually with LispWorks. The `0.10.0` release
-adds local package-maintenance commands for installed Hub apps:
-`taf install --all`, `taf outdated`, `taf upgrade`, and `taf prune`. The
-`0.9.0` structured backend-specific container runtime arguments and local
-backend runtime-argument environment variables remain the current runtime
-argument model. The release payload includes `SHA256SUMS`, `SHA256SUMS.asc`,
-and `TAFFISH-RELEASE-KEY.asc` for manual checksum and GPG signature
-verification.
+Official release assets currently cover selected macOS and Linux platforms;
+all platforms supported by SBCL can build from source when the required
+dependencies are available. Tagged release payloads include `SHA256SUMS`,
+`SHA256SUMS.asc`, and `TAFFISH-RELEASE-KEY.asc` for manual checksum and GPG
+signature verification. Consult the source README and the selected GitHub
+Release for the authoritative platform matrix, build backend, version notes,
+and verification procedure.
 
 ## TAFFISH App Project Structure
 

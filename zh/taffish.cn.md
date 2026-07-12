@@ -1,17 +1,25 @@
 # 什么是 TAFFISH
 
-TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。它目前有三个本地入口：
+TAFFISH 是一个面向生物信息学命令行工具与轻量流程的 shell-native 可复现执行与
+分发层。它把命令级可复现性带入生物信息学用户原本就在使用的 shell 命令中，
+而不要求用户先迁入新的工作流系统。
+
+TAFFISH 有三个本地入口：
 
 - `taffish`：TAFFISH 语言编译器，把 `.taf` 文件编译成 POSIX shell 脚本。
 - `taf`：面向开发者和用户的 CLI，负责创建项目、检查项目、构建命令、发布 app，以及从 TAFFISH Hub 安装 app。
 - `taffish-mcp`：一个保守的 stdio MCP server，用于向 AI 客户端暴露安全的 TAFFISH tools、resources、prompts、app inspection 和 project inspection。
 
-换句话说，`.taf` 是描述“这个工具或流程应该如何运行”的源代码；`taffish` 负责把它变成 shell；`taf` 负责把这种代码组织成可发布、可索引、可安装的 TAFFISH app；`taffish-mcp` 则让 AI 客户端可以通过结构化接口检查 TAFFISH 项目、app 和 Hub 状态。
+换句话说，`.taf` 描述工具或轻量流程应该如何运行；`taffish` 负责把它变成 shell；
+`taf` 负责把这种代码组织成可版本化、可解析容器、可发布、可索引、可安装、
+可组合的可执行包；`taffish-mcp` 则让 AI 客户端通过结构化接口检查 TAFFISH
+项目、app 和 Hub 状态。
 
 ## 目录
 
 - [设计目标](#设计目标)
 - [安装](#安装)
+- [用户级与系统级作用域](#用户级与系统级作用域)
 - [`taffish` 编译器](#taffish-编译器)
 - [`.taf` 文件结构](#taf-文件结构)
 - [参数语法](#参数语法)
@@ -27,14 +35,18 @@ TAFFISH 是一个面向生信工具和流程的轻量级命令交付系统。它
 
 ## 设计目标
 
-TAFFISH 的目标不是替代 shell、Docker、Conda 或 workflow engine，而是把它们放进一个更稳定的 app 交付格式中：
+TAFFISH 的目标不是替代 shell、容器、包管理器或 workflow engine，而是通过
+可执行包模型，让工具调用更稳定、更易迁移，并且仍可作为普通 shell 命令直接使用：
 
 - 每个 app 有明确的名称、版本、release 和命令名。
 - 每个 app 的运行逻辑写在 `.taf` 文件里。
 - 每个 app 可以选择绑定容器镜像。
 - 每个 app 可以被构建成版本化命令，例如 `taf-blast-v2.16.0-r1`。
 - 每个 app 可以被 TAFFISH Hub 索引，并通过 `taf update` / `taf install` 安装。
-- flow app 可以声明并调用其他 taf app，形成可追踪的流程依赖。
+- flow app 可以声明并调用其他 taf app，完成轻量组合。
+
+TAFFISH 不是通用工作流引擎。Nextflow、Snakemake 等系统仍可负责 DAG 编排、
+调度、缓存与流程级可复现，并把已安装的 `taf-*` 命令作为普通 shell 命令调用。
 
 ## 安装
 
@@ -53,14 +65,25 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 固定安装某个版本：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
 ```
+
+请把 `X.Y.Z` 替换为要安装的 release 版本。
 
 中国大陆用户可以使用 Gitee 安装器，减少安装阶段对 GitHub raw content 的依赖，
 并初始化中国镜像配置：
 
 ```sh
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user
+```
+
+安装后进行检查：
+
+```sh
+taf --version
+taffish --version
+taffish-mcp --version
+taf doctor --user
 ```
 
 安装后会得到三个命令：
@@ -71,29 +94,50 @@ taf
 taffish-mcp
 ```
 
-TAFFISH `0.5.0` 及后续版本还会把 shell 自动补全文件和 Vim 语法文件安装到 TAFFISH home。
+安装器还会把 shell 自动补全文件和 Vim 语法文件复制到 TAFFISH home。
 用户级安装时通常位于 `~/.local/share/taffish/share/completions` 和
 `~/.local/share/taffish/share/vim`。
 
-默认用户路径：
+| 项目 | 用户级安装 | 系统级安装 |
+| --- | --- | --- |
+| 核心命令 | `~/.local/bin` | `/usr/local/bin` |
+| 已安装的 `taf-*` 命令 | `~/.local/share/taffish/bin` | `/usr/local/bin` |
+| TAFFISH home | `~/.local/share/taffish` | `/opt/taffish` |
 
-```text
-bin  = ~/.local/bin
-home = ~/.local/share/taffish
-```
-
-默认系统路径：
-
-```text
-bin  = /usr/local/bin
-home = /opt/taffish
-```
-
-安装器默认会尝试运行 `taf doctor --init` 和 `taf update`，用于初始化本地环境和索引。
-如果网络不可用，安装器会给出警告，但不会回滚已经安装的二进制文件。
+安装器会尝试初始化与安装方式匹配的作用域并更新其 index。如果网络不可用，
+安装器会给出警告，但不会回滚已经安装的二进制文件。它只复制 shell 和编辑器
+集成文件，不会直接修改个人或全局启动配置。
 
 源码构建、release 校验、维护者构建路径和贡献说明，请参考
 [taffish/taffish README](https://github.com/taffish/taffish)。
+
+## 用户级与系统级作用域
+
+TAFFISH 把用户级状态和系统级状态彼此分开。支持作用域的 `taf` 命令接受
+`--user` / `-u` 与 `--system` / `-s`，并且每次调用都默认使用用户级作用域。
+把核心二进制安装到系统目录，并不会让后续命令自动使用系统级状态。
+
+典型个人初始化：
+
+```sh
+taf doctor --init --user
+taf update --user
+taf install --user fastqc
+```
+
+典型管理员操作：
+
+```sh
+sudo taf doctor --init --system
+sudo taf update --system
+sudo taf install --system fastqc
+taf list --system
+```
+
+写入系统级状态的命令应使用 `sudo`；`taf search --system`、
+`taf list --system`、`taf which --system` 等只读命令通常不需要。共享工作站、
+服务器、HPC 登录节点、全局补全、配置继承、升级与卸载的完整说明见
+[TAFFISH 系统管理指南](system-administration.cn.md)。
 
 ## `taffish` 编译器
 
@@ -116,6 +160,19 @@ taffish --version
 taffish --help
 ```
 
+最小 `.taf` 文件：
+
+```taf
+<shell>
+echo "hello from TAFFISH"
+```
+
+编译它：
+
+```sh
+taffish hello.taf
+```
+
 `taffish` 默认只输出生成后的 shell 脚本，不直接执行。实际执行通常由 `taf run` 或构建后的 `taf-*` 命令完成。
 
 ## `.taf` 文件结构
@@ -132,13 +189,16 @@ taffish --help
 
 ```taf
 ARGS
-<name>
-world
+<(--/-n)name>
+  world
 
 RUN
 <shell>
 echo "hello, ::name::"
 ```
+
+主标签是 `ARGS` 或 `RUN`；子标签包括 `<shell>`、`<container:...>`、
+`<taffish>` 和 `<taf-app:...>`。
 
 如果 `.taf` 文件第一条有效行就是普通代码，TAFFISH 会自动补成：
 
@@ -559,7 +619,7 @@ podman run --rm -i \
 ### 项目命令
 
 ```sh
-taf new <APP-NAME>
+taf new APP_NAME
 taf check
 taf compile [ARGS...]
 taf run [ARGS...]
@@ -639,16 +699,20 @@ commit、tag、push，并创建或更新 GitHub Release。
 
 ```sh
 taf update
-taf search <keyword>
-taf info <app-or-command>
-taf install <app-or-command>
+taf search KEYWORD
+taf info APP_OR_COMMAND
+taf install APP_OR_COMMAND
 taf outdated
 taf upgrade
 taf prune
-taf uninstall <app-or-command>
+taf uninstall APP_OR_COMMAND
 taf list
-taf which <taf-command>
+taf which TAF_COMMAND
 ```
+
+这些命令默认操作用户级状态。在脚本和管理员 runbook 中应显式使用 `--user`
+或 `--system`；系统级安装核心二进制不会永久记住系统级作用域。修改系统状态的
+命令通常需要 `sudo`，只读的系统级检查通常不需要。
 
 更新本地索引：
 
@@ -738,16 +802,10 @@ taf history
 
 ## MCP / AI 集成
 
-TAFFISH `0.4.0` 新增了 `taffish-mcp`，这是一个保守的 stdio MCP server，面向
-AI 客户端暴露 TAFFISH 能力。TAFFISH `0.5.0` 进一步为它增加了只读 TAF
-源码/文件编译器辅助工具，TAFFISH `0.6.0` 则新增了 app/project inspection、
-面向 AI 的用法摘要、安全 app invocation 编译、当前项目资源和 publish 准备 prompts。
-TAFFISH `0.7.0` 让 MCP compile 工具与运行时容器 backend override 保持一致。
-TAFFISH `0.8.0` 会在不运行 smoke test 或容器的前提下，为 app 和 project inspection 暴露 smoke/trust 元数据。
-TAFFISH `0.10.0` 增加了面向 `taf outdated`、`taf install --all`、`taf upgrade`
-和 `taf prune` 的安全规划工具。
-当前 MCP 接口提供相对安全的 project、app、Hub、config、history、resource、
-prompt、验证、编译和摘要操作，不暴露 `taf run`、`taf publish` 或镜像构建动作。
+`taffish-mcp` 是面向 AI 客户端的保守型 MCP stdio server。它提供结构化的
+project、app、Hub、config、history、resource、prompt、验证、编译、摘要、
+smoke/trust 检查和包维护规划操作，不暴露 `taf run`、`taf publish`、容器执行
+或镜像构建动作。
 
 对于 MCP compile 工具，如果 backend 选择很重要，优先显式传入 `containerBackend`。
 如果没有传入这个参数，则会在设置时使用
@@ -777,7 +835,7 @@ shell，并准备安全的项目操作，而不是一开始就依赖非结构化
 
 ## 运行时配置与镜像源
 
-从 TAFFISH `0.2.0` 开始，`taf` 提供运行时配置，用于支持镜像源和自定义来源。当前公开版本是 `0.10.1`。默认配置路径是：
+`taf` 提供运行时配置，用于支持镜像源和自定义来源。默认配置路径是：
 
 ```text
 用户级 = ~/.local/share/taffish/config.toml
@@ -787,21 +845,21 @@ shell，并准备安全的项目操作，而不是一开始就依赖非结构化
 查看当前生效配置：
 
 ```sh
-taf config
-taf config path
+taf config --user
+taf config path --user
 ```
 
 初始化默认 GitHub profile：
 
 ```sh
-taf config init --github
+taf config init --user --github
 ```
 
 初始化中国镜像 profile：
 
 ```sh
-taf config init --china --force
-taf update
+taf config init --user --china --force
+taf update --user
 ```
 
 中国镜像 profile 是一个简单模板：
@@ -827,8 +885,8 @@ TAFFISH index schema。
 
 ## 开源与源码构建
 
-TAFFISH `0.10.1` 是当前公开 release。Common Lisp 实现已经在 [taffish/taffish](https://github.com/taffish/taffish) 中发布，
-使用 Apache License 2.0 授权。
+Common Lisp 实现已经在 [taffish/taffish](https://github.com/taffish/taffish)
+中发布，使用 Apache License 2.0 授权。
 
 源码仓库会构建三个命令行入口：
 
@@ -848,12 +906,11 @@ taffish-mcp
 - [贡献指南](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [安全策略](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-在 `0.10.1` 中，官方 macOS Apple Silicon 二进制由 SBCL 构建，Linux x86_64
-二进制由 LispWorks 手动构建。`0.10.0` 增加了面向已安装 Hub app 的本地维护命令：
-`taf install --all`、`taf outdated`、`taf upgrade` 和 `taf prune`。`0.9.0`
-引入的结构化 backend-specific container runtime arguments 和本机 backend runtime
-参数环境变量仍然是当前 runtime 参数模型。release 中提供 `SHA256SUMS`、
-`SHA256SUMS.asc` 和 `TAFFISH-RELEASE-KEY.asc`，用于手动 checksum 和 GPG 签名校验。
+官方 release 资产目前覆盖部分 macOS 和 Linux 平台；只要依赖可用，任何受到
+SBCL 支持的平台仍可从源码构建。带 tag 的 release 载荷提供 `SHA256SUMS`、
+`SHA256SUMS.asc` 和 `TAFFISH-RELEASE-KEY.asc`，用于手动 checksum 和 GPG
+签名校验。准确的平台矩阵、构建 backend、版本变更和校验流程，应以源码仓库
+README 与所选 GitHub Release 为准。
 
 ## TAFFISH app 项目结构
 

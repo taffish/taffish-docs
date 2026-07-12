@@ -7,7 +7,8 @@
 
 ## 目录
 
-- [`taf: command not found`](#taf-command-not-found)
+- [找不到 `taf` 或已安装的 App 命令](#找不到-taf-或已安装的-app-命令)
+- [系统级安装看起来是空的](#系统级安装看起来是空的)
 - [macOS 上 `taffish` 找不到运行库](#macos-上-taffish-找不到运行库)
 - [`taf update` 失败](#taf-update-失败)
 - [`taf install` 找不到 app](#taf-install-找不到-app)
@@ -26,14 +27,13 @@
 - [镜像存在于一个后端但另一个后端找不到](#镜像存在于一个后端但另一个后端找不到)
 - [获取更多上下文](#获取更多上下文)
 
-## `taf: command not found`
+## 找不到 `taf` 或已安装的 App 命令
 
-安装目录没有加入 `PATH`。
-
-用户级安装通常需要：
+默认用户级安装使用 `~/.local/bin` 保存三个核心命令，使用
+`~/.local/share/taffish/bin` 保存 `taf install` 安装的 app。应把两者都加入 `PATH`：
 
 ```sh
-export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
 ```
 
 然后重新打开终端，或 source 你的 shell 配置文件。
@@ -46,6 +46,31 @@ taf --version
 taffish --version
 taffish-mcp --version
 ```
+
+如果自定义了 `TAFFISH_USER_HOME`，还要加入它的 `bin` 子目录。系统级安装默认把
+核心命令和 app 命令都放在 `/usr/local/bin`；共享命令找不到时运行
+`taf doctor --system` 检查。
+
+## 系统级安装看起来是空的
+
+即使 `taf` 本身来自系统安装，支持 scope 的命令仍默认读取 user scope。应显式使用：
+
+```sh
+taf doctor --system
+taf config --system
+taf list --system
+taf which --system APP_OR_COMMAND
+taf search --system QUERY
+```
+
+系统写操作通常需要管理员权限：
+
+```sh
+sudo taf update --system
+sudo taf install --system APP
+```
+
+完整 scope 与权限矩阵见 [TAFFISH 系统管理员指南](system-administration.cn.md)。
 
 ## macOS 上 `taffish` 找不到运行库
 
@@ -72,16 +97,16 @@ content 访问不稳定。
 
 ```sh
 taf update
-taf update --url <INDEX-URL>
+taf update --url INDEX_URL
 ```
 
 如果使用 TAFFISH `0.2.0` 或更新版本，需要持久使用镜像源，可以查看并初始化运行时配置：
 
 ```sh
-taf config
-taf config path
-taf config init --china --force
-taf update
+taf config --user
+taf config path --user
+taf config init --user --china --force
+taf update --user
 ```
 
 生成的中国镜像 profile 会改变 index URL，并在 `taf install` clone app 仓库时把
@@ -106,7 +131,7 @@ taf update
 然后搜索：
 
 ```sh
-taf search <keyword>
+taf search KEYWORD
 taf list --online
 ```
 
@@ -175,8 +200,8 @@ app 可能安装成功，但运行时因为镜像无法拉取而失败。
 手动测试：
 
 ```sh
-docker pull ghcr.io/taffish/<app>:<version>-r<release>
-podman pull ghcr.io/taffish/<app>:<version>-r<release>
+docker pull ghcr.io/taffish/APP:VERSION-rRELEASE
+podman pull ghcr.io/taffish/APP:VERSION-rRELEASE
 ```
 
 ## Docker permission denied
@@ -320,7 +345,7 @@ taf doctor --init --user
 
 ```sh
 # 管理员预先把 SIF 缓存到系统 TAFFISH home。
-sudo taf-<app>-v<version>-r<release> -- --help
+sudo taf-APP-vVERSION-rRELEASE -- --help
 ```
 
 ```sh
@@ -524,14 +549,17 @@ GPU 访问，应在 app 源码中用 `$@[target: args]` 声明。
 
 ## 获取更多上下文
 
+普通用户先看 [TAFFISH 快速开始](quick-start.cn.md)；共享部署先看
+[TAFFISH 系统管理员指南](system-administration.cn.md)。
+
 有用的命令：
 
 ```sh
 taf doctor
 taf config
 taf history
-taf which <app-or-command>
-taf info <app-or-command>
+taf which APP_OR_COMMAND
+taf info APP_OR_COMMAND
 ```
 
 对于 app 项目：

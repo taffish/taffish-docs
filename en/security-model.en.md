@@ -7,9 +7,8 @@ map of how source code, release artifacts, installers, Hub index metadata,
 container checks, local installation, and MCP tools fit together.
 
 This is not a claim that TAFFISH solves all supply-chain security problems.
-TAFFISH `0.8.0` established the Hub smoke/trust metadata foundation, and
-TAFFISH `0.10.0` extends the local side with conservative maintenance commands
-for installed Hub apps. The model remains layered, auditable, and designed to
+The model combines Hub smoke/trust metadata with conservative local
+maintenance commands, remains layered and auditable, and is designed to
 improve over time.
 
 ## Table Of Contents
@@ -58,7 +57,7 @@ artifact integrity.
 
 ## Release Payload Integrity
 
-Current TAFFISH `0.10.1` release payloads include:
+Current signed TAFFISH release payloads include:
 
 ```text
 target/SHA256SUMS
@@ -96,8 +95,10 @@ are selected from a fixed release tag through `--version`.
 Example:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version 0.10.1 --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
 ```
+
+Replace `X.Y.Z` with the release version you want to verify and install.
 
 This separates installer updates from versioned release payloads. For
 reproducible installation behavior, pin `--version`.

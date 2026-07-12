@@ -233,6 +233,12 @@ value 是 version id：
 0.12.1-r1
 ```
 
+它对应的带版本命令是：
+
+```text
+taf-fastqc-v0.12.1-r1
+```
+
 不要写成：
 
 ```toml
@@ -245,15 +251,15 @@ taf-fastqc-v0.12.1-r1 = "0.12.1-r1"
 
 ```taf
 <taffish>
-[[taf: taf-align-v1.0.0-r1 old.fa]]
-[[taf: taf-align-v2.0.0-r1 new.fa]]
+[[taf: taf-align-v2.0.0-r1 old.fq]]
+[[taf: taf-align-v2.1.0-r1 new.fq]]
 ```
 
 对应：
 
 ```toml
 [dependencies]
-taf-align = ["1.0.0-r1", "2.0.0-r1"]
+taf-align = ["2.0.0-r1", "2.1.0-r1"]
 ```
 
 注意：这表示两个版本都需要安装，不是“任选一个版本”。
@@ -268,6 +274,21 @@ taf-align = ["1.0.0-r1", "2.0.0-r1"]
 taf check
 taf build
 taf check
+```
+
+例如，若 `src/main.taf` 调用：
+
+```taf
+[[taf: taf-dep-tool-v0.1.0-r1 in.fa]]
+[[taf: taf-new-tool-v1.2.3-r4 out.fa]]
+```
+
+运行 `taf build` 后，`taffish.toml` 应包含：
+
+```toml
+[dependencies]
+taf-dep-tool = "0.1.0-r1"
+taf-new-tool = "1.2.3-r4"
 ```
 
 如果 `taf check` 报依赖缺失或版本不一致，通常说明：

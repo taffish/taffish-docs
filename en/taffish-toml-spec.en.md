@@ -126,7 +126,13 @@ Example:
 name = "taf-my-tool"
 ```
 
-Built command:
+Built commands use this format:
+
+```text
+<command.name>-v<version>-r<release>
+```
+
+For example:
 
 ```text
 taf-my-tool-v0.1.0-r1

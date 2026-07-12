@@ -6,9 +6,11 @@ This repository contains public documentation for TAFFISH, TAFFISH Hub,
 taf-app development, the static index, and the local `taffish-mcp` AI
 integration entry point.
 
-TAFFISH is a lightweight command delivery system for bioinformatics tools and
-workflows. TAFFISH Hub is the curated registry and index layer used by `taf` to
-discover, install, and manage TAFFISH apps.
+TAFFISH is a shell-native reproducible execution and delivery layer for
+bioinformatics command-line tools and lightweight workflows. Its executable
+package model brings command-level reproducibility to the shell. TAFFISH Hub is
+the curated registry and index layer used by `taf` to discover, install, and
+manage TAFFISH apps.
 
 ## Table of Contents
 
@@ -35,6 +37,7 @@ Choose a path based on what you want to do.
 | Goal | Recommended order |
 | --- | --- |
 | Use existing TAFFISH apps | [Quick Start](en/quick-start.en.md) -> [Troubleshooting](en/troubleshooting.en.md) when needed -> [What Is TAFFISH Hub](en/taffish-hub.en.md) for background |
+| Administer a shared server or HPC installation | [System Administration](en/system-administration.en.md) -> [Troubleshooting](en/troubleshooting.en.md) -> [Security Model](en/security-model.en.md) |
 | Learn the TAFFISH language | [What Is TAFFISH](en/taffish.en.md) -> [TAF Script Tutorial](en/taf-script-tutorial.en.md) |
 | Write a simple tool app | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [App Developer Guide](en/app-developer-guide.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
 | Package a containerized bioinformatics tool | [App Developer Guide](en/app-developer-guide.en.md) -> [Containerized App Best Practices](en/container-apps.en.md) -> [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) -> [Troubleshooting](en/troubleshooting.en.md) |
@@ -74,6 +77,7 @@ into lightweight flows without replacing workflow engines.
 | Document | Role |
 | --- | --- |
 | [Quick Start](en/quick-start.en.md) | User onboarding. It intentionally repeats install, mirror config, update, search, install, local maintenance, run, list, locate, and uninstall basics. |
+| [System Administration](en/system-administration.en.md) | Shared workstation, server, and HPC deployment guide covering user/system scope, permissions, command paths, global completion/Vim setup, container policy, upgrades, and removal. |
 | [What Is TAFFISH](en/taffish.en.md) | Conceptual language and CLI manual. It explains the design, syntax, tags, parameters, project structure, CLI surface, and MCP/AI integration entry point. |
 | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Hands-on `.taf` writing path. It teaches by building up from small scripts to app wrappers and flows. |
 | [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Capability reference for `taffish-mcp`, including tools, read-only compiler helpers, app/project inspection, smoke/trust metadata exposure, package-maintenance planners, resources, prompts, safety boundaries, and troubleshooting. |
@@ -114,6 +118,7 @@ Read these two documents when you want the system-level picture.
 | Document | Purpose |
 | --- | --- |
 | [TAFFISH Quick Start](en/quick-start.en.md) | Install TAFFISH, update the Hub index, search, install public apps, maintain local installs with `taf outdated`, `taf upgrade`, and `taf prune`, install private/local apps with `taf install --from`, run, list, locate, and uninstall apps. |
+| [TAFFISH System Administration](en/system-administration.en.md) | Install and operate TAFFISH for multiple users, including explicit system scope, permissions, global shell/editor integration, container policy, and maintenance. |
 | [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) | Configure `taffish-mcp` in Codex, Claude Code, Cursor, Cline, or a generic stdio MCP client. |
 | [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Understand `taffish-mcp` tools, read-only compiler helpers, app/project inspection, smoke/trust metadata exposure, package-maintenance planners, resources, prompts, and safety model. |
 | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Step-by-step `.taf` writing tutorial for app authors, from minimal scripts to parameters, containers, flows, and dependencies. |
@@ -155,18 +160,11 @@ private mirror, enterprise environment, or security-sensitive workflow.
 
 ## Source Development
 
-TAFFISH `0.10.1` is the current public release. The source code, ASDF systems,
-source-tree developer docs, release payloads, contribution guide, and security
-policy live in
-[taffish/taffish](https://github.com/taffish/taffish).
-
-The `0.10.0` release adds local package-maintenance commands for installed Hub
-apps: `taf install --all`, `taf outdated`, `taf upgrade`, and `taf prune`.
-These commands are conservative by default: planning commands show intended
-changes first, and mutating operations require explicit confirmation such as
-`--yes`. The previous `0.9.0` runtime-argument policy remains the current model
-for backend-specific container arguments in `.taf` tags and local runtime
-environment variables.
+The authoritative current release, source code, ASDF systems, source-tree
+developer docs, release payloads, contribution guide, and security policy live
+in [taffish/taffish](https://github.com/taffish/taffish). Release-specific
+feature history belongs in that repository's release notes rather than being
+repeated as current-version prose throughout this documentation set.
 
 The most relevant source-side documents are:
 
@@ -187,6 +185,9 @@ Some repetition is intentional:
 
 - Install and basic `taf` commands appear in both Quick Start and What Is
   TAFFISH so users can start quickly and later understand the full model.
+- System-scope commands appear briefly in Quick Start and in full in System
+  Administration. The administration guide is the source of truth for shared
+  permissions, global shell/editor integration, and mixed deployments.
 - Runtime mirror configuration appears in Quick Start, What Is TAFFISH, What Is
   TAFFISH Hub, and troubleshooting because it affects both network access and
   package installation.
