@@ -253,10 +253,8 @@ Rules:
 
 - Containerized projects must define `[smoke]`.
 - `exist` and `test` cannot both be empty.
-- `TODO` placeholders are rejected by `taf check`.
-- `taf check` validates the metadata but does not run smoke commands.
-- Hub/index automation runs smoke checks for new containerized versions, records
-  smoke status, and rejects failed new versions from the main public index.
+- In TAFFISH 0.11.0, `taf check` rejects an entire item equal to `TODO` or `TODO --help` after trimming and ignoring case. A real executable or command such as `autodock4 --help` is not a placeholder. This structural check does not run the command.
+- The Hub Index records the results of actual smoke checks. Required failures block acceptance of a new version; advisory failures are reported separately.
 
 ## `[dependencies]`
 
@@ -477,7 +475,7 @@ command_mode = false
 
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
 ## Version And Tag Rules

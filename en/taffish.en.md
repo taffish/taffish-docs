@@ -1,21 +1,16 @@
 # What Is TAFFISH
 
-TAFFISH is a shell-native reproducible execution and delivery layer for
-bioinformatics command-line tools and lightweight workflows. It brings
-command-level reproducibility to the shell commands that bioinformaticians
-already use, without requiring them to adopt a new workflow system first.
+TAFFISH packages bioinformatics tools and lightweight workflows as versioned
+shell commands. A script that calls `taf-augustus-v3.5.0-r1`, for example,
+uses AUGUSTUS 3.5.0 packaged by TAFFISH as release 1, even if another version
+is also installed. This illustrates command-level reproducibility: the command selects
+the same app release; the analysis results still depend on the inputs and parameters.
 
-TAFFISH has three local entry points:
+The three TAFFISH commands have different roles:
 
-- `taffish`: the TAFFISH language compiler, which compiles `.taf` files into POSIX shell scripts.
-- `taf`: the developer and user CLI, used to create projects, check projects, build commands, publish apps, and install apps from TAFFISH Hub.
-- `taffish-mcp`: a conservative stdio MCP server that exposes safe TAFFISH tools, resources, prompts, app inspection, and project inspection to AI clients.
-
-In other words, a `.taf` file describes how a tool or lightweight workflow
-should run. `taffish` turns that description into shell code. `taf` organizes
-that code into versioned, container-resolved, publishable, indexable,
-installable, and composable executable packages. `taffish-mcp` lets AI clients
-inspect TAFFISH projects, apps, and Hub state through a structured interface.
+- `taf` finds and installs apps from TAFFISH Hub. App authors also use it to create, check, build, and publish projects.
+- `taffish` compiles a `.taf` file describing how a tool or workflow runs into a POSIX shell script.
+- `taffish-mcp` gives AI clients a stdio MCP interface for tasks such as inspecting apps and checking projects; it does not run or publish apps.
 
 ## Table Of Contents
 
@@ -85,7 +80,8 @@ installation and initialize the China mirror config:
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user
 ```
 
-After installation:
+For a user install, first [set your command path](quick-start.en.md#set-your-command-path).
+Then check the installed versions and environment:
 
 ```sh
 taf --version
@@ -387,6 +383,11 @@ echo "workdir: ::*WORKDIR*::"
 echo "argv   : ::*ARGV*::"
 ```
 
+The last line displays joined shell text; it does not preserve the original
+argv boundaries. Ordinary placeholders also insert raw text, while a supplied
+`@:` block encodes each token separately. Do not treat display text as safe
+argument forwarding. See the [TAF Script Tutorial](taf-script-tutorial.en.md).
+
 TAFFISH escaping is not general shell-style escaping. Only a few syntax characters are consumed by specific parsers.
 
 At the `.taf` lexer layer, only these escapes are recognized:
@@ -502,7 +503,7 @@ For installed `taf-*` commands or direct `taffish` compilation, use
 
 ```sh
 TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 [ARGS...]
-TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- [ARGS...]
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile [ARGS...]
 ```
 
 This environment variable does not override explicit `<docker:...>`,
@@ -560,7 +561,7 @@ my-tool --help
 ```taf
 <taffish>
 [[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 multiqc .]]
+[[taf: taf-multiqc-v1.35-r2 multiqc .]]
 ```
 
 Embedding syntax:
@@ -569,7 +570,10 @@ Embedding syntax:
 [[taf: taf-command args...]]
 ```
 
-At compile time, TAFFISH compiles those taf apps into temporary shell steps, then executes them inside the current workflow. This makes it possible for flow apps to compose existing tools while preserving explicit dependency relationships.
+When the generated flow runs, it precompiles the child commands before executing
+the block body; compiling the parent alone does not run the analysis. In 0.11.0
+the opening and closing delimiters of a source-backed inline call must appear
+in the source, not in a substituted value. This does not escape raw shell text.
 
 In formal flows, `[[taf: ...]]` should appear at the code location where the
 tool is really executed. Do not collect all taf dependencies in a dummy block or
@@ -584,7 +588,7 @@ Simplified compiled shape:
 ```sh
 taffish_tmpdir=$(mktemp -d)
 taf-fastqc-v0.12.1-r1 --compile fastqc sample.fq > "$taffish_tmpdir/step-1.sh"
-taf-multiqc-v1.19-r1 --compile multiqc . > "$taffish_tmpdir/step-2.sh"
+taf-multiqc-v1.35-r2 --compile multiqc . > "$taffish_tmpdir/step-2.sh"
 chmod +x "$taffish_tmpdir"/step-*.sh
 "$taffish_tmpdir/step-1.sh"
 "$taffish_tmpdir/step-2.sh"
@@ -660,7 +664,7 @@ taf check
 taf compile [ARGS...]
 taf run [ARGS...]
 taf build
-taf publish
+taf publish --help
 ```
 
 ### Hub Commands
@@ -691,8 +695,16 @@ taf config
 taf history
 ```
 
-`doctor` checks or initializes the local TAFFISH environment. `config` shows or
-initializes runtime configuration. `history` shows or clears local run history.
+`doctor` diagnoses the local environment; only explicit `--init` creates
+missing TAFFISH directories. In 0.11.0, `taf doctor index` and
+`taf doctor hub [APP|COMMAND...]` inspect cached or installed state offline.
+`taf config language en|zh|auto` sets the human-facing language; `auto`
+follows the locale and falls back to English. JSON and MCP fields do not
+change language.
+
+`taf history` shows local run history. In 0.11.0, `taf` and newly built wrappers append records under the same file lock that `taf history --clear` uses. Only history I/O is locked; tools can still run in parallel. After five seconds waiting for the lock, the writer skips that record without changing the tool's exit status.
+
+Wrappers record history asynchronously by default. Even if the writer is waiting for the lock, callers can finish reading stdout and stderr when the tool exits; the record may appear later. Set `TAF_HISTORY_MODE=sync` if the wrapper must wait for the write attempt before exiting. See the [history specification](https://github.com/taffish/taffish/blob/v0.11.0/docs/standards/en/history-spec.md).
 
 Common usage:
 
@@ -751,21 +763,9 @@ For example:
 target/taf-my-tool-v0.1.0-r1
 ```
 
-Publish preview with release notes:
-
-```sh
-taf publish --release --dry-run
-```
-
-Publish with release notes:
-
-```sh
-taf publish --release --yes --build
-```
-
-`taf new` creates an ignored `release.md` draft. With
-`taf publish --release`, the first line becomes the publish message and the
-whole file becomes the GitHub Release notes.
+`taf new` creates a `release.md` draft that Git ignores. Edit it before using
+`taf publish --release`: the first line supplies the summary for the publish commit,
+and the full file becomes the GitHub Release notes.
 
 Update the Hub index:
 
@@ -780,7 +780,7 @@ taf search blast
 taf list --online
 ```
 
-Install the latest indexed version:
+Install the version recommended by the cached index:
 
 ```sh
 taf install blast
@@ -811,8 +811,10 @@ taf prune --yes
 ```
 
 `taf outdated` reports installed apps with newer indexed versions. `taf upgrade`
-is dry-run by default and requires `--yes` to modify local installs. `taf prune`
-removes older local versions while keeping the newest installed version. Apps
+is dry-run by default and requires `--yes` to modify local installs. In
+0.11.0, bulk operations target the local index recommendation without automatic
+downgrades. Prune requires an installed, verified copy of that same-source
+target and removes only reliably older versions; uncertain records are protected. Apps
 installed with `taf install --from` are treated as local/private installs and
 are not silently replaced by public-index upgrades.
 
@@ -1058,10 +1060,10 @@ For flow dependencies:
 ```toml
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
-If the same flow requires multiple versions of the same dependency:
+If the same flow requires multiple versions of one dependency, use an array, as in this hypothetical aligner example:
 
 ```toml
 [dependencies]
@@ -1122,28 +1124,20 @@ To build image and command wrapper together:
 taf build --all --backend docker
 ```
 
-Preview publishing with release notes:
+If you intend to build the wrapper and mark a new GitHub Release as Latest,
+preview that plan without building or publishing:
 
 ```sh
-taf publish --release --dry-run
+taf publish --release --build --dry-run
 ```
 
-Publish with release notes:
+For a prerelease, a maintenance release that leaves Latest unchanged, or a tag
+without a GitHub Release, choose the appropriate options before the preview.
+See [Publish](app-developer-guide.en.md#publish) for the channels and final checks.
 
-```sh
-taf publish --release --yes --build
-```
-
-Before publishing, edit the ignored `release.md` draft. Its first line becomes
-the publish message, and the full file is used as the GitHub Release notes.
-
-After publishing, the app repository has a release tag such as:
-
-```text
-v0.1.0-r1
-```
-
-TAFFISH Hub's index automation later scans the repository and adds it to the Hub index.
+Publishing a tag such as `v0.1.0-r1` does not by itself make the version
+installable from the Hub. Once the index accepts it, users can run
+`taf update` and install that exact version.
 
 ## Tool Versus Flow
 

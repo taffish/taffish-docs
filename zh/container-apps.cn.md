@@ -146,9 +146,10 @@ test = ["python -c 'import vina, rdkit, meeko, gemmi, prody'"]
 - 不要依赖网络、大型参考数据或用户凭证。
 - 在 `taf check` 或 `taf publish` 前替换所有默认 `TODO` 占位。
 
-`taf check` 只校验元数据，不运行容器。公开 Hub/index 自动化会在镜像推送后，
-对新的容器化版本运行 smoke checks，记录 digest/platform/smoke 元数据，并把失败结果写入
-index reports，而不是把失败的新版本暴露给用户。
+`taf check` 只校验元数据，不运行容器。镜像推送后，Hub Index 会检查镜像摘要和平台，
+并运行 smoke 检查。`[smoke].backend` 指定的后端（默认 Docker）是**必需后端（required）**：
+其 smoke 检查失败，新版本就不会被收录。其余已配置的后端是**建议性后端（advisory）**：
+失败会按后端记录在报告中，但本身不阻止收录。
 
 ## 运行时挂载与工作目录
 
@@ -324,15 +325,9 @@ ENV TAFFISH_NAME=my-tool
 
 带 Dockerfile 的 app 应在自己的仓库中构建镜像。
 
-`taf new --tool --docker` 会生成相关 workflow。一般流程是：
+在 TAFFISH 0.11.0 中，`taf new my-tool --tool --docker` 生成 app 仓库自己的镜像 workflow。它先核对源码和 manifest，再为声明的 `linux/amd64` 或 `linux/arm64` 分别使用匹配的原生 runner 和独立缓存构建，最后根据核验过的平台结果发布版本化 manifest。手动触发可以指定单个平台。旧 tag 保留当时的 workflow，不能用当前模板推断旧版本使用的 runner。
 
-1. checkout app 仓库。
-2. 读取 `taffish.toml` 中的 image 和 Dockerfile。
-3. 登录 GHCR。
-4. buildx 构建多平台镜像。
-5. 推送 `ghcr.io/taffish/<app>:<version>-r<release>`。
-
-Hub 不负责替 app 构建镜像。Hub 只读取 `taffish.toml` 和 release tag，把镜像信息写入 index。
+镜像构建与推送由 app Action 负责。Index 独立检查已发布镜像并执行 required/advisory smoke 策略；创建 tag 本身不能证明这两个阶段已经通过。
 
 ## GHCR 可见性
 
@@ -405,7 +400,7 @@ GPU，那么对应后端的 GPU 参数应该写在 `src/main.taf` 中，不应�
 
 ```sh
 TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
-TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile --help
 ```
 
 这个运行时环境变量不会覆盖显式 backend 标签。本地项目测试时，

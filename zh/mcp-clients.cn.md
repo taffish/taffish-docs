@@ -217,6 +217,11 @@ cline mcp add taffish -- taffish-mcp
 
 配置完成后，检查客户端是否能看到 TAFFISH tools、resources 和 prompts。
 
+先用 `taffish_get_version` 确认客户端实际启动的 server 版本。对 0.11.0 server，
+向 `taffish_check_environment` 传 `{"check":"hub","targets":["augustus"]}`
+可检查该本地安装，不会运行或修复它。如果客户端拒绝这些字段，查看实际连接的
+server 暴露的 `taffish://mcp/tools` schema，不要假定它和终端使用相同的二进制。
+
 正常配置通常可以看到这些 tools：
 
 - `taffish_get_version`

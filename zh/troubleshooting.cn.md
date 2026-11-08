@@ -12,6 +12,7 @@
 - [macOS 上 `taffish` 找不到运行库](#macos-上-taffish-找不到运行库)
 - [`taf update` 失败](#taf-update-失败)
 - [`taf install` 找不到 app](#taf-install-找不到-app)
+- [诊断或修复已有安装](#诊断或修复已有安装)
 - [GitHub 认证或发布失败](#github-认证或发布失败)
 - [GHCR 镜像拉取失败](#ghcr-镜像拉取失败)
 - [Docker permission denied](#docker-permission-denied)
@@ -74,7 +75,8 @@ sudo taf install --system APP
 
 ## macOS 上 `taffish` 找不到运行库
 
-当前 macOS Apple Silicon 二进制可能需要 Homebrew 的 `zstd`：
+0.11.0 Apple Silicon 二进制声明的最低系统是 macOS 15.0，并依赖 Homebrew 的
+`zstd`。安装缺失的库不代表更早的 macOS 受支持。若报错指出找不到 `libzstd`：
 
 ```sh
 brew install zstd
@@ -147,11 +149,38 @@ taf install augustus 3.5.0-r1
 taf install taf-augustus-v3.5.0-r1
 ```
 
+## 诊断或修复已有安装
+
+TAFFISH 0.11.0 中，先在**当时安装的 scope** 检查：
+
+```sh
+taf doctor index --user
+taf doctor hub augustus --user --verbose
+```
+
+两者均离线只读；省略 app 名可检查所有本地安装，用 `--json` 可见完整详情。共享安装
+使用 `--system`。旧安装缺少构建清单可能只是 `unverified`，不等于已损坏。先看问题
+对应的路径：命令快捷入口损坏不等于版本化 wrapper 损坏。修复前备份有意的本地修改。
+
+按精确版本预览（请换为实际安装的版本），或选择批量范围：
+
+```sh
+taf install augustus 3.5.0-r1 --repair --user --dry-run
+taf install --all --repair --user
+taf install --all-installed --repair --user
+```
+
+点名精确版本时，**去掉 `--dry-run` 即执行**。两个批量命令则默认预览，加 `--yes`
+才执行：`--all` 只选择已安装的 index 推荐版本；`--all-installed` 包括已安装的历史
+版本。均不补装缺失版本或依赖、不升级、不清理，已验证目标跳过。任一受阻目标都会阻止
+整批开始写入；私有或未知来源、自定义命令入口和不安全路径不覆盖。重建需要身份匹配且
+commit 已固定。修复不能与 `--force`、`--from` 或 `--prune-old` 组合。
+操作中断时请保留日志和备份以供恢复检查，不要删除它们来强制重跑；
+整批不是原子事务，后续失败不会撤销此前成功的修复。
+
 ## GitHub 认证或发布失败
 
-`taf publish` 使用 Git 和 GitHub，但不负责登录。
-
-检查：
+`taf publish` 不会替你登录 GitHub。重试前，先检查本地 Git 仓库和 GitHub CLI 的登录状态：
 
 ```sh
 git remote -v
@@ -159,32 +188,17 @@ git status
 gh auth status
 ```
 
-如果远端 Git 操作需要在终端里询问凭据，使用：
+核对 `taffish.toml` 的 `[repository].url` 指向目标仓库，并确认当前账号有权访问。
+认证失败不等于仓库不存在。
 
-```sh
-taf publish --release --dry-run --prompt
-taf publish --release --yes --prompt
-```
-
-如果远端仓库不存在，并且希望 `taf` 创建：
-
-```sh
-taf publish --release --yes --build --create-repo --public
-```
-
-正式发布时，推荐使用 release notes 工作流：
-
-```sh
-taf publish --release --dry-run
-taf publish --release --yes --build
-```
-
-`taf publish --release` 会读取被 ignore 的 `release.md` 草稿。如果 GitHub
-Release 标题或说明不对，编辑 `release.md`：第一行会成为 publish message，整个
-文件会成为 GitHub Release notes。
-从 TAFFISH `0.8.1` 开始，`taf publish --release` 只会拒绝第一行仍为默认占位符
-`TODO` 或 `TODO: release summary` 的 release notes；真实 summary 中正常出现
-`todo` 这个词不会被误拒绝。
+- **首次发布前**：先选好[发布渠道](app-developer-guide.cn.md#发布)，用 `--dry-run` 预览拟采用的选项。
+  如果 Git 需要在终端询问凭据，可加 `--prompt`。只有确认仓库不存在、而且打算创建公开仓库时，
+  才加 `--create-repo --public`。不要用 `--yes` 测试登录。
+- **如果 `release.md` 被拒绝**：使用 `--release` 时，首行用作发布提交的摘要，全文用作 GitHub Release 说明。
+  从 0.8.1 起，首行不能是默认占位符 `TODO` 或 `TODO: release summary`；正常摘要中可以出现 `todo`。
+- **如果发布中断**：先在 GitHub 核对哪些提交、tag 或 Release 已存在。在 0.11.0 中，
+  应保持仓库、渠道、选项和 `release.md` 不变，再重试原命令；已匹配的步骤会跳过。
+  如果提交、tag 或 Release 有冲突，请停止，不要靠覆盖来强行重试。
 
 ## GHCR 镜像拉取失败
 
@@ -354,7 +368,8 @@ sudo mkdir -p /opt/taffish/images/sif
 sudo chmod 1777 /opt/taffish/images/sif
 ```
 
-`1777` 类似 `/tmp`：本地用户可以创建文件，但不能删除其他用户拥有的文件。只有
+0.11.0 系统安装器提供 `--shared-sif-cache` 来显式选择这种共享策略，不会默认把已有
+缓存改成所有用户可写。`1777` 类似 `/tmp`：本地用户可以创建文件，但不能删除其他用户拥有的文件。只有
 管理员明确允许可信本地用户共享可写 SIF 缓存时才建议这样设置。更严格的共享系统
 应优先使用管理员预缓存或用户级缓存。
 
@@ -408,9 +423,9 @@ exist = ["my-tool"]
 test = ["my-tool --help"]
 ```
 
-如果默认值足够，`backend` 和 `timeout` 可以省略。Smoke 检查应该短小、确定、可
-重复。公开 Hub/index 自动化会在镜像推送后，对新的容器化版本运行这些检查；失败
-结果会进入 index 构建报告，而不是进入主安装 index。
+默认值适用时，可以省略 `backend` 和 `timeout`。Smoke 检查应短小、确定、可重复。
+镜像推送后，查看 Index 构建报告：**必需（required）** smoke 失败会阻止新版本收录；
+**建议性（advisory）** smoke 失败会标明受影响的后端，但其他收录条件都满足时，版本仍可收录。
 
 ## smoke 命令因为嵌套引号失败
 

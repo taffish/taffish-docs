@@ -1,19 +1,15 @@
 # 什么是 TAFFISH
 
-TAFFISH 是一个面向生物信息学命令行工具与轻量流程的 shell-native 可复现执行与
-分发层。它把命令级可复现性带入生物信息学用户原本就在使用的 shell 命令中，
-而不要求用户先迁入新的工作流系统。
+TAFFISH 把生物信息学工具和轻量流程封装成带版本号的 shell 命令。例如，脚本中写明
+`taf-augustus-v3.5.0-r1`，调用的就是 AUGUSTUS 3.5.0 的第 1 个 TAFFISH 打包版本，
+即使本机还装有其他版本也不会切换。这是命令级可复现的一个例子：命令选用同一个软件包版本，
+分析结果仍取决于输入数据和参数。
 
-TAFFISH 有三个本地入口：
+TAFFISH 提供三个用途不同的命令：
 
-- `taffish`：TAFFISH 语言编译器，把 `.taf` 文件编译成 POSIX shell 脚本。
-- `taf`：面向开发者和用户的 CLI，负责创建项目、检查项目、构建命令、发布 app，以及从 TAFFISH Hub 安装 app。
-- `taffish-mcp`：一个保守的 stdio MCP server，用于向 AI 客户端暴露安全的 TAFFISH tools、resources、prompts、app inspection 和 project inspection。
-
-换句话说，`.taf` 描述工具或轻量流程应该如何运行；`taffish` 负责把它变成 shell；
-`taf` 负责把这种代码组织成可版本化、可解析容器、可发布、可索引、可安装、
-可组合的可执行包；`taffish-mcp` 则让 AI 客户端通过结构化接口检查 TAFFISH
-项目、app 和 Hub 状态。
+- `taf` 用来从 TAFFISH Hub 查找和安装 app。app 作者也用它创建、检查、构建和发布项目。
+- `taffish` 把描述工具或流程运行方式的 `.taf` 文件编译成 POSIX shell 脚本。
+- `taffish-mcp` 通过标准输入输出为 AI 客户端提供 MCP 接口，可查看 app、检查项目，但不能运行或发布 app。
 
 ## 目录
 
@@ -77,7 +73,8 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user
 ```
 
-安装后进行检查：
+用户级安装后，先按[设置命令路径](quick-start.cn.md#设置命令路径)把核心命令和 app 命令
+所在的目录加入 `PATH`，再检查实际使用的版本和环境：
 
 ```sh
 taf --version
@@ -361,6 +358,10 @@ echo "workdir: ::*WORKDIR*::"
 echo "argv   : ::*ARGV*::"
 ```
 
+最后一行展示拼接后的 shell 文本，不保留原始 argv 边界。普通占位符也插入原始
+文本；显式传入的 `@:` 参数块则逐 token 编码。不要用展示文本充当安全的参数转发。
+详见 [TAF 脚本教程](taf-script-tutorial.cn.md)。
+
 TAFFISH 的转义不是通用 shell 风格转义，只有少数语法字符会被特定解析器消费。
 
 `.taf` 词法层只识别这些转义：
@@ -471,7 +472,7 @@ taf run --backend docker -- --query test.fa --db nr
 
 ```sh
 TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 [ARGS...]
-TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- [ARGS...]
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile [ARGS...]
 ```
 
 这个环境变量不会覆盖显式的 `<docker:...>`、`<podman:...>` 或
@@ -528,7 +529,7 @@ my-tool --help
 ```taf
 <taffish>
 [[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 multiqc .]]
+[[taf: taf-multiqc-v1.35-r2 multiqc .]]
 ```
 
 嵌入语法是：
@@ -537,7 +538,9 @@ my-tool --help
 [[taf: taf-command args...]]
 ```
 
-编译时，TAFFISH 会把这些 taf app 先编译成临时 shell step，然后在当前流程中执行。这个机制让 flow 可以组合已有工具，并且保留明确的依赖关系。
+运行生成的 flow 时，先预编译子命令，再执行 block 正文；仅编译父 flow 不会运行
+分析。在 0.11.0 中，从源码编译的内联调用，其开始和结束标记必须直接写在源码中，
+不能由参数替换生成。这不是对原始 shell 文本的转义。
 
 在正式 flow 中，`[[taf: ...]]` 应写在真正执行该工具的代码位置。不要把所有 taf 依赖集中
 放在文件开头的 dummy block 或 `if false` 中，再通过变量、裸 wrapper 或生成脚本间接运行。
@@ -549,7 +552,7 @@ my-tool --help
 ```sh
 taffish_tmpdir=$(mktemp -d)
 taf-fastqc-v0.12.1-r1 --compile fastqc sample.fq > "$taffish_tmpdir/step-1.sh"
-taf-multiqc-v1.19-r1 --compile multiqc . > "$taffish_tmpdir/step-2.sh"
+taf-multiqc-v1.35-r2 --compile multiqc . > "$taffish_tmpdir/step-2.sh"
 chmod +x "$taffish_tmpdir"/step-*.sh
 "$taffish_tmpdir/step-1.sh"
 "$taffish_tmpdir/step-2.sh"
@@ -624,7 +627,7 @@ taf check
 taf compile [ARGS...]
 taf run [ARGS...]
 taf build
-taf publish
+taf publish --help
 ```
 
 创建 flow 项目：
@@ -681,19 +684,8 @@ target/<command-name>-v<version>-r<release>
 target/taf-my-tool-v0.1.0-r1
 ```
 
-发布项目：
-
-```sh
-taf publish --release --dry-run
-taf publish --release --yes --build
-```
-
-`taf new` 会创建一个被 ignore 的 `release.md` 草稿。使用
-`taf publish --release` 时，第一行会成为 publish message，整个文件会成为
-GitHub Release notes。
-
-发布会检查项目、读取 `taffish.toml` 中的仓库地址、检查远端 tag，并在确认后
-commit、tag、push，并创建或更新 GitHub Release。
+`taf new` 会生成一份不纳入 Git 的 `release.md` 草稿。运行 `taf publish --release`
+前先编辑它：第一行用作发布提交的摘要，全文用作 GitHub Release 的发布说明。
 
 ### Hub 命令
 
@@ -727,7 +719,7 @@ taf search blast
 taf list --online
 ```
 
-安装最新版本：
+安装本地索引缓存推荐的版本：
 
 ```sh
 taf install blast
@@ -758,8 +750,9 @@ taf prune --yes
 ```
 
 `taf outdated` 会报告本地已安装 app 中存在更新 index 版本的项目。`taf upgrade`
-默认只 dry-run，需要 `--yes` 才会修改本地安装。`taf prune` 会删除较旧的本地
-版本，并保留本地已安装的最新版本。通过 `taf install --from` 安装的 app 会被视为
+默认只 dry-run，需要 `--yes` 才会修改本地安装。0.11.0 的批量维护以本地 index
+的默认推荐为目标，不会自动降级。`taf prune` 要求该同源目标已安装且通过验证，
+只删除能可靠判定更旧的版本，证据不明时保护相关记录。通过 `taf install --from` 安装的 app 会被视为
 本地/私有安装，不会被公开 index 中的版本静默替换。
 
 安装尚未发布到公开 Hub 的私有/本地 TAFFISH app 项目：
@@ -798,7 +791,14 @@ taf config
 taf history
 ```
 
-`doctor` 用于检查或初始化本地 TAFFISH 环境；`config` 显示当前配置；`history` 显示或清理本地运行历史。
+`doctor` 诊断本地环境，只有显式传入 `--init` 才创建缺失的 TAFFISH 目录。
+在 0.11.0 中，`taf doctor index` 和 `taf doctor hub [APP|COMMAND...]` 可离线
+检查缓存或已安装状态。`taf config language en|zh|auto` 设置人类可读输出的语言；
+`auto` 跟随系统区域设置，无法识别时回退到英文。JSON 和 MCP 字段不会被翻译。
+
+`taf history` 显示本地运行历史。在 0.11.0 中，`taf` 和新版 wrapper 追加记录时，与 `taf history --clear` 共用同一把文件锁；只锁历史文件，不影响工具并行运行。写入端等待锁超过 5 秒会跳过本条记录，不改变工具退出码。
+
+wrapper 默认异步记录：即使还在等锁，调用方也可以在工具结束时读完标准输出和错误输出，历史记录可能稍后才出现。若需在 wrapper 退出前等本次写入尝试结束，可设置 `TAF_HISTORY_MODE=sync`。详见[历史记录规范](https://github.com/taffish/taffish/blob/v0.11.0/docs/standards/zh-CN/history-spec.md)。
 
 ## MCP / AI 集成
 
@@ -995,6 +995,13 @@ test = ["my-tool --help"]
 ```toml
 [dependencies]
 taf-fastqc = "0.12.1-r1"
+taf-multiqc = "1.35-r2"
+```
+
+若需要同一依赖的多个版本，可用数组表示这些版本都必须安装。以下用假设的依赖名举例：
+
+```toml
+[dependencies]
 taf-aligner = ["1.0.0-r1", "1.0.0-r2"]
 ```
 
@@ -1065,28 +1072,17 @@ taf build
 taf build --all --backend docker
 ```
 
-发布前预览：
+如果打算构建 wrapper 并将新版本设为 GitHub Latest，可先预览计划。下面的命令不会构建或发布：
 
 ```sh
-taf publish --release --dry-run
+taf publish --release --build --dry-run
 ```
 
-带 release notes 发布：
+如果是预发布、保留现有 Latest 的维护版，或只打 tag 而不创建 GitHub Release，
+预览时就应选用对应的选项。渠道和发布前检查见[开发者指南：发布](app-developer-guide.cn.md#发布)。
 
-```sh
-taf publish --release --yes --build
-```
-
-发布前应编辑被 ignore 的 `release.md` 草稿。它的第一行会成为 publish message，
-整个文件会成为 GitHub Release notes。
-
-发布完成后，GitHub 上的 app 仓库会有 release tag，例如：
-
-```text
-v0.1.0-r1
-```
-
-TAFFISH Hub 的索引自动化会扫描这个 tag，并把 app 纳入 index。用户运行 `taf update` 后即可安装。
+发布 `v0.1.0-r1` 这样的标签不等于已能从 Hub 安装。该版本通过索引检查并被收录后，
+用户才可以运行 `taf update` 并安装这个确切版本。
 
 ## Tool 与 Flow 的区别
 

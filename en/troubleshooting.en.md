@@ -12,6 +12,7 @@ from the error message, then check the relevant section.
 - [`taffish` Cannot Find Runtime Libraries On macOS](#taffish-cannot-find-runtime-libraries-on-macos)
 - [`taf update` Fails](#taf-update-fails)
 - [`taf install` Cannot Find An App](#taf-install-cannot-find-an-app)
+- [Diagnose Or Repair An Existing Install](#diagnose-or-repair-an-existing-install)
 - [GitHub Authentication Or Publish Fails](#github-authentication-or-publish-fails)
 - [GHCR Image Pull Fails](#ghcr-image-pull-fails)
 - [Docker Permission Denied](#docker-permission-denied)
@@ -77,7 +78,9 @@ scope and permissions matrix.
 
 ## `taffish` Cannot Find Runtime Libraries On macOS
 
-Current macOS Apple Silicon binaries may require Homebrew `zstd`:
+The 0.11.0 Apple Silicon binaries declare macOS 15.0 as their minimum system
+version and depend on Homebrew `zstd`. Installing a missing library does not
+make an older macOS version supported. If the error names `libzstd`:
 
 ```sh
 brew install zstd
@@ -154,11 +157,46 @@ taf install augustus 3.5.0-r1
 taf install taf-augustus-v3.5.0-r1
 ```
 
+## Diagnose Or Repair An Existing Install
+
+With TAFFISH 0.11.0, start by inspecting the **same scope** you installed into:
+
+```sh
+taf doctor index --user
+taf doctor hub augustus --user --verbose
+```
+
+Both checks are offline and read-only; omit the app name to inspect all local
+installations or use `--json` for full details. For shared installations use
+`--system`. A missing old build manifest can be `unverified` without damage.
+Check the reported path and issue: a broken shortcut need not mean the
+versioned wrapper is broken. Back up intentional changes before repairing.
+
+Preview an exact version (replace the example with one you actually installed)
+or select a batch:
+
+```sh
+taf install augustus 3.5.0-r1 --repair --user --dry-run
+taf install --all --repair --user
+taf install --all-installed --repair --user
+```
+
+For the exact target, **removing `--dry-run` applies it**. The two batch forms
+instead default to preview and require `--yes` to apply: `--all` considers only
+already-installed index recommendations; `--all-installed` includes historical
+installed versions. Neither installs missing versions or dependencies, upgrades,
+or prunes. Verified targets are skipped. A blocked target prevents the batch
+from starting; private or unknown sources, custom launchers and unsafe paths
+are not overwritten. A rebuild requires matching identity and a pinned commit.
+Repair cannot be combined with `--force`, `--from` or `--prune-old`.
+If an operation was interrupted, keep the journal and backups for review;
+do not delete them to force another run. Earlier successful repairs are not a
+single atomic transaction with later ones.
+
 ## GitHub Authentication Or Publish Fails
 
-`taf publish` uses Git and GitHub but does not manage login itself.
-
-Check:
+`taf publish` does not sign you in to GitHub. Check the local Git repository
+and your GitHub CLI login before retrying:
 
 ```sh
 git remote -v
@@ -166,32 +204,23 @@ git status
 gh auth status
 ```
 
-If remote Git operations should ask for credentials, use:
+Confirm that `[repository].url` in `taffish.toml` names the intended repository
+and that your account has access. An authentication error is not evidence that
+the repository is missing.
 
-```sh
-taf publish --release --dry-run --prompt
-taf publish --release --yes --prompt
-```
-
-If the repository does not exist and you want `taf` to create it:
-
-```sh
-taf publish --release --yes --build --create-repo --public
-```
-
-For real releases, prefer the release-note workflow:
-
-```sh
-taf publish --release --dry-run
-taf publish --release --yes --build
-```
-
-`taf publish --release` reads the ignored `release.md` draft. If the GitHub
-Release title or notes look wrong, edit `release.md`: the first line becomes the
-publish message, and the whole file becomes the GitHub Release notes.
-Since TAFFISH `0.8.1`, only the default first-line placeholders `TODO` and
-`TODO: release summary` are rejected, so normal release summaries that contain
-the word `todo` are accepted.
+- **Before the first publish:** Choose the [release channel](app-developer-guide.en.md#publish)
+  and preview your intended options with `--dry-run`. Add `--prompt` if Git
+  needs to ask for credentials in the terminal. Include `--create-repo --public`
+  only if you have confirmed the repository is missing and want to create it publicly.
+  Do not use `--yes` to test authentication.
+- **If `release.md` is rejected:** With `--release`, the first line supplies the
+  publish commit summary; the full file becomes the GitHub Release notes. Since
+  0.8.1, the first line cannot be the placeholder `TODO` or `TODO: release summary`;
+  the word `todo` inside a real summary is accepted.
+- **If publication was interrupted:** Check which commit, tag or Release exists
+  on GitHub. In 0.11.0, retry the original command with the same repository,
+  channel, options and `release.md`. Matching steps are skipped. If the commit,
+  tag or Release conflicts, stop; do not overwrite it to force a retry.
 
 ## GHCR Image Pull Fails
 
@@ -367,6 +396,8 @@ sudo mkdir -p /opt/taffish/images/sif
 sudo chmod 1777 /opt/taffish/images/sif
 ```
 
+The 0.11.0 system installer offers `--shared-sif-cache` for this explicitly
+chosen policy; it does not make an existing cache world-writable by default.
 Mode `1777` is similar to `/tmp`: local users can create files, but cannot
 delete files owned by other users. Use it only when the administrator
 intentionally allows trusted local users to share a writable SIF cache. On
@@ -426,9 +457,10 @@ test = ["my-tool --help"]
 ```
 
 `backend` and `timeout` can be omitted when their defaults are fine. Keep smoke
-checks cheap and deterministic. The public Hub/index automation runs them for
-new containerized versions after the image has been pushed; failures appear in
-the index build report instead of the main installable index.
+checks cheap and deterministic. After the image is pushed, check the Index build
+report: a **required** smoke failure blocks the new version from entering the
+index; an **advisory** failure identifies the affected backend without blocking
+an otherwise eligible version.
 
 ## Smoke Command Fails Because Of Nested Quotes
 

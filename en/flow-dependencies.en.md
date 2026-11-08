@@ -40,7 +40,7 @@ Flow apps are not ideal for:
 ```taf
 <taffish>
 [[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 multiqc .]]
+[[taf: taf-multiqc-v1.35-r2 multiqc .]]
 ```
 
 `taffish.toml`:
@@ -66,7 +66,7 @@ command_mode = false
 
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
 ## `[[taf: ...]]`
@@ -82,6 +82,8 @@ Prefer exact versioned commands in published flows:
 ```taf
 [[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
 ```
+
+In TAFFISH 0.11.0, write the inline delimiters in the **source**, not in a parameter value. A value containing `]]` or `[[taf:` cannot end or create a call. A full source comment line is not scanned; a trailing shell comment on a code line is not covered by that rule. `taf check/build` discover static dependencies without executing the call. This is a parsing rule, not shell escaping; see the [parameter examples](taf-script-tutorial.en.md#built-in-parameters).
 
 During development, the base command can be used:
 
@@ -236,7 +238,7 @@ Every taf app called by a flow should be declared in `[dependencies]`:
 ```toml
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
 The key is the base command name without the version:
@@ -336,7 +338,7 @@ Index representation:
 ```json
 "dependencies": {
   "taf-fastqc": ["0.12.1-r1"],
-  "taf-multiqc": ["1.19-r1"]
+  "taf-multiqc": ["1.35-r2"]
 }
 ```
 

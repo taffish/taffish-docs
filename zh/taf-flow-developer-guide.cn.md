@@ -245,16 +245,16 @@ flow app 必须显式声明依赖的 taf-tool。不要依赖宿主机上的生�
 ```toml
 [dependencies]
 "taf-fastqc" = "0.12.1-r1"
-"taf-multiqc" = "1.27.1-r1"
-"taf-fastp" = "0.24.1-r1"
+"taf-multiqc" = "1.35-r2"
+"taf-fastp" = "1.4.0-r1"
 ```
 
 `src/main.taf` 中通过 `[[taf: ...]]` 调用依赖：
 
 ```taf
 [[taf: taf-fastqc-v0.12.1-r1 fastqc --version]]
-[[taf: taf-fastp-v0.24.1-r1 fastp --version]]
-[[taf: taf-multiqc-v1.27.1-r1 multiqc --version]]
+[[taf: taf-fastp-v1.4.0-r1 fastp --version]]
+[[taf: taf-multiqc-v1.35-r2 multiqc --version]]
 ```
 
 更重要的是，`[[taf: ...]]` 应写在实际执行位置，而不是集中放在文件开头做“声明”。实现 flow 时可以先像写普通 shell 一样写出控制流：
@@ -349,9 +349,7 @@ ARGS
 
 RUN
 <taffish>
-[[taf: taf-rnaseq-index-flow-v0.2.0-r1 --genome ::genome:: --annotation ::annotation:: --outdir ::outdir:: --force \
-  @agat-convert-step: ::(@:)index-agat-convert-step:: @: \
-  @gffread-gtf-step: ::(@:)index-gffread-gtf-step:: @: ]]
+[[taf: taf-rnaseq-index-flow-v0.2.0-r1 --genome ::genome:: --annotation ::annotation:: --outdir ::outdir:: @agat-convert-step: ::(@:)index-agat-convert-step:: @: @gffread-gtf-step: ::(@:)index-gffread-gtf-step:: @: ]]
 ```
 
 这里父级槽位 `index-agat-convert-step` 会被传给子流程的 `agat-convert-step`。父级命名
@@ -430,7 +428,7 @@ Step 3. 报告汇总
 ```text
 tool	version	source
 taf-fastqc	0.12.1-r1	taffish dependency
-taf-multiqc	1.27.1-r1	taffish dependency
+taf-multiqc	1.35-r2	taffish dependency
 ```
 
 `run.manifest.json` 记录本次运行的结构化信息：

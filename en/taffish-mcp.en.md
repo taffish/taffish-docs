@@ -132,7 +132,7 @@ Environment and config:
 | --- | --- |
 | `taffish_get_version` | Return the installed `taffish-mcp` version. |
 | `taffish_get_help` | Return concise help for the MCP server. |
-| `taffish_check_environment` | Check local TAFFISH directories, `PATH`, and related executables without initializing or modifying the system. |
+| `taffish_check_environment` | Read-only diagnostics. In 0.11.0, use `check=environment` (default), `check=index` for the cached index, or `check=hub` for installed files. Only hub accepts an optional `targets` array. No repair or app execution. |
 | `taffish_get_config` | Return the effective TAFFISH runtime config. |
 | `taffish_get_config_paths` | Return TAFFISH config file paths. |
 
@@ -191,7 +191,12 @@ Install and uninstall planning:
 | `taffish_check_outdated` | Compare local Hub installs with the current local index and report upgrade candidates without installing them. |
 | `taffish_plan_install_all` | Plan a batch `taf install --all` operation, optionally limited to tools or flows. |
 | `taffish_plan_upgrade` | Plan upgrades for locally installed Hub apps. Mutating CLI upgrades still require explicit user confirmation outside MCP. |
-| `taffish_plan_prune` | Plan removal of older local versions while keeping the newest installed version. |
+| `taffish_plan_prune` | In 0.11.0, plan removal of reliably older same-source versions only when the index recommendation is installed and verified. It does not remove anything. |
+
+The maintenance planners remain read-only. There is no MCP `install --repair`
+tool or argument; explicit repair is a separate CLI operation. This does not
+remove existing local write tools such as `taffish_update_index`. The built-in
+English/Chinese setting affects human help, not MCP tool names or protocol data.
 
 Project work:
 

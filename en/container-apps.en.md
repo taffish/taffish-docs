@@ -153,10 +153,12 @@ Guidelines:
 - Do not require network access, large reference data, or user credentials.
 - Replace every default `TODO` placeholder before `taf check` or `taf publish`.
 
-`taf check` validates the metadata but does not run the container. The public
-Hub/index automation runs smoke checks for new containerized versions after the
-image has been pushed, records digest/platform/smoke metadata, and writes
-failures to index reports instead of exposing failed new versions to users.
+`taf check` validates the metadata without running the container. After the image
+is pushed, the Hub Index checks its digest and platforms and runs the smoke checks.
+The backend selected by `[smoke].backend` (Docker by default) is **required**:
+if its smoke check fails, the new version is not indexed. Other configured
+backends are **advisory**: failures are reported by backend but do not by
+themselves block indexing.
 
 ## Runtime Mounts And Working Directory
 
@@ -322,15 +324,9 @@ Avoid setting environment variables that unexpectedly override user behavior, su
 
 ## GitHub Actions
 
-`taf new --tool --docker` generates an image build workflow. The general workflow is:
+In TAFFISH 0.11.0, `taf new my-tool --tool --docker` generates the app repository’s image workflow. It validates the source and manifest, builds each declared `linux/amd64` or `linux/arm64` image on a matching native runner with a separate cache, then publishes the versioned manifest from verified platform results. A manual dispatch can target one platform. Older app tags keep the workflow they shipped with; do not infer their runner from the current scaffold.
 
-1. Checkout repository.
-2. Read image and Dockerfile metadata from `taffish.toml`.
-3. Login to GHCR.
-4. Use buildx for multi-platform builds.
-5. Push the image to `ghcr.io/taffish/...`.
-
-The app repository owns this automation. Hub does not build images for apps. Hub reads `taffish.toml` and release tags, then writes image information into the index.
+The app Action owns the image build and push. The Index independently inspects the published image and applies its required and advisory smoke policies; creating a tag alone does not prove either stage passed.
 
 ## GHCR Visibility
 
@@ -409,7 +405,7 @@ container tags without editing the app:
 
 ```sh
 TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
-TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile --help
 ```
 
 This runtime environment variable does not override explicit backend tags.

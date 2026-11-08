@@ -227,12 +227,16 @@ Common built-ins:
 ::*CONTAINER*::
 ```
 
-For tool wrappers that forward all upstream arguments, `::*ARGV*::` is common:
+A thin tool wrapper often inserts the original arguments as **shell text**:
 
 ```taf
 <taf-app:container:ghcr.io/taffish/augustus:3.5.0-r1>
 augustus ::*ARGV*::
 ```
+
+Do not treat every substitution as an argv array. A scalar such as `::input::` inserts raw text. A supplied block such as `::(@:)step::` encodes each token separately: use it **without outer quotes** at an argument-list position. In contrast, `::*ARGV*::` and automatic `<taf-app:...>` command mode join tokens with spaces. Quoting a filename in the caller does not guarantee its boundary survives this later shell parse.
+
+For a shell-only exercise, put `set -- ::(@:)step::` and then `printf 'argc=%s\n' "$#"` in a block that declares `<(@:)step>`. Passing `@step: 'sample A.fa' ''` yields two arguments, not three or one. Test real wrappers with spaces, empty strings and literal shell characters; a child that rebuilds shell text can lose boundaries the parent preserved. Never use `eval` to recover them.
 
 ## Container Tags
 
@@ -281,7 +285,7 @@ For installed `taf-*` commands or direct `taffish` compilation, use
 
 ```sh
 TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
-TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile --help
 ```
 
 This does not override explicit `<docker:...>`, `<podman:...>`, or
@@ -358,7 +362,7 @@ RUN
 <taffish>
 mkdir -p ::outdir::
 [[taf: taf-fastqc-v0.12.1-r1 fastqc ::input:: --outdir ::outdir::]]
-[[taf: taf-multiqc-v1.19-r1 multiqc ::outdir::]]
+[[taf: taf-multiqc-v1.35-r2 multiqc ::outdir::]]
 ```
 
 Declare dependencies in `taffish.toml`:
@@ -366,7 +370,7 @@ Declare dependencies in `taffish.toml`:
 ```toml
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
 If a flow requires multiple versions of the same app:

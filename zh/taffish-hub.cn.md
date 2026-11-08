@@ -1,21 +1,20 @@
 # 什么是 TAFFISH Hub
 
-TAFFISH Hub 是 TAFFISH 生态的 app 索引与分发层。它的目标是让用户可以通过：
+TAFFISH Hub 是 TAFFISH app 的官方索引。可以在[网页](https://taffish.github.io)查看已收录的版本，也可以用 `taf` 在本机查找和安装。以 Augustus 为例：
 
 ```sh
 taf update
-taf install APP
+taf search augustus
+taf install augustus
 ```
 
-获得可复现、可版本化、可追踪来源的生信工具和流程。
+`taf update` 刷新本地索引，不会升级已安装的 app；`taf install augustus` 安装索引推荐的版本。安装后，在自己的终端运行 `taf-augustus`，不是在 Hub 网页上运行。完整示例见[快速开始](quick-start.cn.md#首次运行-augustus)。
 
 当前 TAFFISH Hub 主要依赖 GitHub 完成自动化，不需要独立后端服务器。它由三个核心部分组成：
 
 - `taffish-index`：静态索引仓库，生成机器可读的 index JSON。
 - `taffish.github.io`：静态网页，展示 index 中的 app。
 - `.github`：组织首页仓库，控制 `github.com/taffish` 的 Overview 内容。
-
-现在可以通过 [taffish.github.io](https://taffish.github.io) 在线查看 TAFFISH Hub。这个网页读取 `taffish-index` 的静态 JSON，因此它展示的是当前已被官方索引发现的 app。
 
 如果想查看官方 flow family 的面向人路线图，可以打开
 [TAFFISH Flow Portal](https://taffish.github.io/flows/)。如果想查看当前最完整的公开
@@ -43,7 +42,7 @@ flow-family 案例，可以打开 [RNA-seq Flow Family](https://taffish.github.i
 - [`taffish.github.io`](#taffishgithubio)
 - [`.github`](#github)
 - [app 镜像构建](#app-镜像构建)
-- [用户如何被服务](#用户如何被服务)
+- [查找并安装 app](#查找并安装-app)
 - [开发者如何发布 app](#开发者如何发布-app)
 - [镜像与内部来源支持](#镜像与内部来源支持)
 - [当前边界](#当前边界)
@@ -56,7 +55,7 @@ Hub 提供一个中心索引，把分散信息整理成：
 
 - 哪些 app 可用
 - 每个 app 有哪些版本
-- 最新版本是什么
+- 不指定版本安装时，推荐哪个已收录版本
 - app 是 tool 还是 flow
 - 安装命令是什么
 - app 的 GitHub 仓库在哪里
@@ -437,10 +436,10 @@ checks，并记录镜像 digest 和平台列表。
 
 主 index 策略：
 
-- 已经接受过的版本，如果 release tag 仍指向同一 commit，则复用旧记录。
+- 对已收录且未变的版本，可在证据身份和策略匹配时复用；重新生成 index 不等于刚对每个后端做过实测。
 - 新的非容器版本可以以 `trust.status = "not_applicable"` 进入 index。
-- 新的容器化版本只有通过 digest/platform 检查和 smoke checks 后才进入主 index。
-- 失败结果写入 `index/reports/latest.json` 和带时间戳的 reports，不进入稳定主 index。
+- 新的容器化版本必须通过 digest/platform 检查和必需后端 smoke 才能被收录。
+- 建议性后端失败单独报告，本身不阻止收录。详情见 `index/reports/latest.json` 与带时间戳的报告。
 
 ## 发现元数据
 
@@ -535,7 +534,7 @@ https://raw.githubusercontent.com/taffish/taffish-index/main/index/index.json
 - tool / flow 筛选
 - 依赖筛选
 - 容器镜像筛选
-- 名称 / 最新版本排序
+- 按名称或最近一个已收录版本的发布时间排序
 - package 详情页
 - 版本列表
 - 依赖列表
@@ -591,18 +590,15 @@ app-repo/
 - 每个 app 的 release tag 应该对应自己的镜像 tag。
 - Hub 只负责发现和索引，不负责替 app 构建。
 
-## 用户如何被服务
+<a id="用户如何被服务"></a>
 
-用户侧的核心路径：
+## 查找并安装 app
+
+按页首示例安装 Augustus 后，用 `taf list` 查看已安装的版本，用 `taf which` 找到命令路径：
 
 ```sh
-taf update
-taf search blast
-taf install blast
-taf outdated
-taf upgrade
 taf list
-taf which taf-blast-v2.16.0-r1
+taf which taf-augustus
 ```
 
 `taf update` 会下载静态 index，写入本地缓存：
@@ -628,7 +624,13 @@ index 和安装元数据：
 - `taf install --all` 用于预览或安装全部已索引 app，也可以限制为 tools 或 flows。
 - `taf outdated` 用于报告本地已安装 Hub app 中有更新 index 版本的项目。
 - `taf upgrade` 用于预览或执行已安装 Hub app 的升级。
-- `taf prune` 用于删除较旧本地版本，并保留本地已安装的最新版本。
+- `taf prune` 用于预览或删除符合条件的旧本地版本。
+
+在 TAFFISH 0.11.0 中，批量安装和升级以索引缓存中的默认推荐（`latest`）为目标，
+不会因为预发布时间较晚就选它，也不会自动降级。已经收录的预发布版本仍可显式指定
+安装。`prune` 要求同源的 index 推荐目标已经安装且验证通过，只清理可靠判定更旧的
+同源版本；较新、不可比较、私有或未知来源的安装受保护。可先用 `taf doctor index`
+与 `taf doctor hub` 区分索引问题和本地安装问题。
 
 这些都是本地操作，不会修改公开 Hub index。通过 `taf install --from` 安装的
 本地/私有 app 也不会被公开 index 中的版本静默替换。
@@ -654,21 +656,7 @@ taf install --from /path/to/my-private-tool
 
 ## 开发者如何发布 app
 
-典型路径：
-
-```sh
-taf new my-tool --tool --docker
-cd my-tool
-taf check
-taf run -- --help
-taf build --all
-taf publish --release --dry-run
-taf publish --release --yes --build
-```
-
-发布前，维护者应编辑 `taf new` 创建的、被 ignore 的 `release.md` 草稿。使用
-`taf publish --release` 时，它的第一行会成为 publish message，整个文件会成为
-GitHub Release notes。
+先在 app 仓库检查、构建并测试要发布的版本。然后按[App 开发者指南的发布步骤](app-developer-guide.cn.md#发布)选择渠道；需要创建 GitHub Release 时，先写好 `release.md`。用同一组参数预览，确认后再发布。发布到 GitHub 和被 Hub 收录是两件事。
 
 发布后，app 仓库应该有：
 
@@ -687,8 +675,7 @@ GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
 taffish.toml 中的 [smoke]
 ```
 
-当 `taffish-index` 的自动化下一次运行后，非容器 app 和通过可信 gate 的容器化 app 会被写入主 index。
-失败的新容器化版本会进入维护者报告。用户随后运行 `taf update` 即可安装已接受的版本。
+Index 下次扫描时会核对发布记录；容器化版本还要通过镜像和必需的 smoke 检查。未收录时先查 Index 报告。版本收录后，用户运行 `taf update` 刷新本地索引，即可按版本号安装；不指定版本则使用索引的默认推荐（如果有）。
 
 ## 镜像与内部来源支持
 

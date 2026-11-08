@@ -2,270 +2,85 @@
 
 [English](README.md) | [中文](README.cn.md)
 
-This repository contains public documentation for TAFFISH, TAFFISH Hub,
-taf-app development, the static index, and the local `taffish-mcp` AI
-integration entry point.
+TAFFISH packages bioinformatics tools and lightweight workflows as commands you can install by version. Use `taf` to find and install an app from TAFFISH Hub. Then run its command, such as `taf-augustus`, in your terminal or an existing script. When a script needs a specific version, use the versioned command name.
 
-TAFFISH is a shell-native reproducible execution and delivery layer for
-bioinformatics command-line tools and lightweight workflows. Its executable
-package model brings command-level reproducibility to the shell. TAFFISH Hub is
-the curated registry and index layer used by `taf` to discover, install, and
-manage TAFFISH apps.
+**[Install TAFFISH and run your first app](en/quick-start.en.md)** · [Browse apps in TAFFISH Hub](https://taffish.github.io)
 
-## Table of Contents
-
-- [Recommended Reading Paths](#recommended-reading-paths)
-- [Flow Portal And Complete Example](#flow-portal-and-complete-example)
-- [Document Roles](#document-roles)
-- [Core Concepts](#core-concepts)
-- [User Guides](#user-guides)
-- [Developer Guides](#developer-guides)
-- [Specifications](#specifications)
-- [Security Model](#security-model)
-- [Source Development](#source-development)
-- [How The Documents Overlap](#how-the-documents-overlap)
-- [Repository Layout](#repository-layout)
-- [Online Hub](#online-hub)
-- [Documentation Policy](#documentation-policy)
-- [License](#license)
-- [Status](#status)
+<a id="table-of-contents"></a>
 
 ## Recommended Reading Paths
 
-Choose a path based on what you want to do.
+| I want to… | Start here | Next, if needed |
+| --- | --- | --- |
+| Use an existing app | [Quick Start](en/quick-start.en.md) | [Troubleshooting](en/troubleshooting.en.md) if a command fails |
+| Set up a shared server or HPC system | [System Administration](en/system-administration.en.md) | [Security Model](en/security-model.en.md) for trust decisions |
+| Learn the `.taf` language | [TAF Script Tutorial](en/taf-script-tutorial.en.md) | [What Is TAFFISH?](en/taffish.en.md) for syntax and CLI details |
+| Write a tool app | [App Developer Guide](en/app-developer-guide.en.md) | [`taffish.toml` Specification](en/taffish-toml-spec.en.md) for manifest fields |
+| Package a tool that runs in a container | [App Developer Guide](en/app-developer-guide.en.md) | [Containerized App Best Practices](en/container-apps.en.md) for images, mounts, and smoke tests |
+| Prepare an app for the official Hub | [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) | [Augustus](https://github.com/taffish/augustus) as a worked example |
+| Combine tools into a Flow | [Flow and Dependencies](en/flow-dependencies.en.md) | [Flow Developer Guide](en/taf-flow-developer-guide.en.md), then the [pre-publication checklist](en/taf-flow-curation-checklist.en.md) |
+| Find a Flow for an analysis | [TAFFISH Flow Portal](https://taffish.github.io/flows/) | [RNA-seq example and reports](#flow-portal-and-complete-example) |
+| Understand how an app gets into the index | [What Is TAFFISH Hub?](en/taffish-hub.en.md) | [Index JSON Specification](en/index-json-spec.en.md) for version records and test results |
+| Check what TAFFISH verifies | [Security Model](en/security-model.en.md) | [Index JSON Specification](en/index-json-spec.en.md) for recorded checks |
+| Connect an AI client | [MCP Client Setup](en/mcp-clients.en.md) | [MCP Guide](en/taffish-mcp.en.md) for the tools available to the client |
+| Build or modify TAFFISH itself | [Build From Source](https://github.com/taffish/taffish/blob/main/docs/dev/en/build-from-source.md) | [Source development and contributing](#source-development) |
 
-| Goal | Recommended order |
-| --- | --- |
-| Use existing TAFFISH apps | [Quick Start](en/quick-start.en.md) -> [Troubleshooting](en/troubleshooting.en.md) when needed -> [What Is TAFFISH Hub](en/taffish-hub.en.md) for background |
-| Administer a shared server or HPC installation | [System Administration](en/system-administration.en.md) -> [Troubleshooting](en/troubleshooting.en.md) -> [Security Model](en/security-model.en.md) |
-| Learn the TAFFISH language | [What Is TAFFISH](en/taffish.en.md) -> [TAF Script Tutorial](en/taf-script-tutorial.en.md) |
-| Write a simple tool app | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [App Developer Guide](en/app-developer-guide.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
-| Package a containerized bioinformatics tool | [App Developer Guide](en/app-developer-guide.en.md) -> [Containerized App Best Practices](en/container-apps.en.md) -> [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) -> [Troubleshooting](en/troubleshooting.en.md) |
-| Curate an official Hub app | [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) -> [Augustus app template](https://github.com/taffish/augustus) -> [Containerized App Best Practices](en/container-apps.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
-| Write a flow app with dependencies | [TAF Script Tutorial](en/taf-script-tutorial.en.md) -> [Flow And Dependencies Guide](en/flow-dependencies.en.md) -> [TAFFISH Flow Developer Guide](en/taf-flow-developer-guide.en.md) -> [TAFFISH Flow Curation Checklist](en/taf-flow-curation-checklist.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
-| Explore official flow routes | [TAFFISH Flow Portal](https://taffish.github.io/flows/) -> [RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) -> [Flow And Dependencies Guide](en/flow-dependencies.en.md) |
-| Understand Hub and index internals | [What Is TAFFISH Hub](en/taffish-hub.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [`taffish.toml` Specification](en/taffish-toml-spec.en.md) |
-| Understand security and trust | [TAFFISH Security Model](en/security-model.en.md) -> [TAFFISH Index JSON Specification](en/index-json-spec.en.md) -> [TAFFISH MCP Guide](en/taffish-mcp.en.md) |
-| Connect TAFFISH to an AI client | [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) -> [TAFFISH MCP Guide](en/taffish-mcp.en.md) -> [What Is TAFFISH](en/taffish.en.md#mcp--ai-integration) for background |
-| Build or modify TAFFISH itself | [taffish/taffish README](https://github.com/taffish/taffish) -> [Build From Source](https://github.com/taffish/taffish/blob/main/docs/dev/en/build-from-source.md) -> [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md) |
+Run `taf --version` to check your installed version. For changes in 0.11.0, see the [release notes](https://github.com/taffish/taffish/releases/tag/v0.11.0).
 
-If you are completely new, read [Quick Start](en/quick-start.en.md) first, then
-[What Is TAFFISH](en/taffish.en.md).
+## Flow Portal and Complete Example
 
-## Flow Portal And Complete Example
+The [Flow Portal](https://taffish.github.io/flows/) lists official Flow families. For a worked example, follow the [RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) from reference preparation to the final report. It shows how versioned shell commands fit together; you can also call those commands from an existing workflow engine. Open the [yeast report](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html) alongside the [interpretation guide](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html) to read the results.
 
-The [TAFFISH Flow Portal](https://taffish.github.io/flows/) is the public entry
-point for official flow families and curated analysis routes. It links available
-flow pages, Hub records, example reports, and deeper case-study sites.
-
-The [RNA-seq Flow Family](https://taffish.github.io/rnaseq-flows/) remains the
-most complete public case study for composing versioned `taf-*` commands into a
-reference-to-report route. It includes per-flow manuals, live yeast reports, and
-a report interpretation guide:
-
-- [TAFFISH Flow Portal](https://taffish.github.io/flows/)
-- [RNA-seq Flow Family portal](https://taffish.github.io/rnaseq-flows/)
-- [Yeast standard report](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/rnaseq_report.html)
-- [Report interpretation guide](https://taffish.github.io/rnaseq-flows/examples/yeast-standard-report/04_reports/report_interpretation.html)
-
-This example demonstrates TAFFISH's command-level reproducibility model in a
-real analysis setting. It shows how shell-native app commands can be composed
-into lightweight flows without replacing workflow engines.
+<a id="how-the-documents-overlap"></a>
 
 ## Document Roles
 
-| Document | Role |
-| --- | --- |
-| [Quick Start](en/quick-start.en.md) | User onboarding. It intentionally repeats install, mirror config, update, search, install, local maintenance, run, list, locate, and uninstall basics. |
-| [System Administration](en/system-administration.en.md) | Shared workstation, server, and HPC deployment guide covering user/system scope, permissions, command paths, global completion/Vim setup, container policy, upgrades, and removal. |
-| [What Is TAFFISH](en/taffish.en.md) | Conceptual language and CLI manual. It explains the design, syntax, tags, parameters, project structure, CLI surface, and MCP/AI integration entry point. |
-| [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Hands-on `.taf` writing path. It teaches by building up from small scripts to app wrappers and flows. |
-| [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Capability reference for `taffish-mcp`, including tools, read-only compiler helpers, app/project inspection, smoke/trust metadata exposure, package-maintenance planners, resources, prompts, safety boundaries, and troubleshooting. |
-| [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) | Client setup guide for Codex, Claude Code, Cursor, Cline, and generic stdio MCP clients. |
-| [App Developer Guide](en/app-developer-guide.en.md) | Practical app release workflow. It focuses on `taf new`, project editing, check, run, build, `release.md`, publish, and maintenance. |
-| [Containerized App Best Practices](en/container-apps.en.md) | Focused container guide. It covers Dockerfile design, smoke metadata, runtime mounts, GHCR, Docker/Podman testing, backend consistency, and the runtime-argument policy introduced in TAFFISH `0.9.0`. |
-| [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) | Official Hub maintainer guide. It uses Augustus as the baseline template and covers file boundaries, help/README/release/smoke design, version policy, publish checks, and what not to edit. |
-| [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Focused flow guide. It covers `[[taf: ...]]`, `@:` blocks, exact app versions, and dependency semantics. |
-| [TAFFISH Flow Developer Guide](en/taf-flow-developer-guide.en.md) | Flow app engineering guide covering flow scope, output directories, input/output contracts, dependencies, resources, provenance, smoke tests, and publication boundaries. |
-| [TAFFISH Flow Curation Checklist](en/taf-flow-curation-checklist.en.md) | Official pre-publication checklist for flow boundaries, dependencies, output directories, data flow, reports, provenance, resources, smoke tests, documentation, and hard blockers. |
-| [`taffish.toml` Specification](en/taffish-toml-spec.en.md) | Metadata reference for app authors, Hub maintainers, and validators, including `[smoke]` metadata for containerized apps. |
-| [TAFFISH Index JSON Specification](en/index-json-spec.en.md) | Machine-readable index reference for `taf`, Hub automation, index consumers, trust metadata, container digests, smoke results, and build reports. |
-| [TAFFISH Security Model](en/security-model.en.md) | Layered trust model covering source code, release payload integrity, installers, mirrors, Hub index gates, local install verification, containers, and MCP/AI boundaries. |
-| [Troubleshooting](en/troubleshooting.en.md) | Problem-oriented reference. Start here when commands, smoke metadata, containers, GHCR, GitHub, or wrappers fail. |
+Use a tutorial to try an example, a guide to carry out a task, and a specification to look up an exact field.
 
-Maintenance rule: field-level truth belongs in the
-[`taffish.toml` Specification](en/taffish-toml-spec.en.md); index output truth
-belongs in the [TAFFISH Index JSON Specification](en/index-json-spec.en.md);
-container practice belongs in [Containerized App Best Practices](en/container-apps.en.md);
-official Hub app checklists belong in the
-[Official taf-app Curation Guide](en/taf-app-curation-guide.en.md); flow app
-engineering conventions belong in the
-[TAFFISH Flow Developer Guide](en/taf-flow-developer-guide.en.md) and
-[TAFFISH Flow Curation Checklist](en/taf-flow-curation-checklist.en.md);
-concrete failure handling belongs in [Troubleshooting](en/troubleshooting.en.md).
+### Core Concepts
 
-## Core Concepts
+- [What Is TAFFISH?](en/taffish.en.md) explains how a `.taf` script becomes a shell command, how it handles arguments and containers, and where [MCP fits](en/taffish.en.md#mcp--ai-integration).
+- [What Is TAFFISH Hub?](en/taffish-hub.en.md) follows an app from its GitHub release through index checks to the version a user can install.
 
-| Document | Purpose |
-| --- | --- |
-| [What Is TAFFISH](en/taffish.en.md) | Language, compiler, CLI, `taffish-mcp`, app project structure, parameter system, container tags, and the recommended development workflow. |
-| [What Is TAFFISH Hub](en/taffish-hub.en.md) | Hub architecture, GitHub-based automation, index generation, web registry, dependency handling, and publication policy. |
+### User Guides
 
-Read these two documents when you want the system-level picture.
+- [Quick Start](en/quick-start.en.md): install and run Augustus. Return here to install a private or local app with `taf install --from`, check for updates with `taf outdated`, or manage installed versions with `taf upgrade` and `taf prune`.
+- [System Administration](en/system-administration.en.md): configure shared installs, permissions, shell completion, Vim files, and container policy.
+- [MCP Client Setup](en/mcp-clients.en.md): connect a client such as Codex or Claude Code to `taffish-mcp`. The [MCP Guide](en/taffish-mcp.en.md) describes its tools, inspection and compile previews, and what the server will not execute.
+- [Troubleshooting](en/troubleshooting.en.md): diagnose failures in installation, mirror access, container startup, or the installed app command.
 
-## User Guides
+### Developer Guides
 
-| Document | Purpose |
-| --- | --- |
-| [TAFFISH Quick Start](en/quick-start.en.md) | Install TAFFISH, update the Hub index, search, install public apps, maintain local installs with `taf outdated`, `taf upgrade`, and `taf prune`, install private/local apps with `taf install --from`, run, list, locate, and uninstall apps. |
-| [TAFFISH System Administration](en/system-administration.en.md) | Install and operate TAFFISH for multiple users, including explicit system scope, permissions, global shell/editor integration, container policy, and maintenance. |
-| [Using TAFFISH MCP With AI Clients](en/mcp-clients.en.md) | Configure `taffish-mcp` in Codex, Claude Code, Cursor, Cline, or a generic stdio MCP client. |
-| [TAFFISH MCP Guide](en/taffish-mcp.en.md) | Understand `taffish-mcp` tools, read-only compiler helpers, app/project inspection, smoke/trust metadata exposure, package-maintenance planners, resources, prompts, and safety model. |
-| [TAF Script Tutorial](en/taf-script-tutorial.en.md) | Step-by-step `.taf` writing tutorial for app authors, from minimal scripts to parameters, containers, flows, and dependencies. |
-| [TAFFISH Troubleshooting](en/troubleshooting.en.md) | Common installation, index, mirror config, smoke metadata, container, GHCR, Podman, Docker, Apptainer, and wrapper problems. |
+- [TAF Script Tutorial](en/taf-script-tutorial.en.md): write a `.taf` script and pass arguments to it. The [App Developer Guide](en/app-developer-guide.en.md) takes an app from `taf new` through testing, building, preparing `release.md`, and publishing.
+- [Containerized App Best Practices](en/container-apps.en.md): build the image, declare smoke tests, and check behavior across Docker, Podman, and Apptainer. Use it to distinguish app requirements (`$@[target: args]`) from local backend settings (`TAFFISH_CONTAINER_BACKEND` and options such as `TAFFISH_PODMAN_RUN_ARGS`).
+- [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md): review a Hub app's help, version, smoke tests, and release before submitting it for inclusion.
+- [Flow and Dependencies](en/flow-dependencies.en.md): declare exact dependency versions and call them with `[[taf: ...]]` and `@:` parameter blocks. Use the [Flow Developer Guide](en/taf-flow-developer-guide.en.md) to design inputs, outputs, and provenance; use the [Flow Curation Checklist](en/taf-flow-curation-checklist.en.md) before release.
 
-Use these guides when you want a practical path from first install to daily use.
+### Specifications
 
-## Developer Guides
+- [`taffish.toml` Specification](en/taffish-toml-spec.en.md): look up fields an app author writes, including `[smoke]`, `[meta]`, and `[upstream]`.
+- [Index JSON Specification](en/index-json-spec.en.md): look up what the Hub records for a version, including source identity, container digests, smoke results, and metadata overrides.
 
-| Document | Purpose |
-| --- | --- |
-| [TAFFISH App Developer Guide](en/app-developer-guide.en.md) | Practical workflow for creating, checking, running, building, private/local testing with `taf install --from`, preparing `release.md`, publishing, and maintaining TAFFISH apps. |
-| [Containerized App Best Practices](en/container-apps.en.md) | Dockerfile design, multi-stage builds, smoke metadata, runtime mounts, GHCR visibility, local Docker/Podman testing, backend consistency, `TAFFISH_CONTAINER_BACKEND`, structured `$@[target: args]`, and backend runtime-argument environment variables. |
-| [Official taf-app Curation Guide](en/taf-app-curation-guide.en.md) | Curation guide for official Hub maintainers turning `taf new` projects into publishable, indexable apps that can serve as templates. |
-| [Flow And Dependencies Guide](en/flow-dependencies.en.md) | Flow app structure, `[[taf: ...]]`, `@:` parameter blocks, dependency declarations, multi-version dependencies, and install semantics. |
-| [TAFFISH Flow Developer Guide](en/taf-flow-developer-guide.en.md) | Engineering guide for designing, implementing, validating, and publishing taf-flow apps, with emphasis on a single `<outdir>`, input/output contracts, provenance, and resource notes. |
-| [TAFFISH Flow Curation Checklist](en/taf-flow-curation-checklist.en.md) | Checklist and final review template for publishing or reviewing taf-flow apps. |
+### Security Model
 
-Use these guides when you are actively building or maintaining apps.
-
-## Specifications
-
-| Document | Purpose |
-| --- | --- |
-| [`taffish.toml` Specification](en/taffish-toml-spec.en.md) | Metadata fields consumed by `taf`, TAFFISH Hub, and the index builder, including `[smoke]`, `[meta]`, and `[upstream]`. |
-| [TAFFISH Index JSON Specification](en/index-json-spec.en.md) | Static index schema consumed by `taf update`, `taf search`, `taf info`, and `taf install`, including trust reports, container smoke metadata, and index-side metadata overrides. |
-
-Use these documents when implementing tools, automation, validators, or Hub
-consumers.
-
-## Security Model
-
-| Document | Purpose |
-| --- | --- |
-| [TAFFISH Security Model](en/security-model.en.md) | End-to-end overview of release integrity, installer behavior, mirror behavior, Hub/index trust gates, `source.commit` verification, container boundaries, and MCP safety boundaries. |
-
-Use this document when reviewing TAFFISH for a collaboration, server deployment,
-private mirror, enterprise environment, or security-sensitive workflow.
+The [Security Model](en/security-model.en.md) explains what the installer verifies, how the Hub and `taf install` check releases and `source.commit`, and where trust in mirrors, containers, and MCP clients begins and ends.
 
 ## Source Development
 
-The authoritative current release, source code, ASDF systems, source-tree
-developer docs, release payloads, contribution guide, and security policy live
-in [taffish/taffish](https://github.com/taffish/taffish). Release-specific
-feature history belongs in that repository's release notes rather than being
-repeated as current-version prose throughout this documentation set.
+The compiler, `taf`, and `taffish-mcp` live in [taffish/taffish](https://github.com/taffish/taffish). Use [Build From Source](https://github.com/taffish/taffish/blob/main/docs/dev/en/build-from-source.md) for an SBCL or LispWorks build, the [source-tree developer docs](https://github.com/taffish/taffish/tree/main/docs/dev/en) for architecture and release engineering, and [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md) for tests and patches. To report a vulnerability privately, follow the [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md).
 
-The most relevant source-side documents are:
-
-| Document | Purpose |
-| --- | --- |
-| [Build From Source](https://github.com/taffish/taffish/blob/main/docs/dev/en/build-from-source.md) | Build `taf`, `taffish`, and `taffish-mcp` from the Common Lisp source tree with SBCL or LispWorks. |
-| [Source-tree Developer Docs](https://github.com/taffish/taffish/tree/main/docs/dev/en) | Architecture notes for `taffish-core`, `taf-core`, `taffish-mcp`, `han`, ASDF systems, and release engineering. |
-| [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md) | Development setup, test expectations, code boundaries, documentation expectations, and release artifact policy. |
-| [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md) | Private vulnerability reporting and the current release/index trust model. |
-
-This `taffish-docs` repository remains focused on user-facing, app-author, Hub,
-and index documentation. Compiler implementation notes should stay close to the
-source repository.
-
-## How The Documents Overlap
-
-Some repetition is intentional:
-
-- Install and basic `taf` commands appear in both Quick Start and What Is
-  TAFFISH so users can start quickly and later understand the full model.
-- System-scope commands appear briefly in Quick Start and in full in System
-  Administration. The administration guide is the source of truth for shared
-  permissions, global shell/editor integration, and mixed deployments.
-- Runtime mirror configuration appears in Quick Start, What Is TAFFISH, What Is
-  TAFFISH Hub, and troubleshooting because it affects both network access and
-  package installation.
-- `taffish-mcp` appears briefly in What Is TAFFISH. The MCP guide documents
-  the server capability surface, read-only compiler helpers, app/project inspection, smoke/trust metadata exposure, package-maintenance planners, safe compile previews, and safety boundaries, while the client setup
-  guide documents Codex, Claude Code, Cursor, Cline, and generic MCP
-  configuration examples.
-- `taf run`, `taf build`, and `taf publish` appear in the app developer guide
-  and the language manual because they connect syntax to project lifecycle.
-- The official taf-app curation guide overlaps with the app developer guide and
-  container best practices, but acts more like a maintainer checklist for
-  official Hub apps using Augustus as the baseline.
-- Container backend and runtime-argument notes appear in Quick Start, container
-  best practices, and troubleshooting because runtime issues are common in real
-  deployments. App-specific runtime requirements belong in `.taf` tags with
-  `$@[target: args]`; one-off local policy belongs in
-  `TAFFISH_DOCKER_RUN_ARGS`, `TAFFISH_PODMAN_RUN_ARGS`, or
-  `TAFFISH_APPTAINER_RUN_ARGS`.
-- Smoke metadata appears in the app developer guide, container best practices,
-  `taffish.toml` specification, Hub guide, index JSON specification, and MCP
-  guide because TAFFISH `0.8.0` connects local app metadata with Hub-side
-  validation and AI-assisted inspection.
-- Security appears as its own model document because release verification,
-  mirrors, index trust gates, local install checks, containers, and MCP
-  boundaries cut across several repositories.
-- Source-building and compiler-internal documentation are linked here, but live
-  in `taffish/taffish` so they evolve with the Common Lisp source tree.
-- Flow dependencies appear in the language manual, app developer guide, and the
-  focused flow guide; the Flow And Dependencies Guide is the most detailed
-  source for syntax and dependency semantics.
-- Flow engineering conventions appear in the app developer guide, Flow Developer
-  Guide, and Flow Curation Checklist. The Flow Developer Guide owns output
-  directories, input/output contracts, provenance, and resource models; the
-  checklist owns pre-publication review.
-
-As a rule: use tutorials to learn, guides to work, specifications to check exact
-fields, and troubleshooting to diagnose failures.
-
-## Repository Layout
-
-```text
-./
-  README.md
-  README.cn.md
-  en/
-    *.en.md
-  zh/
-    *.cn.md
-```
-
-The default README is English. Chinese files use the `.cn.md` suffix, and
-English files use the `.en.md` suffix.
+<a id="status"></a>
 
 ## Online Hub
 
-- [taffish.github.io](https://taffish.github.io)
+Browse apps at [taffish.github.io](https://taffish.github.io). The website reads the official index; `taf update` refreshes the local copy used by `taf`. The `taffish` GitHub organization reviews apps for inclusion. To propose an app or request organization membership, contact the maintainers; publishing your own repository does not automatically list it in the official Hub.
 
-The web Hub browses the same static index that `taf` consumes.
+<a id="repository-layout"></a>
 
 ## Documentation Policy
 
-These documents describe the current design and conventions of TAFFISH and
-TAFFISH Hub. They are maintained as source documentation, not generated artifacts
-bound to one specific `taf` or `taffish` binary version.
-
-When exact behavior matters, prefer the corresponding repository code and release
-notes as the final source of truth. Documentation history is tracked through
-GitHub commit history. If a future document applies only to a specific version,
-that constraint should be stated explicitly at the top of that document.
+English guides are in `en/` (`*.en.md`); Chinese guides are in `zh/` (`*.cn.md`). These guides describe TAFFISH across releases. For exact behavior in a particular version, consult that release's notes and source code.
 
 ## License
 
-The documentation in this repository is licensed under the
-[Creative Commons Attribution 4.0 International License](LICENSE) (CC BY 4.0).
-
-## Status
-
-The official TAFFISH Hub is currently curated by the `taffish` GitHub
-organization. It is not an open self-service publishing platform yet. Developers
-who want to publish apps into the official Hub should contact the maintainer for
-review or organization membership.
+The documentation is licensed under [CC BY 4.0](LICENSE).

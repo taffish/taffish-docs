@@ -65,7 +65,13 @@ target/SHA256SUMS.asc
 target/TAFFISH-RELEASE-KEY.asc
 ```
 
-These files support manual checksum and GPG signature verification.
+With the **0.11.0 installer**, official GitHub/Gitee raw installs in the
+default `auto` mode require each selected binary to match `SHA256SUMS`. When the
+signature, release key, `gpg` and `gpgv` are available, the installer also
+verifies the manifest signature against the pinned key fingerprint. Use
+`--verify gpg` to require both checks or `--verify sha256` to require the
+checksum check only. Explicit `--verify none` disables verification and is
+not an equivalent fallback. The install receipt, `install-receipt.toml`, records the verification level actually achieved. If that path already exists, it must be a regular file: both first-time installs and reinstalls reject symlinks, including dangling ones. Older installer scripts have their own verification policy.
 
 Typical verification flow:
 
@@ -78,14 +84,16 @@ gpg --verify SHA256SUMS.asc SHA256SUMS
 
 Important boundaries:
 
-- the current raw installers do not automatically verify `SHA256SUMS` or the
-  GPG signature;
+- a payload hash or signature does not authenticate the installer fetched by
+  `curl | sh`; custom binary URLs and bundles are not the official raw path
+  and should not be assumed to have the same verification material;
 - the current release process is not a reproducible-build claim;
 - the current release process is not a GitHub Actions provenance or artifact
   attestation claim.
 
-For high-security installation, download the release payload first, verify it
-manually, then install from the verified local archive or files.
+For high-security installation, obtain the pinned installer and the release-key
+fingerprint through a separately trusted channel. Inspect the installer, compare
+the key fingerprint before trusting it, and verify the payload before installation.
 
 ## Installer And Mirror Behavior
 
@@ -100,8 +108,8 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 
 Replace `X.Y.Z` with the release version you want to verify and install.
 
-This separates installer updates from versioned release payloads. For
-reproducible installation behavior, pin `--version`.
+This pins the binary payload, not the script downloaded from `main`. To pin
+both, use the reviewed script from a fixed tag and specify the payload version.
 
 The Gitee installer and China mirror profile are intended to improve access
 when GitHub raw URLs are slow or blocked. Mirror configuration can rewrite:
@@ -142,12 +150,13 @@ For new containerized versions, the intended index pipeline is:
 2. Read `taffish.toml`.
 3. Validate required app metadata.
 4. Inspect the container image digest and platforms.
-5. Run declared smoke checks.
-6. Write passing versions into the main installable index.
-7. Write failures into build reports instead of the main index.
+5. Run the configured required and advisory smoke checks.
+6. Accept new versions that pass the required gates. An advisory backend
+   failure is reported but does not on its own prevent installation.
 
-Main index records are for stable, installable versions. Failed new versions
-belong in:
+Acceptance is distinct from the default install recommendation: an accepted
+prerelease can be installed explicitly but is not the default. Inspect required
+and advisory failures in:
 
 ```text
 index/reports/latest.json
@@ -196,6 +205,12 @@ taf prune
 confirmation such as `--yes` before they modify local app source or wrapper
 files. Public-index upgrades do not silently replace local/private apps
 installed with `taf install --from`.
+
+With 0.11.0, `taf doctor index` checks the cached index, and `taf doctor hub`
+checks local installation evidence without fetching, repairing or running apps.
+A legacy install missing its build manifest is **unverified**, not necessarily
+corrupt; a verified install proves local consistency, not an official origin.
+See [Troubleshooting](troubleshooting.en.md) before attempting an explicit repair.
 
 ## Container Runtime Boundaries
 
@@ -286,7 +301,8 @@ For app authors:
 
 The current model intentionally leaves some future work open:
 
-- installers do not automatically verify GPG signatures yet;
+- checksum-only verification is not signature verification; check the receipt
+  rather than assuming that `auto` used GPG;
 - official release binaries are manually built, not produced by a fully
   automated provenance pipeline;
 - reproducible builds are not claimed yet;

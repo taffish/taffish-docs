@@ -242,9 +242,8 @@ index parser 支持 `\"` 这类 TOML basic string 转义，但单引号写法通
 
 - 容器化项目必须定义 `[smoke]`。
 - `exist` 和 `test` 不能同时为空。
-- `taf check` 会拒绝默认 `TODO` 占位。
-- `taf check` 只校验元数据，不运行 smoke 命令。
-- Hub/index 自动化会对新的容器化版本运行 smoke checks，记录 smoke 状态，并把失败的新版本挡在公开主 index 之外。
+- 在 TAFFISH 0.11.0 中，`taf check` 对整项去除首尾空白并忽略大小写，仅将 `TODO` 或 `TODO --help` 判为占位。`autodock4 --help` 这样的真实命令不是占位值。此项结构检查不运行命令。
+- Hub Index 记录实际 smoke 结果。required 失败阻止新版本收录，advisory 失败单独报告。
 
 ## `[dependencies]`
 
@@ -461,7 +460,7 @@ command_mode = false
 
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
 ## 版本与 tag 规则

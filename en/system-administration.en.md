@@ -77,6 +77,10 @@ China/Gitee installer:
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sudo sh -s -- --system
 ```
 
+If Gitee returns HTTP 403 for a macOS Apple Silicon binary, use the
+[instructions for installing from the tagged archive](quick-start.en.md#install-taffish).
+For a shared installation, run the installer as root with `--system` instead of `--user`; keep `--verify gpg`.
+
 The installer writes the three core commands to `/usr/local/bin`, creates the
 system home, initializes system config when requested, and attempts a system
 index update. It copies completion and Vim files, but it does not edit global
@@ -269,7 +273,12 @@ not writable. Choose one policy explicitly:
    commands once so the SIF exists under the system home.
 3. Shared writable cache: trusted local users share a sticky directory.
 
-Shared writable cache example:
+With the 0.11.0 system installer, a missing system SIF directory defaults to
+administrator-managed `0755`; existing permissions are preserved by default.
+To grant trusted local users a shared writable cache at installation time, use
+the explicit installer option `--shared-sif-cache` (sticky `1777` for the SIF
+directory only). `taf doctor --system` reports the policy; it does not change
+permissions. For a manual setup at the default system home:
 
 ```sh
 sudo mkdir -p /opt/taffish/images/sif

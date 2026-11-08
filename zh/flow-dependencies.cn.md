@@ -40,7 +40,7 @@ Flow 不适合：
 ```taf
 <taffish>
 [[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 multiqc .]]
+[[taf: taf-multiqc-v1.35-r2 multiqc .]]
 ```
 
 `taffish.toml`：
@@ -66,7 +66,7 @@ command_mode = false
 
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
 ## `[[taf: ...]]`
@@ -76,6 +76,8 @@ taf-multiqc = "1.19-r1"
 ```text
 [[taf: taf-command args...]]
 ```
+
+在 TAFFISH 0.11.0 中，内联分隔符必须写在**源码**里，不能靠参数值拼出调用。值中包含 `]]` 或 `[[taf:` 不会截断或创建调用。完整源码注释行不扫描；代码行末尾的 shell 注释不在此例。`taf check/build` 静态发现依赖，不执行调用。这是解析规则，不是 shell 转义；见[参数示例](taf-script-tutorial.cn.md#内置参数)。
 
 推荐使用 exact versioned command：
 
@@ -218,7 +220,7 @@ helper script 生成的真实工具命令中，而不是只追加到 `sh "$scrip
 ```toml
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
 key 是 command 基础名，不带版本：
@@ -318,7 +320,8 @@ taf install qc-flow
 
 ```json
 "dependencies": {
-  "taf-fastqc": "0.12.1-r1"
+  "taf-fastqc": "0.12.1-r1",
+  "taf-multiqc": "1.35-r2"
 }
 ```
 

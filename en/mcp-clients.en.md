@@ -238,6 +238,13 @@ After saving the file, restart or reload the extension's MCP servers.
 After configuring the client, check whether it can see the TAFFISH tools,
 resources, and prompts.
 
+Use `taffish_get_version` to check which server the client actually started.
+With the 0.11.0 server, `taffish_check_environment` with
+`{"check":"hub","targets":["augustus"]}` inspects that local installation
+without running or repairing it. If the client rejects those fields, inspect
+the connected server's `taffish://mcp/tools` schema rather than assuming the
+terminal and client use the same binary.
+
 A healthy setup should expose tools such as:
 
 - `taffish_get_version`

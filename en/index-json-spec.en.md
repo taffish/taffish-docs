@@ -127,7 +127,8 @@ Package entry fields:
 | Field | Type | Description |
 | --- | --- | --- |
 | `name` | string | Package name. |
-| `latest` | string | Latest version id. |
+| `latest` | string or null | Recommended default for an unversioned install; `null` means there is no recommendation. |
+| `recent_version`, `recent_at` | optional, string or null | Most recently published accepted version and its publication time when known; not an installation recommendation. |
 | `repository_url` | string | App GitHub repository. |
 | `command.name` | string | Base command name. |
 | `versions` | object | Mapping from version id to version record. |
@@ -303,15 +304,14 @@ metadata corrections that do not justify republishing the app.
 
 `trust.status` values currently used by the official index:
 
-- `passed`: container digest/platform inspection and smoke checks passed.
+- `passed`: container digest/platform inspection and required smoke checks passed.
 - `not_applicable`: non-container app version; no container smoke gate applies.
 
-Failed new versions are not written to the main index. They appear in build
-reports instead.
+A required gate failure prevents a new version from entering the main index; an advisory backend failure is reported separately and does not by itself block acceptance. See the [Index policy](https://github.com/taffish/taffish-index) for the current gates.
 
 ## `commands`
 
-`commands` maps command names to package and latest version.
+`commands` maps each command to its package and recommended `version` (possibly `null`). An accepted, eligible GitHub Latest can be lower than another version number. A known prerelease is never recommended but may be installed by its exact accepted version ID. Do not infer a default from `recent_version`, from sorting `versions`, or from a local unversioned alias. For the full selection and fallback rules, see the [Index repository](https://github.com/taffish/taffish-index).
 
 ```json
 {

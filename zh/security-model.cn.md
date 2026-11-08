@@ -61,7 +61,11 @@ target/SHA256SUMS.asc
 target/TAFFISH-RELEASE-KEY.asc
 ```
 
-这些文件用于手动 checksum 和 GPG 签名校验。
+使用 **0.11.0 安装器**从官方 GitHub/Gitee raw 来源安装时，默认 `auto` 模式要求
+每个选中的二进制与 `SHA256SUMS` 匹配。签名、公钥、`gpg` 和 `gpgv`
+均可用时，还会按固定的公钥指纹验证清单签名。`--verify gpg` 强制两项均通过；
+`--verify sha256` 只要求摘要校验。显式 `--verify none` 会关闭校验，不是等价的
+回退方案。安装收据 `install-receipt.toml` 记录实际校验等级。如果该路径已存在，它必须是普通文件；初装和重装均拒绝符号链接，包括目标不存在的链接。旧安装器以其自身版本的行为为准。
 
 典型校验流程：
 
@@ -74,12 +78,13 @@ gpg --verify SHA256SUMS.asc SHA256SUMS
 
 需要明确的边界：
 
-- 当前 raw 安装器不会自动校验 `SHA256SUMS` 或 GPG 签名；
+- 载荷摘要或签名不能认证用 `curl | sh` 获取的安装脚本本身；自定义二进制 URL
+  和 bundle 不属于官方 raw 路径，不能假定有相同的校验材料；
 - 当前 release 流程还不是可复现构建声明；
 - 当前 release 流程还不是 GitHub Actions provenance 或 artifact attestation 声明。
 
-在高安全要求环境中，建议先下载 release 载荷，手动校验后，再从已校验的本地 archive
-或文件安装。
+高安全环境应从独立可信渠道取得固定 tag 的安装器和发布公钥指纹，先审查脚本，并在
+信任公钥前比对指纹、安装前验证载荷。
 
 ## 安装器与镜像行为
 
@@ -94,8 +99,8 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 
 请把 `X.Y.Z` 替换为要校验并安装的 release 版本。
 
-这把安装器更新和版本化 release 载荷分离开。需要可复现安装行为时，应固定
-`--version`。
+这样固定的是二进制载荷，而不是从 `main` 获取的脚本。两者都需要固定时，应使用
+从固定 tag 取得并已审查的安装脚本，再显式指定载荷版本。
 
 Gitee 安装器和中国镜像 profile 用于改善 GitHub raw URL 较慢或被阻断时的访问体验。
 镜像配置可以重写：
@@ -134,11 +139,11 @@ taf install
 2. 读取 `taffish.toml`。
 3. 校验必要 app 元数据。
 4. 检查容器镜像 digest 和 platforms。
-5. 运行声明的 smoke checks。
-6. 通过的版本写入主安装 index。
-7. 失败结果写入构建报告，而不是写入主 index。
+5. 按策略执行必需和建议性后端的 smoke 检查。
+6. 新版本通过必需检查即可收录；建议性后端失败会记录，但本身不阻止安装。
 
-主 index 只面向稳定、可安装版本。失败的新版本进入：
+收录不等于默认安装推荐：已收录的预发布版本可显式指定安装，但不会成为默认版本。
+必需和建议性检查的失败分别见：
 
 ```text
 index/reports/latest.json
@@ -182,6 +187,11 @@ taf prune
 `taf upgrade` 和 `taf prune` 默认保持保守，需要 `--yes` 这类显式确认才会修改
 本地 app 源码或 wrapper 文件。通过 `taf install --from` 安装的本地/私有 app
 不会被公开 index 中的版本静默替换。
+
+在 0.11.0 中，`taf doctor index` 检查索引缓存，`taf doctor hub` 检查本地安装证据；
+它们不会联网获取、修复或运行 app。旧安装没有构建清单是 **unverified**，不等于
+已损坏；验证通过也只证明本地文件一致，不等于认证官方来源。显式修复前请先看
+[故障排查](troubleshooting.cn.md)。
 
 ## 容器运行边界
 
@@ -264,7 +274,7 @@ App 作者建议：
 
 当前模型有意保留了几个未来工作：
 
-- 安装器尚未自动校验 GPG 签名；
+- 只验摘要不等于验签；请查看收据，不要仅凭 `auto` 假定已使用 GPG；
 - 官方 release 二进制仍由维护者手动构建，还不是完整自动化 provenance pipeline；
 - 尚未声明可复现构建；
 - 尚未声明 GitHub Actions artifact attestation；

@@ -280,7 +280,7 @@ Flow apps usually use `<taffish>`:
 ```taf
 <taffish>
 [[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 multiqc .]]
+[[taf: taf-multiqc-v1.35-r2 multiqc .]]
 ```
 
 Parameters use `::...::`:
@@ -335,7 +335,7 @@ RUN
 <taffish>
 mkdir -p ::outdir::
 [[taf: taf-fastqc-v0.12.1-r1 fastqc --threads ::threads:: --outdir ::outdir:: ::input:: ::(@:)fastqc-step::]]
-[[taf: taf-multiqc-v1.19-r1 multiqc ::outdir:: ::(@:)multiqc-step::]]
+[[taf: taf-multiqc-v1.35-r2 multiqc ::outdir:: ::(@:)multiqc-step::]]
 ```
 
 In this example:
@@ -444,8 +444,7 @@ Requirements:
 
 `taf check` validates `[smoke]` structure and rejects the default `TODO`
 placeholders. It does not run smoke commands locally. The public Hub/index runs
-smoke checks after the image is available and only writes passing new versions
-into the main index.
+smoke checks after the image is available. Required failures block a new version; advisory backend failures remain visible in the report.
 
 This section only shows the minimal shape. Dockerfile design, runtime mounts,
 GHCR visibility, local Docker/Podman testing, and smoke details live in
@@ -516,7 +515,7 @@ generic container tags at runtime:
 
 ```sh
 TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
-TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile --help
 ```
 
 This does not override explicit backend tags. During local project runs,
@@ -602,57 +601,59 @@ target/taf-my-tool-v0.1.0-r1
 target/.taf-my-tool-v0.1.0-r1/
 ```
 
-The built command uses the frozen source snapshot, not the live `src/` directory. This keeps released command behavior tied to the release.
+The built command uses the frozen source snapshot, not the live `src/` directory. In 0.11.0, rerunning `taf build` verifies and reuses matching artifacts; an invalid snapshot is rebuilt in staging. A publish dry-run shows the plan, not evidence that the wrapper was built or tested.
+
+After upgrading both `taf` and `taffish` to 0.11.0, rerun `taf build` in any app source project that still uses an older wrapper to pick up the new history writer. Upgrading the core alone does not replace old wrappers; a local rebuild does not require republishing the app.
 
 ## Publish
 
-Before publishing, edit the ignored `release.md` draft. With
-`taf publish --release`, the first line of `release.md` becomes the publish
-commit/tag message, and the whole file becomes the GitHub Release notes. Replace
-the default `TODO` summary before a real release. Since TAFFISH `0.8.1`,
-`taf publish --release` rejects only the default first-line placeholders
-`TODO` and `TODO: release summary`; a real summary that happens to contain the
-word `todo` is accepted.
+From the app project root, run `taf check`. Proceed only if it passes, `docs/help.md`
+is present, and `[repository].url` points to the intended repository. For a containerized
+app, verify that its declared image builds and that `[smoke]` contains real checks,
+not scaffold placeholders. Stop if an existing tag points to a different commit or
+an existing Release conflicts with what you intend to publish.
 
-Publish preview with release notes:
+**Choose the release channel.** TAFFISH 0.11.0 does not require the new version to
+sort above earlier tags. Choose a prerelease only when the app is a preview:
 
-```sh
-taf publish --release --dry-run
-```
+| What do you want to publish? | Options | Result on GitHub |
+| --- | --- | --- |
+| A new recommended release | `--release` (or `--release --latest`) | The new release becomes Latest. |
+| A preview for testers | `--release --pre` | A prerelease, not Latest. |
+| A maintenance release that should not become Latest | `--release --no-latest` | A regular release, not marked Latest. |
+| A tag without a GitHub Release | Omit `--release` and the channel flags | The tag is pushed; Latest does not change. |
 
-Publish with release notes:
+Use at most one of `--latest`, `--pre` and `--no-latest`. On an older installation,
+check `taf --version` and `taf publish --help` for supported options.
+If you use `--release`, edit the Git-ignored `release.md`: the first line supplies
+the summary for the publish commit, and the full file becomes the GitHub Release
+notes. Since 0.8.1, the first-line placeholders `TODO` and `TODO: release summary`
+are rejected; the word `todo` inside a real summary is fine.
 
-```sh
-taf publish --release --yes --build
-```
-
-Create a repository during publish when supported:
-
-```sh
-taf publish --release --yes --build --create-repo --public
-```
-
-Publishing checks the project, reads the repository URL from `taffish.toml`,
-checks remote tags, prepares the release message and release notes, and then
-commits, tags, pushes, and creates or updates the GitHub Release after
-confirmation.
-
-By default, publishing requires the candidate to be the latest remote version.
-To publish a non-latest prerelease intentionally, use:
+**Preview the exact command you intend to run.** For example, to build the wrapper
+and publish a new recommended release:
 
 ```sh
-taf publish --release --yes --pre
+taf publish --release --build --dry-run
 ```
 
-Do not publish directly if:
+Check the repository, tag, channel and build setting in the plan. A dry run does
+not build the wrapper, commit, tag, push or create a GitHub Release. For a
+prerelease, include `--pre` in the preview; to create a missing public repository,
+include `--create-repo --public`.
 
-- The repository URL is wrong.
-- The image tag has not been built yet.
-- `taf check` fails.
-- `docs/help.md` is missing.
-- `[smoke]` is missing for a containerized app or still contains `TODO`.
-- `release.md` still uses the default first-line `TODO` summary.
-- The release tag already exists.
+**Publish only after checking the plan.** Keep all selected options and replace
+`--dry-run` with `--yes`. For the recommended release above:
+
+```sh
+taf publish --release --build --yes
+```
+
+If publication is interrupted, retry with the same repository, options and
+`release.md`. Matching steps are skipped; a conflicting commit, tag or Release stops
+the retry. Retrying a completed release does not republish it or take
+Latest back from a later release. A published tag does not mean that the app’s
+image workflow has succeeded or that the Hub Index has accepted the version.
 
 ## Post-Publish Checks
 
@@ -740,6 +741,6 @@ Before publishing, confirm:
 - [ ] For a flow app, `[dependencies]` matches `[[taf: ...]]`.
 - [ ] `taf run` passes locally.
 - [ ] `taf build` or `taf build --all` passes.
-- [ ] `release.md` has a real first-line summary and release notes.
-- [ ] `taf publish --release --dry-run` output is as expected.
+- [ ] For a GitHub Release, `release.md` has a real first-line summary and release notes.
+- [ ] `taf publish` was previewed with `--dry-run` and the intended channel and build options.
 - [ ] After publishing, GitHub Actions and Hub index are checked.

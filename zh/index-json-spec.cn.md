@@ -124,7 +124,8 @@ package entry 字段：
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `name` | string | package name。 |
-| `latest` | string | 最新 version id。 |
+| `latest` | string 或 null | 不指定版本安装时的默认推荐。`null` 表示没有推荐。 |
+| `recent_version`、`recent_at` | 可选，string 或 null | 已收录版本中最近发布的版本及其已知发布时间，不是安装推荐。 |
 | `repository_url` | string | app GitHub 仓库。 |
 | `command.name` | string | 命令基础名。 |
 | `versions` | object | version id 到 version record 的映射。 |
@@ -296,14 +297,14 @@ metadata override 主要用于历史 record，或不值得重新发布 app 的 i
 
 官方 index 当前使用的 `trust.status`：
 
-- `passed`：容器 digest/platform 检查和 smoke checks 已通过。
+- `passed`：容器镜像摘要、平台检查及必需后端的 smoke 检查均已通过。
 - `not_applicable`：非容器 app version，不适用容器 smoke gate。
 
-失败的新版本不会写入主 index，而是进入构建报告。
+必需检查（required）失败会阻止新版本进入主 index；建议性后端（advisory）失败单独报告，本身不阻止收录。当前门槛见 [Index 策略](https://github.com/taffish/taffish-index)。
 
 ## `commands`
 
-`commands` 是 command 到 package 和 latest version 的索引。
+`commands` 将命令映射到 package 和推荐的 `version`（可以为 `null`）。符合收录与推荐条件的 GitHub Latest 可以比其他版本号低。已知预发布版不作为推荐，但只要已收录，仍可按完整版本 ID 安装。不要从 `recent_version`、`versions` 排序或本机裸命令 alias 反推默认版本。完整选择与回退规则见 [Index 仓库](https://github.com/taffish/taffish-index)。
 
 ```json
 {

@@ -1,24 +1,25 @@
 # What Is TAFFISH Hub
 
-TAFFISH Hub is the app index and distribution layer of the TAFFISH ecosystem. Its
-goal is to let users obtain reproducible, versioned, source-traceable
-bioinformatics tools and flows through:
+TAFFISH Hub is the official index of TAFFISH apps. Browse accepted versions on
+the [Hub website](https://taffish.github.io), or use `taf` to find and install
+them locally. For example, to install Augustus:
 
 ```sh
 taf update
-taf install APP
+taf search augustus
+taf install augustus
 ```
 
-At the current stage, TAFFISH Hub mainly relies on GitHub automation and does
-not require an independent backend server. It has three core parts:
+`taf update` refreshes your local index; it does not upgrade installed apps.
+`taf install augustus` installs the version recommended by that index. You then
+run `taf-augustus` in your own shell, not on the Hub website. See the
+[Quick Start](quick-start.en.md#run-augustus-for-the-first-time) for the full example.
+
+The Hub uses GitHub automation rather than a separate backend server. It has three parts:
 
 - `taffish-index`: a static index repository that generates machine-readable index JSON.
 - `taffish.github.io`: a static website that displays apps from the index.
 - `.github`: the organization profile repository that controls the `github.com/taffish` overview page.
-
-You can browse the current TAFFISH Hub at [taffish.github.io](https://taffish.github.io).
-The website reads static JSON from `taffish-index`, so it displays apps currently
-discovered by the official index.
 
 For human-facing maps of official flow families, see the
 [TAFFISH Flow Portal](https://taffish.github.io/flows/). For the most complete
@@ -48,7 +49,7 @@ the app repository itself and is not centrally handled by `taffish-hub`.
 - [`taffish.github.io`](#taffishgithubio)
 - [`.github`](#github)
 - [App Image Builds](#app-image-builds)
-- [How Users Are Served](#how-users-are-served)
+- [Find and install an app](#find-and-install-an-app)
 - [How Developers Publish Apps](#how-developers-publish-apps)
 - [Mirror And Internal Source Support](#mirror-and-internal-source-support)
 - [Current Boundaries](#current-boundaries)
@@ -62,7 +63,7 @@ Hub provides a central index that organizes distributed information into:
 
 - which apps are available
 - which versions each app has
-- which version is latest
+- which accepted version is recommended for an unversioned install
 - whether an app is a tool or a flow
 - install command
 - app GitHub repository
@@ -466,10 +467,10 @@ pushed. It also records the image digest and platform list.
 
 Main-index policy:
 
-- existing accepted versions are reused when the release tag still points to the same commit;
+- evidence for unchanged accepted releases can be reused when its identity and policy still match; a new index build does not mean every backend was just retested;
 - new non-container versions can enter the index with `trust.status = "not_applicable"`;
-- new containerized versions enter the main index only after digest/platform inspection and smoke checks pass;
-- failures are written to `index/reports/latest.json` and timestamped reports, not to the stable main index.
+- new containerized versions require successful digest/platform inspection and required smoke checks;
+- advisory backend failures are reported separately and do not by themselves block acceptance. Check `index/reports/latest.json` and timestamped reports for details.
 
 ## Discovery Metadata
 
@@ -570,7 +571,7 @@ It provides:
 - tool / flow filters
 - dependency filters
 - container image filters
-- name / latest-version sorting
+- sorting by name or by the publication time of the most recent accepted release
 - package detail view
 - version list
 - dependency list
@@ -630,18 +631,16 @@ Reasons for this design:
 - each app release tag should correspond to its image tag
 - Hub discovers and indexes apps; it does not build images for them
 
-## How Users Are Served
+<a id="how-users-are-served"></a>
 
-The core user path:
+## Find and install an app
+
+After installing Augustus as shown above, use `taf list` to see the installed
+version and `taf which` to locate the command:
 
 ```sh
-taf update
-taf search blast
-taf install blast
-taf outdated
-taf upgrade
 taf list
-taf which taf-blast-v2.16.0-r1
+taf which taf-augustus
 ```
 
 `taf update` downloads the static index into the local cache:
@@ -668,8 +667,16 @@ the same local index and install metadata:
   to tools or flows.
 - `taf outdated` reports installed Hub apps with newer indexed versions.
 - `taf upgrade` previews or applies upgrades for installed Hub apps.
-- `taf prune` removes older local versions while keeping the newest installed
-  version.
+- `taf prune` previews or removes older eligible local versions.
+
+With TAFFISH 0.11.0, bulk install and upgrade use the default recommendation
+in the cached index (`latest`); they do not choose a prerelease by its
+publication date or automatically downgrade. An accepted prerelease is still
+available by exact version. Prune requires the same-source index target to be
+installed and verified, and removes only reliably older same-source versions;
+newer, incomparable, private and unknown installs are protected. Use
+`taf doctor index` and `taf doctor hub` to distinguish index problems from
+local install problems before taking action.
 
 These commands are local operations. They do not change the public Hub index,
 and local/private apps installed with `taf install --from` are not silently
@@ -698,21 +705,11 @@ tree into TAFFISH home, and builds the versioned wrapper. It does not require
 
 ## How Developers Publish Apps
 
-Typical path:
-
-```sh
-taf new my-tool --tool --docker
-cd my-tool
-taf check
-taf run -- --help
-taf build --all
-taf publish --release --dry-run
-taf publish --release --yes --build
-```
-
-Before publishing, maintainers should edit the ignored `release.md` draft
-created by `taf new`. With `taf publish --release`, its first line becomes the
-publish message and the full file becomes the GitHub Release notes.
+Check, build and test the version you intend to publish in the app repository.
+Then follow the [publishing steps in the App Developer Guide](app-developer-guide.en.md#publish)
+to choose a channel. If you are creating a GitHub Release, prepare `release.md`.
+Preview the plan with the same options before publishing. Publication on GitHub
+and acceptance into the Hub are separate steps.
 
 After publication, the app repository should have:
 
@@ -731,10 +728,11 @@ GHCR image: ghcr.io/taffish/<app>:<version>-r<release>
 [smoke] in taffish.toml
 ```
 
-When the next `taffish-index` automation run completes, non-container apps and
-containerized apps that pass the trust gate are written into the main index.
-Failed new containerized versions are recorded in reports for maintainers.
-Users can then run `taf update` and install accepted versions.
+On its next scan, the Index checks the release record. A containerized version
+must also pass the image and required smoke checks. If a version is missing,
+check the Index report. Once it is accepted, users can run `taf update` and
+install that exact version. Installing without a version uses the index
+recommendation, if there is one.
 
 ## Mirror And Internal Source Support
 

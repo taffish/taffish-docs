@@ -266,16 +266,16 @@ Use exact versions in `taffish.toml`:
 ```toml
 [dependencies]
 "taf-fastqc" = "0.12.1-r1"
-"taf-multiqc" = "1.27.1-r1"
-"taf-fastp" = "0.24.1-r1"
+"taf-multiqc" = "1.35-r2"
+"taf-fastp" = "1.4.0-r1"
 ```
 
 Call dependencies from `src/main.taf`:
 
 ```taf
 [[taf: taf-fastqc-v0.12.1-r1 fastqc --version]]
-[[taf: taf-fastp-v0.24.1-r1 fastp --version]]
-[[taf: taf-multiqc-v1.27.1-r1 multiqc --version]]
+[[taf: taf-fastp-v1.4.0-r1 fastp --version]]
+[[taf: taf-multiqc-v1.35-r2 multiqc --version]]
 ```
 
 More importantly, put `[[taf: ...]]` at the actual call site. Implement the flow
@@ -366,9 +366,7 @@ ARGS
 
 RUN
 <taffish>
-[[taf: taf-rnaseq-index-flow-v0.2.0-r1 --genome ::genome:: --annotation ::annotation:: --outdir ::outdir:: --force \
-  @agat-convert-step: ::(@:)index-agat-convert-step:: @: \
-  @gffread-gtf-step: ::(@:)index-gffread-gtf-step:: @: ]]
+[[taf: taf-rnaseq-index-flow-v0.2.0-r1 --genome ::genome:: --annotation ::annotation:: --outdir ::outdir:: @agat-convert-step: ::(@:)index-agat-convert-step:: @: @gffread-gtf-step: ::(@:)index-gffread-gtf-step:: @: ]]
 ```
 
 Here, the parent slot `index-agat-convert-step` is forwarded to the subflow's
@@ -450,7 +448,7 @@ that the text can be replayed unchanged in every environment.
 ```text
 tool\tversion\tsource
 taf-fastqc\t0.12.1-r1\ttaffish dependency
-taf-multiqc\t1.27.1-r1\ttaffish dependency
+taf-multiqc\t1.35-r2\ttaffish dependency
 ```
 
 `run.manifest.json` records structured information about the run:

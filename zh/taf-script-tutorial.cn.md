@@ -220,12 +220,16 @@ RUN
 ::*CONTAINER*::
 ```
 
-对于要转发所有上游参数的 tool wrapper，`::*ARGV*::` 很常见：
+薄 tool wrapper 常把原始参数作为 **shell 文本**插入：
 
 ```taf
 <taf-app:container:ghcr.io/taffish/augustus:3.5.0-r1>
 augustus ::*ARGV*::
 ```
+
+不同替换形式不都等于 argv 数组。普通 `::input::` 插入原样文本；调用者传入的参数块 `::(@:)step::` 对每个 token 分别编码，应放在参数列表位置，**不要给整块再套引号**。而 `::*ARGV*::` 和 `<taf-app:...>` 自动命令模式都用空格拼接文本。即使调用者给文件名加了引号，也不能保证下一层 shell 仍把它识别成一个参数。
+
+可以在声明了 `<(@:)step>` 的脚本的 shell 块中写 `set -- ::(@:)step::`，下一行写 `printf 'argc=%s\n' "$#"`。传入 `@step: 'sample A.fa' ''` 应得到两个参数：一个带空格的文件名和一个空串。还要用真实 wrapper 复测空格、空串及字面 shell 特殊字符；子步骤若重新拼接文本，父层保住的边界也会丢失。不要用 `eval` 恢复参数。
 
 ## 容器标签
 
@@ -273,7 +277,7 @@ taf run --backend apptainer -- --help
 
 ```sh
 TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
-TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile --help
 ```
 
 它不会覆盖显式的 `<docker:...>`、`<podman:...>` 或 `<apptainer:...>` 标签。
@@ -343,7 +347,7 @@ RUN
 <taffish>
 mkdir -p ::outdir::
 [[taf: taf-fastqc-v0.12.1-r1 fastqc ::input:: --outdir ::outdir::]]
-[[taf: taf-multiqc-v1.19-r1 multiqc ::outdir::]]
+[[taf: taf-multiqc-v1.35-r2 multiqc ::outdir::]]
 ```
 
 在 `taffish.toml` 中声明依赖：
@@ -351,7 +355,7 @@ mkdir -p ::outdir::
 ```toml
 [dependencies]
 taf-fastqc = "0.12.1-r1"
-taf-multiqc = "1.19-r1"
+taf-multiqc = "1.35-r2"
 ```
 
 如果一个 flow 需要同一个 app 的多个版本：

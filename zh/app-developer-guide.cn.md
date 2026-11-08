@@ -277,7 +277,7 @@ Flow app 通常使用 `<taffish>`：
 ```taf
 <taffish>
 [[taf: taf-fastqc-v0.12.1-r1 fastqc sample.fq]]
-[[taf: taf-multiqc-v1.19-r1 multiqc .]]
+[[taf: taf-multiqc-v1.35-r2 multiqc .]]
 ```
 
 参数使用 `::...::`：
@@ -331,7 +331,7 @@ RUN
 <taffish>
 mkdir -p ::outdir::
 [[taf: taf-fastqc-v0.12.1-r1 fastqc --threads ::threads:: --outdir ::outdir:: ::input:: ::(@:)fastqc-step::]]
-[[taf: taf-multiqc-v1.19-r1 multiqc ::outdir:: ::(@:)multiqc-step::]]
+[[taf: taf-multiqc-v1.35-r2 multiqc ::outdir:: ::(@:)multiqc-step::]]
 ```
 
 这个例子里：
@@ -430,7 +430,7 @@ my-tool --input ::input::
 - `[smoke]` 应包含真实检查，用于证明目标可执行文件存在，并且一个最小命令可以运行。
 
 `taf check` 会校验 `[smoke]` 结构，并拒绝默认 `TODO` 占位。它不会在本地运行
-smoke 命令。公开 Hub/index 自动化会在镜像可用后运行 smoke checks，并只把通过的新版本写入主 index。
+smoke 命令。公开 Hub/index 自动化在镜像可用后运行 smoke；required 失败阻止新版本收录，advisory 后端失败仍显示在报告中。
 
 本节只给出最小形状。Dockerfile 设计、运行时挂载、GHCR 可见性、本地 Docker/Podman
 测试和 smoke 细节见 [容器化 app 最佳实践](container-apps.cn.md)。如果是在精修官方
@@ -499,7 +499,7 @@ taf run --backend docker -- --input sample.fa
 
 ```sh
 TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 -- --help
-TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-my-tool-v0.1.0-r1 --compile --help
 ```
 
 这个环境变量不会覆盖显式 backend 标签。本地项目运行时，`taf run --backend ...`
@@ -584,61 +584,51 @@ target/taf-my-tool-v0.1.0-r1
 target/.taf-my-tool-v0.1.0-r1/
 ```
 
-构建后的命令使用冻结的 source snapshot，而不是实时读取当前 `src/`。这保证发布后的命令逻辑与版本一致。
+构建后的命令使用冻结的源码快照，不实时读取 `src/`。在 0.11.0 中，重复运行 `taf build` 会校验并复用匹配的产物；失效的快照会在暂存区重建。publish dry-run 只展示计划，不能证明 wrapper 已生成或通过测试。
+
+将配套的 `taf` 和 `taffish` 升级到 0.11.0 后，在仍使用旧 wrapper 的 app 源码项目中再运行一次 `taf build`，让 wrapper 使用新的历史记录机制。升级核心本身不会替换旧 wrapper；本地重建不需要重发 app。
 
 ## 发布
 
-发布前，先编辑被 ignore 的 `release.md` 草稿。使用 `taf publish --release`
-时，`release.md` 第一行会成为 publish commit/tag message，整个文件会成为
-GitHub Release notes。正式发布前应替换默认的 `TODO` 摘要。从 TAFFISH
-`0.8.1` 开始，`taf publish --release` 只会拒绝第一行仍为默认占位符
-`TODO` 或 `TODO: release summary` 的 release notes；真实 summary 中正常出现
-`todo` 这个词不会被误拒绝。
+在 app 项目根目录运行 `taf check`，通过后再发布。确认 `docs/help.md` 存在，
+`[repository].url` 指向这次要发布的仓库。容器化 app 还需验证声明的镜像可以构建，
+并在 `[smoke]` 中写好实际检查，不能保留脚手架占位值。如果同名 tag 指向不同的提交，
+或已有 Release 与本次发布意图冲突，请停止发布。
 
-带 release notes 预览：
+**先选发布渠道。** TAFFISH 0.11.0 不要求新版本号排在所有历史 tag 之后。只有交付预览版时才选预发布：
 
-```sh
-taf publish --release --dry-run
-```
+| 你想发布什么？ | 选项 | GitHub 上的结果 |
+| --- | --- | --- |
+| 新的推荐正式版 | `--release`（或 `--release --latest`） | 新 Release 标为 Latest。 |
+| 供试用的预览版 | `--release --pre` | 创建预发布版，不设为 Latest。 |
+| 不替代推荐版本的维护版 | `--release --no-latest` | 创建正式 Release，不设为 Latest。 |
+| 只发布 tag，不创建 GitHub Release | 不加 `--release` 和渠道选项 | 推送 tag，不改变 Latest。 |
 
-带 release notes 构建并发布：
+`--latest`、`--pre`、`--no-latest` 最多选一个。使用旧版时，可用 `taf --version`
+和 `taf publish --help` 核对支持的选项。选择 `--release` 时，先写好不纳入 Git 的
+`release.md`：第一行用作发布提交的摘要，全文用作 GitHub Release 说明。从 0.8.1 起，
+首行不能是默认占位符 `TODO` 或 `TODO: release summary`；正常摘要中可以出现 `todo`。
 
-```sh
-taf publish --release --yes --build
-```
-
-如果远端仓库不存在，可以请求创建：
-
-```sh
-taf publish --release --yes --build --create-repo --public
-```
-
-发布会：
-
-1. 运行 `taf check`。
-2. 读取 `[repository].url`。
-3. 检查远端是否已有目标 tag。
-4. 检查当前 tag 是否符合 latest 策略。
-5. 从 `release.md` 准备发布 message 和 GitHub Release notes。
-6. commit 当前项目。
-7. 创建 tag `v<version>-r<release>`。
-8. push commit 和 tag，并创建或更新 GitHub Release。
-
-默认发布策略要求当前版本是远端最新版本。如果需要发布非最新预发布版本，可以使用：
+**用选好的参数预览。** 例如，要构建 app 的命令包装器并发布为新的推荐正式版，先运行：
 
 ```sh
-taf publish --release --yes --pre
+taf publish --release --build --dry-run
 ```
 
-不要直接发布以下项目：
+检查计划里的仓库、tag、渠道和构建选项。预览不会构建包装器、提交、打 tag、推送或创建
+GitHub Release。如果要发预览版，预览时就加上 `--pre`；如果还要创建一个不存在的公开仓库，
+预览时就加上 `--create-repo --public`。
 
-- 仓库 URL 不正确。
-- 镜像 tag 尚未构建。
-- `taf check` 失败。
-- `docs/help.md` 缺失。
-- 容器化 app 缺少 `[smoke]`，或 `[smoke]` 仍然包含 `TODO`。
-- `release.md` 第一行仍然是默认 `TODO` 摘要。
-- release tag 已经存在。
+**确认后再发布。** 保留全部已核对的选项，只将 `--dry-run` 换成 `--yes`。
+上面推荐正式版的例子对应：
+
+```sh
+taf publish --release --build --yes
+```
+
+如果发布中断，保持仓库、选项和 `release.md` 不变，重试同一条命令。已完成且匹配的步骤会跳过；
+提交、tag 或 Release 有冲突时会停止。已完成的版本不会被重新发布，也不会从后续版本取回 Latest。
+tag 已发布，不代表 app 的镜像构建已成功，也不代表该版本已被 Hub Index 收录。
 
 ## 发布后检查
 
@@ -718,6 +708,6 @@ tag = "v0.1.0-r1"
 - [ ] 如果是 flow app，`[dependencies]` 与 `[[taf: ...]]` 一致。
 - [ ] `taf run` 在本地通过。
 - [ ] `taf build` 或 `taf build --all` 通过。
-- [ ] `release.md` 第一行和 release notes 已经整理好。
-- [ ] `taf publish --release --dry-run` 输出符合预期。
+- [ ] 要创建 GitHub Release 时，`release.md` 已写好首行摘要和发布说明。
+- [ ] 已用 `--dry-run` 预览 `taf publish` 计划，核对了拟采用的渠道和构建选项。
 - [ ] 发布后检查 GitHub Actions 和 Hub index。

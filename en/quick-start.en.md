@@ -2,59 +2,93 @@
 
 [English](quick-start.en.md) | [中文](../zh/quick-start.cn.md)
 
-This guide is for users who want to install and run TAFFISH apps. It does not
-assume that you want to write `.taf` scripts or maintain app repositories.
+[Install TAFFISH](#install-taffish) and use it to run your first app, Augustus.
+You do not need to write a `.taf` script. You will need Git to install the app
+and one working container backend (Docker, Podman, or Apptainer) to run it.
 
 ## Table Of Contents
 
 - [What You Install](#what-you-install)
 - [Install TAFFISH](#install-taffish)
+  - [Set your command path](#set-your-command-path)
+  - [Run Augustus for the first time](#run-augustus-for-the-first-time)
+  - [Other installation options](#other-installation-options)
 - [Choose User Or System Scope](#choose-user-or-system-scope)
 - [Check The Environment](#check-the-environment)
-- [Shell Completion And Vim Files](#shell-completion-and-vim-files)
 - [Update The Hub Index](#update-the-hub-index)
 - [Find Apps](#find-apps)
 - [Install An App](#install-an-app)
-- [Maintain Installed Apps](#maintain-installed-apps)
 - [Run An Installed App](#run-an-installed-app)
+- [Maintain Installed Apps](#maintain-installed-apps)
 - [List, Locate, And Remove Apps](#list-locate-and-remove-apps)
 - [Container Backends](#container-backends)
 - [Runtime Config And Mirrors](#runtime-config-and-mirrors)
+- [Shell Completion And Vim Files](#shell-completion-and-vim-files)
 - [Network Notes](#network-notes)
 - [Explore Flow Routes](#explore-flow-routes)
 - [Where To Read Next](#where-to-read-next)
 
 ## What You Install
 
-TAFFISH provides three local commands:
+Use `taf` to find and install apps from TAFFISH Hub. Each installed app has
+its own shell command, such as `taf-augustus`. The installer also provides
+`taffish`, which compiles `.taf` scripts to shell, and `taffish-mcp` for AI
+clients. You will not need to call either one to run Augustus.
 
-```text
-taffish   compile .taf programs to shell
-taf       manage app projects and TAFFISH Hub packages
-taffish-mcp
-          expose safe tools/resources/prompts plus app/project inspection to AI clients
+## Install TAFFISH
+
+Install for your own account (no `sudo` required). For a shared server, a
+pinned release, or the Gitee mirror, see [other installation options](#other-installation-options).
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
 ```
 
-Most users mainly use `taf` and installed `taf-*` app commands. The installer
-also copies shell completion files and Vim syntax files into TAFFISH home.
+### Set your command path
 
-Typical user flow:
+For a user install, add both the core and app command directories to the current
+shell's `PATH`. The installer does not edit your shell configuration.
+
+```sh
+export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
+```
+
+To keep this setting in new terminals, add the same line to `~/.zshrc` (Zsh)
+or `~/.bashrc` (Bash). Check which versions you are about to use:
+
+```sh
+taf --version
+taffish --version
+taffish-mcp --version
+```
+
+The examples here use TAFFISH 0.11.0. If you have an older version, check its
+`--help` for the options it supports.
+
+### Run Augustus for the first time
+
+Refresh your local copy of the Hub index, find Augustus, inspect its entry,
+and install the recommended version:
 
 ```sh
 taf update --user
 taf search --user augustus
 taf info --user augustus
 taf install --user augustus
+```
+
+From a working directory where you normally keep analysis files, run:
+
+```sh
 taf-augustus -- --help
 ```
 
-## Install TAFFISH
+You should see **AUGUSTUS's own help**. The first `--` passes `--help` through
+the wrapper to the tool inside the container. If the image is not cached, the
+backend needs access to the container registry. See [Container Backends](#container-backends)
+if the container does not start.
 
-User install, recommended for normal users:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --user
-```
+### Other installation options
 
 System install, useful on shared servers:
 
@@ -68,16 +102,15 @@ caching still needs a writable image directory. See
 [Apptainer SIF cache permissions](troubleshooting.en.md#apptainer-says-no-writable-apptainer-image-directory-found)
 before deploying TAFFISH for multiple users.
 
-Pinned version install:
+To install 0.11.0 specifically, use its tagged installer. This command requires GPG:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/v0.11.0/install/install-taffish.sh | sh -s -- --user --verify gpg
 ```
 
-Replace `X.Y.Z` with the release version you want to install.
+To select a different release with the default installer, pass `--version X.Y.Z`.
 
-Most users should use the installer above. The current release, source builds,
-and release verification are documented in the
+For release downloads, source builds, and verification, see the
 [taffish/taffish README](https://github.com/taffish/taffish).
 
 For users in China, GitHub raw URLs may be slow or blocked. The Gitee installer
@@ -94,23 +127,13 @@ To replace an existing config with the Gitee/China mirror profile:
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user --force-config
 ```
 
-After installation, check:
+If Gitee returns HTTP 403 for a macOS Apple Silicon binary when you are not signed in, download the [v0.11.0 archive](https://gitee.com/taffish-org/taffish/repository/archive/v0.11.0.tar.gz) as `taffish-v0.11.0.tar.gz` and the [matching installer](https://gitee.com/taffish-org/taffish/raw/v0.11.0/install/install-taffish.gitee.sh) into the same directory. With GPG available, run:
 
 ```sh
-taf --version
-taffish --version
-taffish-mcp --version
+sh install-taffish.gitee.sh --user --archive taffish-v0.11.0.tar.gz --verify gpg
 ```
 
-User installation uses one directory for core commands and another for apps
-installed later by `taf install`. Add both to `PATH`:
-
-```sh
-export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
-```
-
-Then open a new shell, or run `source ~/.zshrc` / `source ~/.bashrc` after
-adding it to your shell profile.
+After a user install, return to [Set your command path](#set-your-command-path).
 
 ## Choose User Or System Scope
 
@@ -149,49 +172,11 @@ taf doctor --init --user
 `podman`, `apptainer`, and `taffish`. Not every optional tool is required for
 every use case. For example, if you only use Docker, you do not need Podman.
 
-## Shell Completion And Vim Files
-
-The installer copies shell completion files and Vim syntax files under TAFFISH
-home, but it does not activate them automatically.
-
-For a user install, completion files are usually under:
-
-```text
-~/.local/share/taffish/share/completions
-```
-
-Example Bash setup:
-
-```sh
-source ~/.local/share/taffish/share/completions/bash/taf
-source ~/.local/share/taffish/share/completions/bash/taffish
-```
-
-Example Zsh setup:
-
-```sh
-fpath=(~/.local/share/taffish/share/completions/zsh $fpath)
-autoload -Uz compinit
-compinit
-```
-
-Example Fish setup:
-
-```sh
-mkdir -p ~/.config/fish/completions
-cp ~/.local/share/taffish/share/completions/fish/taf.fish ~/.config/fish/completions/
-cp ~/.local/share/taffish/share/completions/fish/taffish.fish ~/.config/fish/completions/
-```
-
-Vim syntax files are usually under:
-
-```text
-~/.local/share/taffish/share/vim
-```
-
-Copy `syntax/taf.vim` and `ftdetect/taf.vim` into the corresponding Vim or
-Neovim user runtime. For system-wide activation, use the
-[System Administration Guide](system-administration.en.md).
+In 0.11.0, `taf doctor` is read-only unless you explicitly request `--init`.
+Use `taf doctor index` for a cached index or `taf doctor hub augustus` for an
+installed app. To inspect the CLI language, run `taf config language`; to try
+English just once, run `TAFFISH_LANGUAGE=en taf --help`. English and Chinese
+are built in; the mirror choice does not choose your language.
 
 ## Update The Hub Index
 
@@ -212,6 +197,270 @@ taf update --url INDEX_URL
 ```
 
 `TAFFISH_INDEX_URL` can also override the default URL.
+
+## Find Apps
+
+Search:
+
+```sh
+taf search augustus
+taf search blast
+```
+
+Show app information:
+
+```sh
+taf info augustus
+taf info taf-augustus
+```
+
+List indexed apps from the local index cache:
+
+```sh
+taf list --online
+```
+
+List locally installed apps:
+
+```sh
+taf list
+```
+
+## Install An App
+
+Install the version recommended by the cached index:
+
+```sh
+taf install augustus
+```
+
+Install by command name:
+
+```sh
+taf install taf-augustus
+```
+
+Install an exact version:
+
+```sh
+taf install augustus 3.5.0-r1
+taf install taf-augustus-v3.5.0-r1
+```
+
+Preview without changing files:
+
+```sh
+taf install --dry-run augustus
+```
+
+If the selected version declares dependencies, `taf install` installs those
+dependencies first.
+
+Install a private or local TAFFISH app project without publishing it to the
+public Hub:
+
+```sh
+taf install --from /path/to/my-private-tool
+taf list
+taf which taf-my-private-tool
+```
+
+`taf install --from` reads the local project's `taffish.toml`, checks the
+project, copies the working tree into the selected TAFFISH home, builds the
+versioned command wrapper, and records the origin as
+`[local-project] <PROJECT-ROOT>`. The path may be the project root or any child
+directory under it. This mode does not require `taf update` and does not
+auto-install dependencies.
+
+## Run An Installed App
+
+TAFFISH app commands are normal shell commands. For example:
+
+```sh
+taf-augustus -- --help
+taf-augustus -- --species=help
+taf-augustus -- --species=human genome.fa
+```
+
+A leading `--` stops the wrapper from handling options such as `--help`. In the
+three examples above, the container runs `augustus` with the options shown.
+The last example assumes you have a FASTA file named `genome.fa` in your working directory.
+
+This app also supports command mode: `taf-augustus echo 1` runs `echo 1` inside
+the container. It does not run `echo` on the host or pass `echo 1` to AUGUSTUS.
+
+Installed commands usually include:
+
+```text
+taf-<name>                  unversioned alias
+taf-<name>-v<version>-r<N>   exact versioned command
+```
+
+The unversioned alias points to the newest **locally installed** version of
+that command, which may differ from the index recommendation.
+
+## Maintain Installed Apps
+
+These commands maintain apps installed from the Hub index. They do not upgrade
+the `taf`, `taffish`, or `taffish-mcp` core binaries. Upgrade the core by
+re-running the installer with the same scope and a selected `--version`.
+
+Install every indexed app as a preview first:
+
+```sh
+taf install --all
+taf install --all --tools
+taf install --all --flows
+```
+
+`taf install --all` is dry-run by default. Add `--yes` to actually install the
+planned set:
+
+```sh
+taf install --all --tools --yes
+```
+
+Check whether locally installed Hub apps have newer indexed versions:
+
+```sh
+taf update
+taf outdated
+taf outdated --json
+```
+
+Plan or apply upgrades:
+
+```sh
+taf upgrade
+taf upgrade --yes
+taf upgrade taf-augustus --yes --prune-old
+```
+
+`taf upgrade` is also dry-run by default. It compares local install metadata
+with the current local index, so run `taf update` first. Local/private apps
+installed with `taf install --from` are not silently replaced by public-index
+upgrades.
+
+In 0.11.0, batch install and upgrade target the local index recommendation
+(`latest`), not the most recently published tag, and do not automatically
+downgrade. Prune requires that same-source recommendation to be installed and
+verified; only reliably older versions are removal candidates. If the target
+is absent or the installation evidence is inconclusive, prune protects the
+affected package instead of guessing. Preview before confirming:
+
+```sh
+taf prune
+taf prune --yes
+taf prune --kind flow --yes
+```
+
+`taf uninstall`, `taf upgrade --prune-old`, and `taf prune` remove TAFFISH app
+source/wrapper files only. They do not remove shared Docker, Podman, Apptainer,
+or SIF image caches.
+
+## List, Locate, And Remove Apps
+
+List local installations:
+
+```sh
+taf list
+```
+
+Find installed files:
+
+```sh
+taf which taf-augustus
+taf which taf-augustus-v3.5.0-r1
+```
+
+Uninstall:
+
+```sh
+taf uninstall taf-augustus
+taf uninstall taf-augustus-v3.5.0-r1
+```
+
+When more than one local version exists, prefer the exact versioned command.
+
+## Container Backends
+
+Most bioinformatics tool apps run inside containers. TAFFISH can use Docker,
+Podman, or Apptainer depending on the app and local environment.
+
+Common checks:
+
+```sh
+docker run --rm hello-world
+podman run --rm hello-world
+apptainer --version
+```
+
+You only need the backend you plan to use. On HPC or shared Linux servers,
+Apptainer is often the most practical backend. On laptops, Docker or Podman are
+often simpler.
+
+For system-wide installs with Apptainer, app commands and SIF image caches have
+different permission requirements. If normal users see
+`no writable apptainer image directory found`, use the
+[Apptainer SIF cache FAQ](troubleshooting.en.md#apptainer-says-no-writable-apptainer-image-directory-found).
+
+For installed `taf-*` commands or direct `taffish` compilation, set
+`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` to force generic
+`<container:...>` tags at runtime:
+
+```sh
+TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 -- --help
+TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 --compile --help
+```
+
+This does not override explicit `<docker:...>`, `<podman:...>`, or
+`<apptainer:...>` tags. In local project runs, `taf run --backend ...` has
+priority over the environment variable.
+
+TAFFISH `0.9.0` also supports backend-specific container runtime arguments. Use
+structured `.taf` tag arguments for app requirements, such as an app that needs
+GPU access:
+
+```taf
+<container:ghcr.io/taffish/my-gpu-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
+  my-gpu-tool --help
+```
+
+Use runtime environment variables for machine, site, or one-off differences
+that are not part of the app implementation:
+
+```sh
+TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
+TAFFISH_APPTAINER_RUN_ARGS="--bind /scratch:/scratch" taf-my-tool ...
+```
+
+In short: put app-specific runtime needs in `.taf`; put local execution policy
+in environment variables.
+
+If a container backend reports errors before the app starts, first check the
+backend itself. For example:
+
+```sh
+podman system df
+podman ps -a
+podman machine stop
+podman machine start
+```
+
+If Podman reports `crun: create keyring ... Disk quota exceeded`, see
+[Podman Machine Or crun Errors](troubleshooting.en.md#podman-machine-or-crun-errors).
+It may be a Linux keyring quota limit rather than filesystem disk space.
+
+Run containerized apps from a project directory, data directory, or scratch
+directory. Avoid running them from host system directories such as `/usr/bin` or
+`/usr/local/bin`: TAFFISH mounts the current workdir into the container, and that
+mount can hide important directories inside the image.
+
+TAFFISH still uses container images from the locations declared by app packages,
+often GHCR. Mirror configuration currently covers index download and app
+repository cloning; container image access must still be available from the
+machine that runs apps.
 
 ## Runtime Config And Mirrors
 
@@ -267,269 +516,49 @@ clones apps. This also makes internal mirrors possible: mirror the app
 repositories and index schema, then edit `config.toml` so `from` points to the
 canonical GitHub prefix and `to` points to the internal Git service prefix.
 
-## Find Apps
+## Shell Completion And Vim Files
 
-Search:
+The installer copies shell completion files and Vim syntax files under TAFFISH
+home, but it does not activate them automatically.
 
-```sh
-taf search augustus
-taf search blast
-```
-
-Show app information:
-
-```sh
-taf info augustus
-taf info taf-augustus
-```
-
-List indexed apps from the local index cache:
-
-```sh
-taf list --online
-```
-
-List locally installed apps:
-
-```sh
-taf list
-```
-
-## Install An App
-
-Install the latest indexed version:
-
-```sh
-taf install augustus
-```
-
-Install by command name:
-
-```sh
-taf install taf-augustus
-```
-
-Install an exact version:
-
-```sh
-taf install augustus 3.5.0-r1
-taf install taf-augustus-v3.5.0-r1
-```
-
-Preview without changing files:
-
-```sh
-taf install --dry-run augustus
-```
-
-If the selected version declares dependencies, `taf install` installs those
-dependencies first.
-
-Install a private or local TAFFISH app project without publishing it to the
-public Hub:
-
-```sh
-taf install --from /path/to/my-private-tool
-taf list
-taf which taf-my-private-tool
-```
-
-`taf install --from` reads the local project's `taffish.toml`, checks the
-project, copies the working tree into the selected TAFFISH home, builds the
-versioned command wrapper, and records the origin as
-`[local-project] <PROJECT-ROOT>`. The path may be the project root or any child
-directory under it. This mode does not require `taf update` and does not
-auto-install dependencies.
-
-## Maintain Installed Apps
-
-These commands maintain apps installed from the Hub index. They do not upgrade
-the `taf`, `taffish`, or `taffish-mcp` core binaries. Upgrade the core by
-re-running the installer with the same scope and a selected `--version`.
-
-Install every indexed app as a preview first:
-
-```sh
-taf install --all
-taf install --all --tools
-taf install --all --flows
-```
-
-`taf install --all` is dry-run by default. Add `--yes` to actually install the
-planned set:
-
-```sh
-taf install --all --tools --yes
-```
-
-Check whether locally installed Hub apps have newer indexed versions:
-
-```sh
-taf update
-taf outdated
-taf outdated --json
-```
-
-Plan or apply upgrades:
-
-```sh
-taf upgrade
-taf upgrade --yes
-taf upgrade taf-augustus --yes --prune-old
-```
-
-`taf upgrade` is also dry-run by default. It compares local install metadata
-with the current local index, so run `taf update` first. Local/private apps
-installed with `taf install --from` are not silently replaced by public-index
-upgrades.
-
-Remove older local versions while keeping the newest installed version:
-
-```sh
-taf prune
-taf prune --yes
-taf prune --kind flow --yes
-```
-
-`taf uninstall`, `taf upgrade --prune-old`, and `taf prune` remove TAFFISH app
-source/wrapper files only. They do not remove shared Docker, Podman, Apptainer,
-or SIF image caches.
-
-## Run An Installed App
-
-TAFFISH app commands are normal shell commands. For example:
-
-```sh
-taf-augustus -- --help
-taf-augustus -- --species=help
-taf-augustus -- --species=human genome.fa
-```
-
-The `--` separator means "pass the following options to the upstream tool".
-This is useful when an option such as `--help` might otherwise be handled by the
-TAFFISH wrapper itself.
-
-Do not use a TAFFISH tool command as if it were a shell command runner. For
-example:
-
-```sh
-taf-augustus echo 1
-```
-
-does not execute shell `echo`. It passes `echo 1` to upstream AUGUSTUS.
-
-Installed commands usually include:
+For a user install, completion files are usually under:
 
 ```text
-taf-<name>                  unversioned alias
-taf-<name>-v<version>-r<N>   exact versioned command
+~/.local/share/taffish/share/completions
 ```
 
-The unversioned alias points to the latest installed local version.
-
-## List, Locate, And Remove Apps
-
-List local installations:
+Example Bash setup:
 
 ```sh
-taf list
+source ~/.local/share/taffish/share/completions/bash/taf
+source ~/.local/share/taffish/share/completions/bash/taffish
 ```
 
-Find installed files:
+Example Zsh setup:
 
 ```sh
-taf which taf-augustus
-taf which taf-augustus-v3.5.0-r1
+fpath=(~/.local/share/taffish/share/completions/zsh $fpath)
+autoload -Uz compinit
+compinit
 ```
 
-Uninstall:
+Example Fish setup:
 
 ```sh
-taf uninstall taf-augustus
-taf uninstall taf-augustus-v3.5.0-r1
+mkdir -p ~/.config/fish/completions
+cp ~/.local/share/taffish/share/completions/fish/taf.fish ~/.config/fish/completions/
+cp ~/.local/share/taffish/share/completions/fish/taffish.fish ~/.config/fish/completions/
 ```
 
-When more than one local version exists, prefer the exact versioned command.
+Vim syntax files are usually under:
 
-## Container Backends
-
-Most bioinformatics tool apps run inside containers. TAFFISH can use Docker,
-Podman, or Apptainer depending on the app and local environment.
-
-Common checks:
-
-```sh
-docker run --rm hello-world
-podman run --rm hello-world
-apptainer --version
+```text
+~/.local/share/taffish/share/vim
 ```
 
-You only need the backend you plan to use. On HPC or shared Linux servers,
-Apptainer is often the most practical backend. On laptops, Docker or Podman are
-often simpler.
-
-For system-wide installs with Apptainer, app commands and SIF image caches have
-different permission requirements. If normal users see
-`no writable apptainer image directory found`, use the
-[Apptainer SIF cache FAQ](troubleshooting.en.md#apptainer-says-no-writable-apptainer-image-directory-found).
-
-For installed `taf-*` commands or direct `taffish` compilation, set
-`TAFFISH_CONTAINER_BACKEND=apptainer|podman|docker` to force generic
-`<container:...>` tags at runtime:
-
-```sh
-TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 -- --help
-TAFFISH_CONTAINER_BACKEND=podman taf-augustus-v3.5.0-r1 --compile -- --help
-```
-
-This does not override explicit `<docker:...>`, `<podman:...>`, or
-`<apptainer:...>` tags. In local project runs, `taf run --backend ...` has
-priority over the environment variable.
-
-TAFFISH `0.9.0` also supports backend-specific container runtime arguments. Use
-structured `.taf` tag arguments for app requirements, such as an app that needs
-GPU access:
-
-```taf
-<container:ghcr.io/taffish/my-gpu-tool:1.0.0-r1$@[docker: --gpus all][podman: --device nvidia.com/gpu=all][apptainer: --nv]>
-  my-gpu-tool --help
-```
-
-Use runtime environment variables for machine, site, or one-off differences
-that are not part of the app implementation:
-
-```sh
-TAFFISH_DOCKER_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
-TAFFISH_PODMAN_RUN_ARGS="--platform linux/amd64" taf-my-tool ...
-TAFFISH_APPTAINER_RUN_ARGS="--bind /scratch:/scratch" taf-my-tool ...
-```
-
-In short: put app-specific runtime needs in `.taf`; put local execution policy
-in environment variables.
-
-If a container backend reports errors before the app starts, first check the
-backend itself. For example:
-
-```sh
-podman system df
-podman ps -a
-podman machine stop
-podman machine start
-```
-
-If Podman reports `crun: create keyring ... Disk quota exceeded`, see
-[Podman Machine Or crun Errors](troubleshooting.en.md#podman-machine-or-crun-errors).
-It may be a Linux keyring quota limit rather than filesystem disk space.
-
-Run containerized apps from a project directory, data directory, or scratch
-directory. Avoid running them from host system directories such as `/usr/bin` or
-`/usr/local/bin`: TAFFISH mounts the current workdir into the container, and that
-mount can hide important directories inside the image.
-
-TAFFISH still uses container images from the locations declared by app packages,
-often GHCR. Mirror configuration currently covers index download and app
-repository cloning; container image access must still be available from the
-machine that runs apps.
+Copy `syntax/taf.vim` and `ftdetect/taf.vim` into the corresponding Vim or
+Neovim user runtime. For system-wide activation, use the
+[System Administration Guide](system-administration.en.md).
 
 ## Network Notes
 

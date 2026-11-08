@@ -123,7 +123,7 @@ Codex、Claude Code、Cursor、Cline 和通用 MCP 客户端示例见
 | --- | --- |
 | `taffish_get_version` | 返回已安装的 `taffish-mcp` 版本。 |
 | `taffish_get_help` | 返回 MCP server 的简短帮助信息。 |
-| `taffish_check_environment` | 检查本地 TAFFISH 目录、`PATH` 和相关可执行文件，不初始化或修改系统。 |
+| `taffish_check_environment` | 只读诊断。0.11.0 支持 `check=environment`（默认）、`check=index`（索引缓存）、`check=hub`（已安装文件）。只有 hub 支持可选的 `targets` 数组，不修复或运行 app。 |
 | `taffish_get_config` | 返回当前生效的 TAFFISH 运行时配置。 |
 | `taffish_get_config_paths` | 返回 TAFFISH 配置文件路径。 |
 
@@ -181,7 +181,11 @@ Hub/index 已记录的元数据。
 | `taffish_check_outdated` | 比较本地 Hub 安装和当前本地 index，报告可升级项，但不安装。 |
 | `taffish_plan_install_all` | 规划批量 `taf install --all` 操作，可以限制为 tools 或 flows。 |
 | `taffish_plan_upgrade` | 规划本地已安装 Hub app 的升级；真正的 CLI 升级仍需要用户在 MCP 外显式确认。 |
-| `taffish_plan_prune` | 规划删除较旧本地版本，并保留本地已安装的最新版本。 |
+| `taffish_plan_prune` | 在 0.11.0 中，只有同源的 index 推荐已安装且验证通过时，才规划删除可靠判定更旧的同源版本；不执行删除。 |
+
+维护规划仍然只读。MCP 没有执行 `install --repair` 的工具或参数；显式修复是独立
+的 CLI 操作。这不改变 `taffish_update_index` 等现有本地写工具。内置中英文影响
+人类可读帮助，不改变 MCP 工具名或协议数据。
 
 项目操作：
 

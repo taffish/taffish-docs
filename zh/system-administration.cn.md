@@ -70,6 +70,9 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sudo sh -s -- --system
 ```
 
+如果在 Apple 芯片的 Mac 上从 Gitee 下载二进制时遇到 HTTP 403，可按[快速开始](quick-start.cn.md#安装-taffish)使用正式标签归档安装。
+共享安装请以 root 身份运行安装器，把示例的 `--user` 换成 `--system`，保留 `--verify gpg`。
+
 安装器会把三个核心命令写入 `/usr/local/bin`，创建 system home，在需要时初始化系统配置，
 并尝试更新系统 index。它会复制 completion 和 Vim 文件，但不会修改全局 shell 或编辑器配置。
 
@@ -241,7 +244,10 @@ TAFFISH 可以自动选择可用后端，也可以接收显式 backend override�
 2. 管理员预缓存：管理员先运行常用的版本化 app 命令，让 SIF 写入 system home。
 3. 共享可写缓存：可信本地用户共用 sticky 目录。
 
-共享可写缓存示例：
+0.11.0 系统安装器在 system SIF 目录缺失时默认按管理员管理的 `0755` 创建；已有
+目录默认保留原权限。如果确需可信本地用户共用可写缓存，可在安装时显式指定
+`--shared-sif-cache`，只对 SIF 目录应用 sticky `1777`。`taf doctor --system`
+报告缓存策略，不修改权限。若在默认 system home 手动配置：
 
 ```sh
 sudo mkdir -p /opt/taffish/images/sif
