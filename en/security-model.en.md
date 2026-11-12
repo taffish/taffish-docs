@@ -57,7 +57,9 @@ artifact integrity.
 
 ## Release Payload Integrity
 
-Current signed TAFFISH release payloads include:
+### Per-program verification in 0.11.0
+
+The 0.11.0 release payload includes:
 
 ```text
 target/SHA256SUMS
@@ -65,28 +67,61 @@ target/SHA256SUMS.asc
 target/TAFFISH-RELEASE-KEY.asc
 ```
 
-With the **0.11.0 installer**, official GitHub/Gitee raw installs in the
-default `auto` mode require each selected binary to match `SHA256SUMS`. When the
-signature, release key, `gpg` and `gpgv` are available, the installer also
-verifies the manifest signature against the pinned key fingerprint. Use
-`--verify gpg` to require both checks or `--verify sha256` to require the
-checksum check only. Explicit `--verify none` disables verification and is
-not an equivalent fallback. The install receipt, `install-receipt.toml`, records the verification level actually achieved. If that path already exists, it must be a regular file: both first-time installs and reinstalls reject symlinks, including dangling ones. Older installer scripts have their own verification policy.
+The **0.11.0 installer** checks each selected binary against `SHA256SUMS`
+before replacing commands when installing from official GitHub/Gitee raw
+sources in the default `auto` mode. It also verifies the manifest signature
+when the signature, release key, `gpg`, and `gpgv` are available. Older
+installer scripts have their own verification policy.
 
-Typical verification flow:
+<a id="platform-archives-in-the-0120-candidate"></a>
+
+### Platform archives in 0.12.0
+
+Starting with [0.12.0](https://github.com/taffish/taffish/releases/tag/v0.12.0),
+official platform archives use two verification layers:
+
+1. Before extraction, check the complete archive against the adjacent
+   `ARCHIVE-SHA256SUMS`; signature verification uses `ARCHIVE-SHA256SUMS.asc`
+   and `TAFFISH-RELEASE-KEY.asc` according to the selected verification mode.
+2. After extraction and before installation, check the three programs against
+   the package's `target/SHA256SUMS`, with its own signature and release key.
+
+This applies to packages selected with `--local` or recognized by their
+standard platform filename, including packages supplied through a mirror,
+`--url`, or `--archive`. Both checksum manifests are required in `auto` mode.
+Other custom bundles and explicit binary URLs do not automatically receive
+this archive-level protection.
+
+### Verification modes
+
+| Mode | Required checks |
+| --- | --- |
+| `auto` (default) | Checksums for official raw installs and both layers of recognized platform packages. Signatures are also checked against the pinned release key when the signature, key, `gpg`, and `gpgv` are available. Other custom sources without a program manifest can produce a warning and an unverified installation. |
+| `sha256` | Checksums are mandatory for every applicable layer; signatures are not required. |
+| `gpg` | Checksums and valid signatures from the pinned TAFFISH release key are mandatory for every applicable layer. Missing verification material or tools causes failure. |
+| `none` | Explicitly disables verification; it is not an equivalent fallback. |
+
+`auto` therefore does not guarantee signature verification. For an authenticated
+offline installation, obtain the installer through a trusted channel.
+Place the archive, both archive verification files, and the release key beside
+the saved installer, then use:
 
 ```sh
-cd target
-shasum -a 256 -c SHA256SUMS
-gpg --import TAFFISH-RELEASE-KEY.asc
-gpg --verify SHA256SUMS.asc SHA256SUMS
+sh install-taffish.sh --local --verify gpg --user
 ```
+
+Package names, manual verification, and custom-source options are documented in
+the [0.12.0 installation guide](https://github.com/taffish/taffish/blob/v0.12.0/install/README.md).
+The install receipt, `install-receipt.toml`, records the verification level
+actually achieved. If that path already exists, it must be a regular file:
+both first-time installs and reinstalls reject symlinks, including dangling ones.
 
 Important boundaries:
 
 - a payload hash or signature does not authenticate the installer fetched by
-  `curl | sh`; custom binary URLs and bundles are not the official raw path
-  and should not be assumed to have the same verification material;
+  `curl | sh`;
+- checksums alone detect mismatches but do not authenticate a manifest obtained
+  from the same untrusted source as the payload;
 - the current release process is not a reproducible-build claim;
 - the current release process is not a GitHub Actions provenance or artifact
   attestation claim.
@@ -120,6 +155,12 @@ when GitHub raw URLs are slow or blocked. Mirror configuration can rewrite:
 Mirror configuration does not automatically mirror container registries.
 Container images, often hosted on GHCR, must still be reachable by the machine
 that runs the app.
+
+The 0.12.0 Gitee installer reassembles macOS archive parts before
+checking the complete archive. The `.parts` manifest checks transport integrity;
+it does not replace the signed archive manifest. Local installation with
+`--local` skips the online index update but retains the selected payload
+verification policy.
 
 ## Hub Index Trust Gate
 

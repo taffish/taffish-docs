@@ -6,6 +6,10 @@
 You do not need to write a `.taf` script. You will need Git to install the app
 and one working container backend (Docker, Podman, or Apptainer) to run it.
 
+**Version note:** these instructions cover the released TAFFISH 0.12.0, which
+the online installers below provide. If you already have the package, use the
+[local and offline instructions](#local-and-offline-installation).
+
 ## Table Of Contents
 
 - [What You Install](#what-you-install)
@@ -13,6 +17,7 @@ and one working container backend (Docker, Podman, or Apptainer) to run it.
   - [Set your command path](#set-your-command-path)
   - [Run Augustus for the first time](#run-augustus-for-the-first-time)
   - [Other installation options](#other-installation-options)
+  - [Local and offline installation](#local-and-offline-installation)
 - [Choose User Or System Scope](#choose-user-or-system-scope)
 - [Check The Environment](#check-the-environment)
 - [Update The Hub Index](#update-the-hub-index)
@@ -53,8 +58,11 @@ shell's `PATH`. The installer does not edit your shell configuration.
 export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
 ```
 
-To keep this setting in new terminals, add the same line to `~/.zshrc` (Zsh)
-or `~/.bashrc` (Bash). Check which versions you are about to use:
+This `export` affects the current shell and its child processes; it does not
+save the setting for future terminals. Add the same line to `~/.zshrc` (Zsh)
+or `~/.bashrc` (interactive Bash). For a Bash login shell, put it in
+`~/.bash_profile` instead, or have that file load `~/.bashrc`.
+Open a new terminal and check which versions you are using:
 
 ```sh
 taf --version
@@ -62,8 +70,8 @@ taffish --version
 taffish-mcp --version
 ```
 
-The examples here use TAFFISH 0.11.0. If you have an older version, check its
-`--help` for the options it supports.
+The app commands below also work with 0.11.0. Installer
+options differ by version; check the selected installer's `--help`.
 
 ### Run Augustus for the first time
 
@@ -102,10 +110,11 @@ caching still needs a writable image directory. See
 [Apptainer SIF cache permissions](troubleshooting.en.md#apptainer-says-no-writable-apptainer-image-directory-found)
 before deploying TAFFISH for multiple users.
 
-To install 0.11.0 specifically, use its tagged installer. This command requires GPG:
+To install 0.12.0 specifically, use its tagged installer.
+This command requires `gpg` and `gpgv`:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/v0.11.0/install/install-taffish.sh | sh -s -- --user --verify gpg
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/v0.12.0/install/install-taffish.sh | sh -s -- --version 0.12.0 --user --verify gpg
 ```
 
 To select a different release with the default installer, pass `--version X.Y.Z`.
@@ -127,13 +136,63 @@ To replace an existing config with the Gitee/China mirror profile:
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user --force-config
 ```
 
-If Gitee returns HTTP 403 for a macOS Apple Silicon binary when you are not signed in, download the [v0.11.0 archive](https://gitee.com/taffish-org/taffish/repository/archive/v0.11.0.tar.gz) as `taffish-v0.11.0.tar.gz` and the [matching installer](https://gitee.com/taffish-org/taffish/raw/v0.11.0/install/install-taffish.gitee.sh) into the same directory. With GPG available, run:
+For **0.11.0 only**, if Gitee returns HTTP 403 for a macOS Apple Silicon binary
+when you are not signed in, download the [v0.11.0 archive](https://gitee.com/taffish-org/taffish/repository/archive/v0.11.0.tar.gz)
+as `taffish-v0.11.0.tar.gz` and the [matching installer](https://gitee.com/taffish-org/taffish/raw/v0.11.0/install/install-taffish.gitee.sh)
+into the same directory. With GPG available, run:
 
 ```sh
 sh install-taffish.gitee.sh --user --archive taffish-v0.11.0.tar.gz --verify gpg
 ```
 
 After a user install, return to [Set your command path](#set-your-command-path).
+
+<a id="install-a-local-0120-candidate"></a>
+
+### Local and offline installation
+
+The official 0.12.0 packages contain `taf`, `taffish`, and `taffish-mcp` together.
+They include Han Lisp 0.3.0 and their Lisp runtime; you do not need a separate
+Lisp installation.
+
+| Platform | Complete package | Extraction tool |
+| --- | --- | --- |
+| Apple Silicon, macOS 15 or later | `taffish-0.12.0-darwin-arm64.tar.xz` | System `/usr/bin/tar` |
+| glibc-based x86-64 Linux | `taffish-0.12.0-linux-amd64.tar.gz` | `tar` and `gzip` |
+
+The macOS package no longer needs Homebrew or `zstd`. When upgrading from
+0.11.0, keep the old `zstd` installed until the upgrade finishes: the installer
+runs the old commands to identify them before replacement.
+
+Obtain the matching 0.12.0 installer and complete package through a trusted
+channel. Put `install-taffish.sh`, the package, `ARCHIVE-SHA256SUMS`,
+`ARCHIVE-SHA256SUMS.asc`, and `TAFFISH-RELEASE-KEY.asc` in one directory.
+With `gpg` and `gpgv` available, run from that directory:
+
+```sh
+sh install-taffish.sh --local --version 0.12.0 --user --verify gpg
+```
+
+`--local` selects the host's package without downloading it and skips the
+post-install index update. `--verify gpg` requires valid signatures for the
+archive and program manifests, then checks their hashes before extraction and
+installation respectively. It does not authenticate the installer script itself.
+After installation, set your `PATH` and explicitly run `taf update --user`
+when you want to obtain the Hub index.
+
+On Linux, installation displays the bundled runtime terms and asks for
+acceptance. Read them before installing; unattended installations must use
+`--accept-runtime-license`. See the [administrator instructions](system-administration.en.md#local-installation-and-runtime-terms).
+macOS does not require runtime acceptance.
+
+The 0.12.0 Gitee installer automatically joins the macOS package's small
+`.part-*` files before checking the complete archive. GitHub and Linux use
+complete archives. Local installation also needs a complete archive, not a
+`.parts` list.
+For renamed packages, manual reassembly and verification details, see the
+[installation guide](https://github.com/taffish/taffish/blob/v0.12.0/install/README.md).
+After setting `PATH`, check that `taf --version`, `taffish --version`, and
+`taffish-mcp --version` all report 0.12.0.
 
 ## Choose User Or System Scope
 

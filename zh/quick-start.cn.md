@@ -5,6 +5,9 @@
 从[安装 TAFFISH](#安装-taffish) 开始，运行你的第一个 app：Augustus。你不需要编写
 `.taf` 脚本。安装这个 app 需要 Git；运行它需要 Docker、Podman 或 Apptainer，任选一个可用的即可。
 
+**版本说明：** 本文适用于正式发布的 TAFFISH 0.12.0，下方在线安装器提供此版本。
+已经取得平台包时，可用[本地与离线安装方式](#本地与离线安装)。
+
 ## 目录
 
 - [你会安装什么](#你会安装什么)
@@ -12,6 +15,7 @@
   - [设置命令路径](#设置命令路径)
   - [首次运行 Augustus](#首次运行-augustus)
   - [其他安装方式](#其他安装方式)
+  - [本地与离线安装](#本地与离线安装)
 - [选择用户级或系统级 Scope](#选择用户级或系统级-scope)
 - [检查环境](#检查环境)
 - [更新 Hub 索引](#更新-hub-索引)
@@ -51,8 +55,9 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
 ```
 
-要让新终端也能找到这些命令，把同一行加入 `~/.zshrc`（Zsh）或 `~/.bashrc`（Bash）。
-现在检查实际使用的版本：
+这条 `export` 只影响当前 shell 及其子进程，不会为今后的终端保存设置。要持久生效，
+把同一行加入 `~/.zshrc`（Zsh）或 `~/.bashrc`（交互式 Bash）。Bash 登录 shell 应改放
+`~/.bash_profile`，或让该文件加载 `~/.bashrc`。新开终端后，检查实际使用的版本：
 
 ```sh
 taf --version
@@ -60,7 +65,7 @@ taffish --version
 taffish-mcp --version
 ```
 
-本文示例使用 TAFFISH 0.11.0。若本机版本较旧，可用该版本的 `--help` 核对支持的选项。
+下方 app 命令也适用于 0.11.0。安装器选项随版本变化，应查看所选安装器的 `--help`。
 
 ### 首次运行 Augustus
 
@@ -96,10 +101,10 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 多用户部署前建议先阅读
 [Apptainer SIF 缓存权限说明](troubleshooting.cn.md#apptainer-提示-no-writable-apptainer-image-directory-found)。
 
-如需固定安装 0.11.0，可使用该标签内的安装器。以下命令要求本机有 GPG：
+如需固定安装 0.12.0，可使用该标签内的安装器。以下命令要求本机有 `gpg` 和 `gpgv`：
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taffish/taffish/v0.11.0/install/install-taffish.sh | sh -s -- --user --verify gpg
+curl -fsSL https://raw.githubusercontent.com/taffish/taffish/v0.12.0/install/install-taffish.sh | sh -s -- --version 0.12.0 --user --verify gpg
 ```
 
 如需用默认安装器选择其他已发布版本，可传入 `--version X.Y.Z`。
@@ -120,13 +125,53 @@ curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffis
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sh -s -- --user --force-config
 ```
 
-在 Apple 芯片的 Mac 上，如果未登录 Gitee 时下载单个二进制文件遇到 HTTP 403，可将 [v0.11.0 标签归档](https://gitee.com/taffish-org/taffish/repository/archive/v0.11.0.tar.gz)保存为 `taffish-v0.11.0.tar.gz`，并将[同一标签的安装器](https://gitee.com/taffish-org/taffish/raw/v0.11.0/install/install-taffish.gitee.sh)下载到同一目录。确认本机有 GPG 后执行：
+**仅对 0.11.0：** 在 Apple 芯片的 Mac 上，如果未登录 Gitee 时下载单个二进制文件遇到
+HTTP 403，可将 [v0.11.0 标签归档](https://gitee.com/taffish-org/taffish/repository/archive/v0.11.0.tar.gz)
+保存为 `taffish-v0.11.0.tar.gz`，并将[同一标签的安装器](https://gitee.com/taffish-org/taffish/raw/v0.11.0/install/install-taffish.gitee.sh)
+下载到同一目录。确认本机有 GPG 后执行：
 
 ```sh
 sh install-taffish.gitee.sh --user --archive taffish-v0.11.0.tar.gz --verify gpg
 ```
 
 完成用户级安装后，回到[设置命令路径](#设置命令路径)继续。
+
+<a id="安装本地-0120-候选"></a>
+
+### 本地与离线安装
+
+正式 0.12.0 平台包同时包含 `taf`、`taffish`、`taffish-mcp`，已内置 Han Lisp 0.3.0
+和所需 Lisp 运行时，用户无需另装 Lisp。
+
+| 平台 | 完整平台包 | 解包工具 |
+| --- | --- | --- |
+| Apple Silicon，macOS 15 或更新版本 | `taffish-0.12.0-darwin-arm64.tar.xz` | 系统 `/usr/bin/tar` |
+| 基于 glibc 的 x86-64 Linux | `taffish-0.12.0-linux-amd64.tar.gz` | `tar` 和 `gzip` |
+
+macOS 包不再需要 Homebrew 或 `zstd`。但从 0.11.0 升级时，请保留旧 `zstd` 直到
+升级完成：安装器替换前需要运行旧命令来识别它们。
+
+通过可信渠道取得匹配的 0.12.0 安装器和完整平台包。把 `install-taffish.sh`、平台包、
+`ARCHIVE-SHA256SUMS`、`ARCHIVE-SHA256SUMS.asc` 和 `TAFFISH-RELEASE-KEY.asc`
+放在同一目录。确认 `gpg` 和 `gpgv` 可用后，在该目录运行：
+
+```sh
+sh install-taffish.sh --local --version 0.12.0 --user --verify gpg
+```
+
+`--local` 从本地选择匹配的平台包，不下载载荷，也跳过安装后的索引更新。
+`--verify gpg` 要求归档清单和程序清单的签名均有效，并分别在解包和安装程序前核对摘要；
+它不认证安装脚本本身。安装后设置 `PATH`，需要获取 Hub 索引时再主动运行 `taf update --user`。
+
+Linux 安装会显示随包运行时条款并要求确认。安装前先阅读；无人值守安装须显式传入
+`--accept-runtime-license`，见[管理员说明](system-administration.cn.md#本地安装与运行时条款)。
+macOS 无需确认运行时条款。
+
+0.12.0 Gitee 安装器会自动合并 macOS 平台包的 `.part-*` 小文件，再校验完整归档；
+GitHub 和 Linux 使用完整归档。本地安装也需要完整归档，不能直接使用 `.parts` 清单。
+改名包、手工合并和校验细节见[安装指南](https://github.com/taffish/taffish/blob/v0.12.0/install/README-CN.md)。
+设置 `PATH` 后，确认 `taf --version`、`taffish --version` 和 `taffish-mcp --version`
+均显示 0.12.0。
 
 ## 选择用户级或系统级 Scope
 

@@ -50,6 +50,9 @@ ordinary shell commands.
 
 ## Installation
 
+The online installers below install 0.12.0. For a local or offline install,
+follow [Quick Start](quick-start.en.md#local-and-offline-installation).
+
 The public `taffish` repository provides the open-source TAFFISH
 implementation, installers, source-tree build documentation, and binary
 release payloads. The recommended user installation uses the installer from
@@ -71,7 +74,7 @@ Pinned version installation:
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
 ```
 
-Replace `X.Y.Z` with the release version you want to install.
+Replace `X.Y.Z` with the published release version you want to install.
 
 For users in China, the Gitee installer can avoid GitHub raw content during
 installation and initialize the China mirror config:
@@ -109,16 +112,30 @@ TAFFISH home, usually
 | Installed `taf-*` commands | `~/.local/share/taffish/bin` | `/usr/local/bin` |
 | TAFFISH home | `~/.local/share/taffish` | `/opt/taffish` |
 
-The installer attempts to initialize the matching scope and update its index.
+Online installation attempts to initialize the matching scope and update its index.
 If the network is unavailable, it prints a warning but does not roll back the
 installed binaries. It copies shell and editor integration files but does not
 edit personal or global startup files.
 
-`taf doctor` checks common local dependencies such as `git`, `gh`, `docker`, `podman`, `apptainer`, `sbcl`, and shell tools.
+`taf doctor` reports tools used by different workflows; not every listed tool
+is required to run the prebuilt commands.
 
-For source builds, release verification, supported maintainer build paths, and
-contribution notes, see the
-[taffish/taffish README](https://github.com/taffish/taffish).
+Starting with [0.12.0](https://github.com/taffish/taffish/releases/tag/v0.12.0),
+the three commands are distributed together in a platform archive:
+
+- macOS 15+ on Apple Silicon: a `.tar.xz` archive, extracted by the system
+  `tar`. These official SBCL binaries need neither a separate Lisp installation
+  nor Homebrew `zstd`. When upgrading from 0.11.0, keep `zstd` until the
+  upgrade finishes because the installer first runs the old commands.
+- Linux x86_64 with glibc: a `.tar.gz` archive, requiring `tar` and `gzip`.
+  Running the official binaries does not require installing or purchasing
+  LispWorks. Installation requires accepting the bundled runtime terms after
+  reading them; `--accept-runtime-license` is available for unattended use.
+
+For local/offline installation, Gitee archive parts, verification, and runtime
+licenses, follow the [0.12.0 installation guide](https://github.com/taffish/taffish/blob/v0.12.0/install/README.md).
+Its `--local` mode skips the online index update. Payload trust boundaries are
+explained in the [security model](security-model.en.md#release-payload-integrity).
 
 ## User And System Scope
 
@@ -960,13 +977,20 @@ Useful source-side documents:
 - [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-Official release assets currently cover selected macOS and Linux platforms;
-all platforms supported by SBCL can build from source when the required
-dependencies are available. Tagged release payloads include `SHA256SUMS`,
-`SHA256SUMS.asc`, and `TAFFISH-RELEASE-KEY.asc` for manual checksum and GPG
-signature verification. Consult the source README and the selected GitHub
-Release for the authoritative platform matrix, build backend, version notes,
-and verification procedure.
+TAFFISH 0.12.0 bundles Han Lisp 0.3.0 and loads it automatically; users
+do not install Han separately. Source development still requires the chosen
+Lisp implementation and its dependencies. In particular, TAFFISH's `--compile`
+does not remove dependencies from SBCL: an ordinary Homebrew SBCL build may
+still need `zstd`. Reproducing the official macOS binaries requires SBCL built
+without core compression. CCL and ECL development builds are also documented,
+but macOS CCL has an unresolved intermittent native crash; use the official
+SBCL package for deployment.
+
+Consult the [0.12.0 source build guide](https://github.com/taffish/taffish/blob/v0.12.0/docs/dev/en/build-from-source.md)
+for the tested implementation/platform combinations and build requirements.
+The source license does not replace the licenses of bundled components: Han
+uses MIT, and the Linux LispWorks runtime has separate terms. For published
+versions, use the selected release's platform matrix and verification instructions.
 
 ## TAFFISH App Project Structure
 

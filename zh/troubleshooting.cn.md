@@ -37,7 +37,8 @@
 export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
 ```
 
-然后重新打开终端，或 source 你的 shell 配置文件。
+这会立即对当前 shell 及其子进程生效。若要在新终端中保留设置，先按
+[快速开始](quick-start.cn.md)将该行保存到对应的 shell 启动配置文件，再重新打开终端。
 
 检查：
 
@@ -75,8 +76,14 @@ sudo taf install --system APP
 
 ## macOS 上 `taffish` 找不到运行库
 
-0.11.0 Apple Silicon 二进制声明的最低系统是 macOS 15.0，并依赖 Homebrew 的
-`zstd`。安装缺失的库不代表更早的 macOS 受支持。若报错指出找不到 `libzstd`：
+官方 0.12.0 Apple Silicon 二进制仅链接 macOS 系统库，不需要 Homebrew
+`zstd` 或额外的 Lisp 安装；最低系统仍是 macOS 15。若自认为已使用 0.12.0 的命令
+仍报缺少 `libzstd`，检查 `which taf`、`which taffish`、`which taffish-mcp`：
+shell 可能仍选中了旧命令或自行构建的程序。
+
+已发布的 0.11.0 Apple Silicon 二进制确实依赖 Homebrew `zstd`。升级到 0.12.0 时，
+请保留它直到升级完成，因为安装器替换前需要运行旧程序来识别身份。对 0.11.0 的
+`libzstd` 缺失错误，可运行：
 
 ```sh
 brew install zstd
@@ -89,6 +96,10 @@ taffish --version
 taffish-mcp --version
 taf doctor
 ```
+
+安装该库不代表更早的 macOS 受支持。0.12.0 的本地安装、平台归档和 Gitee macOS
+分片下载见[快速开始](quick-start.cn.md#本地与离线安装)。自行构建的程序可能有不同
+运行库依赖，见[源码构建指南](https://github.com/taffish/taffish/blob/v0.12.0/docs/dev/zh-CN/build-from-source.md)。
 
 ## `taf update` 失败
 
@@ -120,7 +131,9 @@ canonical GitHub 仓库 URL 重写为配置的镜像地址。如果使用内部 
 镜像配置不会自动镜像容器 registry。如果某个 app 使用 GHCR，运行 app 的机器仍然
 需要能访问这个镜像来源。
 
-安装器运行 `taf update` 失败时可能会给出 warning，但不会回滚已经安装的二进制。
+在线安装最后运行 `taf update` 失败时可能会给出 warning，但不会回滚已经安装的二进制。
+0.12.0 安装器的 `--local` 模式会主动跳过该更新。本地安装后索引缺失或较旧，
+不代表程序安装失败；允许联网后，在所需 scope 主动刷新索引即可。
 
 ## `taf install` 找不到 app
 
@@ -429,7 +442,7 @@ test = ["my-tool --help"]
 
 ## smoke 命令因为嵌套引号失败
 
-Smoke `test` 条目是 TOML 字符串，并会在 smoke 容器中通过 `sh -lc` 执行。如果命令
+Smoke `test` 条目是 TOML 字符串，并会在 smoke 容器中通过 `sh -c` 执行。如果命令
 本身需要引号，推荐在 shell 片段内部使用单引号：
 
 ```toml

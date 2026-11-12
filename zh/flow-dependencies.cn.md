@@ -88,7 +88,7 @@ taf-multiqc = "1.35-r2"
 也可以在开发期写基础 command：
 
 ```taf
-[[taf: taf-fastqc sample.fq]]
+[[taf: taf-fastqc fastqc sample.fq]]
 ```
 
 但正式发布的 flow 推荐固定版本。固定版本可以保证：

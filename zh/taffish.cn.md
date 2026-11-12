@@ -46,6 +46,8 @@ TAFFISH 不是通用工作流引擎。Nextflow、Snakemake 等系统仍可负责
 
 ## 安装
 
+以下在线安装器安装 0.12.0。本地或离线安装见[快速开始](quick-start.cn.md#本地与离线安装)。
+
 公开的 `taffish/taffish` 仓库现在提供 TAFFISH 开源实现、安装器、源码树构建文档和二进制 release 载荷。用户安装推荐使用该仓库中的权威安装器：
 
 ```sh
@@ -64,7 +66,7 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/install-taffish.sh | sh -s -- --version X.Y.Z --user
 ```
 
-请把 `X.Y.Z` 替换为要安装的 release 版本。
+请把 `X.Y.Z` 替换为要安装的已发布版本。
 
 中国大陆用户可以使用 Gitee 安装器，减少安装阶段对 GitHub raw content 的依赖，
 并初始化中国镜像配置：
@@ -101,12 +103,26 @@ taffish-mcp
 | 已安装的 `taf-*` 命令 | `~/.local/share/taffish/bin` | `/usr/local/bin` |
 | TAFFISH home | `~/.local/share/taffish` | `/opt/taffish` |
 
-安装器会尝试初始化与安装方式匹配的作用域并更新其 index。如果网络不可用，
+在线安装会尝试初始化与安装方式匹配的作用域并更新其 index。如果网络不可用，
 安装器会给出警告，但不会回滚已经安装的二进制文件。它只复制 shell 和编辑器
 集成文件，不会直接修改个人或全局启动配置。
 
-源码构建、release 校验、维护者构建路径和贡献说明，请参考
-[taffish/taffish README](https://github.com/taffish/taffish)。
+`taf doctor` 会报告不同工作流使用的工具；运行预构建命令并不要求装齐报告中的
+所有工具。
+
+从 [0.12.0](https://github.com/taffish/taffish/releases/tag/v0.12.0) 开始，
+三个命令放在同一个平台归档中分发：
+
+- macOS 15 及以上、Apple Silicon：使用 `.tar.xz` 归档，由系统 `tar` 解包。
+  这些官方 SBCL 二进制不需要另装 Lisp 或 Homebrew `zstd`。从 0.11.0 升级时，
+  请保留 `zstd` 直到升级完成，因为安装器会先运行旧命令。
+- Linux x86_64、glibc 环境：使用 `.tar.gz` 归档，需要 `tar` 和 `gzip`。
+  运行官方二进制不需要安装或购买 LispWorks。安装时需要阅读并接受随包提供的
+  运行时条款；无人值守安装可在阅读后使用 `--accept-runtime-license`。
+
+本地/离线安装、Gitee 归档分片、校验和运行时许可见 [0.12.0 安装指南](https://github.com/taffish/taffish/blob/v0.12.0/install/README-CN.md)。
+其中 `--local` 模式会跳过在线 index 更新。载荷的信任边界见
+[安全模型](security-model.cn.md#release-载荷完整性)。
 
 ## 用户级与系统级作用域
 
@@ -906,11 +922,15 @@ taffish-mcp
 - [贡献指南](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)
 - [安全策略](https://github.com/taffish/taffish/blob/main/SECURITY.md)
 
-官方 release 资产目前覆盖部分 macOS 和 Linux 平台；只要依赖可用，任何受到
-SBCL 支持的平台仍可从源码构建。带 tag 的 release 载荷提供 `SHA256SUMS`、
-`SHA256SUMS.asc` 和 `TAFFISH-RELEASE-KEY.asc`，用于手动 checksum 和 GPG
-签名校验。准确的平台矩阵、构建 backend、版本变更和校验流程，应以源码仓库
-README 与所选 GitHub Release 为准。
+TAFFISH 0.12.0 内置 Han Lisp 0.3.0 并自动加载，不需要用户单独安装 Han。
+源码开发仍需准备所选 Lisp 实现及其依赖。尤其要注意，TAFFISH 的 `--compile`
+不会移除 SBCL 自身的依赖：普通 Homebrew SBCL 构建仍可能需要 `zstd`；复现官方
+macOS 二进制需要使用关闭 core compression 的 SBCL。文档也提供 CCL、ECL 开发
+构建路径，但 macOS CCL 仍有未解决的间歇性原生崩溃，部署请使用官方 SBCL 包。
+
+已测试的实现/平台组合和构建要求见 [0.12.0 源码构建指南](https://github.com/taffish/taffish/blob/v0.12.0/docs/dev/zh-CN/build-from-source.md)。
+源码许可不替代所捆绑组件的许可：Han 使用 MIT，Linux 的 LispWorks 运行时另有
+条款。对于已发布版本，请按所选 release 的平台矩阵和校验说明操作。
 
 ## TAFFISH app 项目结构
 

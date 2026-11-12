@@ -53,7 +53,9 @@ verification、package index 元数据、MCP 安全边界和 release artifact �
 
 ## Release 载荷完整性
 
-当前带签名的 TAFFISH release 载荷包含：
+### 0.11.0 的程序文件校验
+
+0.11.0 release 载荷包含：
 
 ```text
 target/SHA256SUMS
@@ -61,25 +63,50 @@ target/SHA256SUMS.asc
 target/TAFFISH-RELEASE-KEY.asc
 ```
 
-使用 **0.11.0 安装器**从官方 GitHub/Gitee raw 来源安装时，默认 `auto` 模式要求
-每个选中的二进制与 `SHA256SUMS` 匹配。签名、公钥、`gpg` 和 `gpgv`
-均可用时，还会按固定的公钥指纹验证清单签名。`--verify gpg` 强制两项均通过；
-`--verify sha256` 只要求摘要校验。显式 `--verify none` 会关闭校验，不是等价的
-回退方案。安装收据 `install-receipt.toml` 记录实际校验等级。如果该路径已存在，它必须是普通文件；初装和重装均拒绝符号链接，包括目标不存在的链接。旧安装器以其自身版本的行为为准。
+使用 **0.11.0 安装器**从官方 GitHub/Gitee raw 来源安装时，默认 `auto` 模式会在
+替换命令前，要求每个选中的二进制与 `SHA256SUMS` 匹配。签名、公钥、`gpg` 和
+`gpgv` 均可用时，还会验证清单签名。旧安装器以其自身版本的行为为准。
 
-典型校验流程：
+<a id="0120-候选版的平台归档校验"></a>
+
+### 0.12.0 的平台归档校验
+
+从 [0.12.0](https://github.com/taffish/taffish/releases/tag/v0.12.0) 开始，
+官方平台归档采用两层校验：
+
+1. 解包前，按归档旁的 `ARCHIVE-SHA256SUMS` 校验完整归档；根据所选校验模式，
+   使用 `ARCHIVE-SHA256SUMS.asc` 和 `TAFFISH-RELEASE-KEY.asc` 验证签名。
+2. 解包后、安装前，按包内的 `target/SHA256SUMS` 校验三个程序；该清单有自己的
+   签名和发布公钥。
+
+通过 `--local` 选中的平台包，或按标准平台文件名识别出的包，都适用这两层校验，
+包括来自镜像、`--url` 或 `--archive` 的包；`auto` 模式也要求两份摘要清单。
+其他自定义 bundle 和显式二进制 URL 不会自动获得归档层校验。
+
+### 校验模式
+
+| 模式 | 必须通过的检查 |
+| --- | --- |
+| `auto`（默认） | 官方 raw 安装必须通过程序摘要校验；识别为平台包时必须通过两层摘要校验。签名、公钥、`gpg` 和 `gpgv` 均可用时，还会按固定的发布公钥验签。其他自定义来源缺少程序清单时，可能告警后以未校验状态安装。 |
+| `sha256` | 所有适用层的摘要校验均为必需，不要求验签。 |
+| `gpg` | 所有适用层均须通过摘要校验，并由固定的 TAFFISH 发布公钥验证签名；缺少校验材料或工具会失败。 |
+| `none` | 显式关闭校验，不是等价的回退方案。 |
+
+因此，`auto` 不保证已经验签。需要认证载荷的离线安装，应从可信渠道取得
+安装器，把归档、两份归档校验文件和发布公钥放在保存的安装器旁，再执行：
 
 ```sh
-cd target
-shasum -a 256 -c SHA256SUMS
-gpg --import TAFFISH-RELEASE-KEY.asc
-gpg --verify SHA256SUMS.asc SHA256SUMS
+sh install-taffish.sh --local --verify gpg --user
 ```
+
+包名、手动校验和自定义来源选项见 [0.12.0 安装指南](https://github.com/taffish/taffish/blob/v0.12.0/install/README-CN.md)。
+安装收据 `install-receipt.toml` 记录实际校验等级。如果该路径已存在，它必须是普通
+文件；初装和重装均拒绝符号链接，包括目标不存在的链接。
 
 需要明确的边界：
 
-- 载荷摘要或签名不能认证用 `curl | sh` 获取的安装脚本本身；自定义二进制 URL
-  和 bundle 不属于官方 raw 路径，不能假定有相同的校验材料；
+- 载荷摘要或签名不能认证用 `curl | sh` 获取的安装脚本本身；
+- 摘要可以发现文件不匹配，但不能认证与载荷一同来自不可信来源的清单；
 - 当前 release 流程还不是可复现构建声明；
 - 当前 release 流程还不是 GitHub Actions provenance 或 artifact attestation 声明。
 
@@ -110,6 +137,10 @@ Gitee 安装器和中国镜像 profile 用于改善 GitHub raw URL 较慢或被�
 
 镜像配置不会自动镜像容器 registry。容器镜像通常位于 GHCR，运行 app 的机器仍然
 需要能访问对应镜像来源。
+
+0.12.0 的 Gitee 安装器会先合并 macOS 归档分片，再校验完整归档。
+`.parts` 清单只检查传输完整性，不能替代带签名的归档清单。`--local` 本地安装会
+跳过在线 index 更新，但仍执行所选的载荷校验策略。
 
 ## Hub Index 可信 Gate
 

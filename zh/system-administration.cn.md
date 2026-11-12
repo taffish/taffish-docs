@@ -13,6 +13,7 @@ TAFFISH 不是调度器。系统级安装的 `taf-*` 命令可以从普通 shell
 - [Scope 模型](#scope-模型)
 - [默认布局](#默认布局)
 - [系统级安装 TAFFISH](#系统级安装-taffish)
+  - [本地安装与运行时条款](#本地安装与运行时条款)
 - [初始化受管安装](#初始化受管安装)
 - [支持 Scope 的命令矩阵](#支持-scope-的命令矩阵)
 - [配置与镜像](#配置与镜像)
@@ -36,8 +37,8 @@ TAFFISH 支持两个相互独立的状态 scope：
 | `--system` / `-s` | 由管理员为整台机器维护的共享状态和 app | `/opt/taffish` |
 
 把 `taf` 二进制安装到系统目录，不会改变后续命令的默认 scope。所有支持 scope 的命令
-每次调用时仍默认使用 user scope。管理员如果直接运行不带 `--system` 的 `taf update`，
-更新的是 root 的用户级 index，而不是机器的系统级 index。
+每次调用时仍默认使用 user scope。不带 `--system` 的 `taf update` 更新的是当前调用账号
+的用户级 index，而不是共享 index；只有以 root 身份运行时，才会更新 root 的用户级 index。
 
 管理员脚本、runbook 和示例都应显式写出 scope。
 
@@ -58,6 +59,8 @@ TAFFISH 支持两个相互独立的状态 scope：
 
 ## 系统级安装 TAFFISH
 
+在线安装器提供正式发布的 TAFFISH 0.12.0。已经取得平台包时，使用[下方本地安装方式](#本地安装与运行时条款)。
+
 GitHub 默认安装器：
 
 ```sh
@@ -70,11 +73,43 @@ curl -fsSL https://raw.githubusercontent.com/taffish/taffish/main/install/instal
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sudo sh -s -- --system
 ```
 
-如果在 Apple 芯片的 Mac 上从 Gitee 下载二进制时遇到 HTTP 403，可按[快速开始](quick-start.cn.md#安装-taffish)使用正式标签归档安装。
+对 0.11.0，如果在 Apple 芯片的 Mac 上从 Gitee 下载二进制时遇到 HTTP 403，可按[快速开始](quick-start.cn.md#其他安装方式)使用正式标签归档安装。
 共享安装请以 root 身份运行安装器，把示例的 `--user` 换成 `--system`，保留 `--verify gpg`。
 
 安装器会把三个核心命令写入 `/usr/local/bin`，创建 system home，在需要时初始化系统配置，
-并尝试更新系统 index。它会复制 completion 和 Vim 文件，但不会修改全局 shell 或编辑器配置。
+并尝试更新系统 index；`--local` 会跳过这一步联网操作。它会复制 completion 和 Vim 文件，
+但不会修改全局 shell 或编辑器配置。
+
+<a id="本地-0120-候选与运行时条款"></a>
+
+### 本地安装与运行时条款
+
+按[快速开始](quick-start.cn.md#本地与离线安装)准备匹配的 0.12.0 安装器、
+完整平台包和校验文件。两个官方平台包都无需用户另装 Lisp。Linux 需要 `tar` 和 `gzip`；
+Apple Silicon 需要 macOS 15 或更新版本，使用系统 `tar`。macOS 从 0.11.0 升级时，
+请保留旧 Homebrew `zstd` 直到旧命令替换完成。
+
+确认 `gpg` 和 `gpgv` 可用后，先阅读经校验的平台包内的运行时条款。下方命令不会
+安装或执行包内程序：
+
+```sh
+sh install-taffish.sh --local --version 0.12.0 --verify gpg --show-runtime-license
+```
+
+Linux 每次安装或升级都要求接受随包的 LispWorks 运行时条款，但用户无需购买或安装
+LispWorks。共享部署应安排使用者阅读和接受条款；只有获得授权时，管理员才可代表他们接受。
+完成阅读后，无人值守安装可使用：
+
+```sh
+sudo sh install-taffish.sh --local --version 0.12.0 --system --verify gpg --accept-runtime-license
+```
+
+未显式传入接受选项时，Linux 安装会在控制终端询问；无法取得确认或用户拒绝时停止。
+macOS 无需接受运行时条款。两个平台都会把许可文本安装到
+`<TAFFISH_HOME>/share/licenses/`，Linux 安装收据还记录所接受文本的摘要和确认方式。
+完整说明见[运行时条款与安装器详细说明](https://github.com/taffish/taffish/blob/v0.12.0/install/README-CN.md#运行时许可)。
+
+`--local` 跳过在线索引更新。允许联网后，再主动运行 `sudo taf update --system` 刷新共享索引。
 
 ## 初始化受管安装
 
@@ -119,7 +154,7 @@ taf-fastqc -- --help
 | `taf list` | `taf list --system` | 否 |
 | `taf which` | `taf which --system <COMMAND>` | 否 |
 | `taf doctor` | `taf doctor --system` | 仅 `--init` 写入 |
-| `taf config` | `taf config --system` | 仅 `init` 写入 |
+| `taf config` | `taf config --system` | `init` 或带值的 `language <LANGUAGE>` 写入；查看命令只读 |
 
 `taf new`、`taf check`、`taf run`、`taf build` 和 `taf publish` 等项目命令
 不是系统 package 管理命令。
@@ -143,6 +178,9 @@ taf config path --system
 taf config --user
 taf config path --user
 ```
+
+`taf config language --system` 只显示语言设置。保存系统语言可用
+`sudo taf config language en --system`（或 `zh`）；此操作需要 root 权限。
 
 source rewrite 只改变 app 仓库 clone URL，不会重写容器 registry URL。私有或地区化部署
 仍需单独保证目标容器镜像可以访问。

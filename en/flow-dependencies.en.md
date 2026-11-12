@@ -88,7 +88,7 @@ In TAFFISH 0.11.0, write the inline delimiters in the **source**, not in a param
 During development, the base command can be used:
 
 ```taf
-[[taf: taf-fastqc sample.fq]]
+[[taf: taf-fastqc fastqc sample.fq]]
 ```
 
 For official releases, fixed versions are recommended because:

@@ -23,9 +23,9 @@ TAFFISH packages bioinformatics tools and lightweight workflows as commands you 
 | Understand how an app gets into the index | [What Is TAFFISH Hub?](en/taffish-hub.en.md) | [Index JSON Specification](en/index-json-spec.en.md) for version records and test results |
 | Check what TAFFISH verifies | [Security Model](en/security-model.en.md) | [Index JSON Specification](en/index-json-spec.en.md) for recorded checks |
 | Connect an AI client | [MCP Client Setup](en/mcp-clients.en.md) | [MCP Guide](en/taffish-mcp.en.md) for the tools available to the client |
-| Build or modify TAFFISH itself | [Build From Source](https://github.com/taffish/taffish/blob/main/docs/dev/en/build-from-source.md) | [Source development and contributing](#source-development) |
+| Build or modify TAFFISH itself | [Build From Source](https://github.com/taffish/taffish/blob/v0.12.0/docs/dev/en/build-from-source.md) | [Source development and contributing](#source-development) |
 
-Run `taf --version` to check your installed version. For changes in 0.11.0, see the [release notes](https://github.com/taffish/taffish/releases/tag/v0.11.0).
+**Version scope:** these installation and source-build instructions cover the released [TAFFISH 0.12.0](https://github.com/taffish/taffish/releases/tag/v0.12.0). [Documentation for 0.11.0](https://github.com/taffish/taffish-docs/tree/v0.11.0) remains available. Run `taf --version` to check which instructions apply to your installation.
 
 ## Flow Portal and Complete Example
 
@@ -67,7 +67,7 @@ The [Security Model](en/security-model.en.md) explains what the installer verifi
 
 ## Source Development
 
-The compiler, `taf`, and `taffish-mcp` live in [taffish/taffish](https://github.com/taffish/taffish). Use [Build From Source](https://github.com/taffish/taffish/blob/main/docs/dev/en/build-from-source.md) for an SBCL or LispWorks build, the [source-tree developer docs](https://github.com/taffish/taffish/tree/main/docs/dev/en) for architecture and release engineering, and [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md) for tests and patches. To report a vulnerability privately, follow the [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md).
+The compiler, `taf`, and `taffish-mcp` live in [taffish/taffish](https://github.com/taffish/taffish). Using the official platform packages does not require installing Lisp. To build TAFFISH itself, use the [source-build guide for 0.12.0](https://github.com/taffish/taffish/blob/v0.12.0/docs/dev/en/build-from-source.md): it separates the official SBCL/macOS and LispWorks/Linux builds from CCL and ECL development builds and their requirements. The [source-tree developer docs](https://github.com/taffish/taffish/tree/main/docs/dev/en) cover architecture and release engineering; [Contributing](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md) covers tests and patches. To report a vulnerability privately, follow the [Security Policy](https://github.com/taffish/taffish/blob/main/SECURITY.md).
 
 <a id="status"></a>
 

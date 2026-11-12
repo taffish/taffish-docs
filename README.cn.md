@@ -23,9 +23,9 @@ TAFFISH 把生物信息学工具和轻量流程封装成可以按版本安装的
 | 了解一个 app 如何被索引收录 | [什么是 TAFFISH Hub](zh/taffish-hub.cn.md) | 在 [Index JSON 规范](zh/index-json-spec.cn.md)中查版本记录和测试结果 |
 | 了解 TAFFISH 验证了什么 | [安全模型](zh/security-model.cn.md) | 用 [Index JSON 规范](zh/index-json-spec.cn.md)解读已记录的检查结果 |
 | 接入 AI 客户端 | [MCP 客户端配置](zh/mcp-clients.cn.md) | 在 [MCP 指南](zh/taffish-mcp.cn.md)中查客户端能调用哪些工具 |
-| 构建或修改 TAFFISH 本身 | [从源码构建](https://github.com/taffish/taffish/blob/main/docs/dev/zh-CN/build-from-source.md) | [源码开发与贡献](#源码开发) |
+| 构建或修改 TAFFISH 本身 | [从源码构建](https://github.com/taffish/taffish/blob/v0.12.0/docs/dev/zh-CN/build-from-source.md) | [源码开发与贡献](#源码开发) |
 
-用 `taf --version` 查看本机安装的版本。0.11.0 的具体变化见[发布说明](https://github.com/taffish/taffish/releases/tag/v0.11.0)。
+**适用版本：** 本文中的安装和源码构建说明适用于正式发布的 [TAFFISH 0.12.0](https://github.com/taffish/taffish/releases/tag/v0.12.0)。[0.11.0 对应文档](https://github.com/taffish/taffish-docs/tree/v0.11.0)继续保留。先用 `taf --version` 核对本机版本，再选择适用说明。
 
 ## Flow 门户与完整案例
 
@@ -67,7 +67,7 @@ TAFFISH 把生物信息学工具和轻量流程封装成可以按版本安装的
 
 ## 源码开发
 
-编译器、`taf` 和 `taffish-mcp` 的源码在 [taffish/taffish](https://github.com/taffish/taffish)。使用 SBCL 或 LispWorks 构建程序时，读[从源码构建](https://github.com/taffish/taffish/blob/main/docs/dev/zh-CN/build-from-source.md)；了解架构和发布过程，读[源码树开发文档](https://github.com/taffish/taffish/tree/main/docs/dev/zh-CN)；提交补丁和测试，读[贡献指南](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)。私下报告安全漏洞，请按[安全策略](https://github.com/taffish/taffish/blob/main/SECURITY.md)联系维护者。
+编译器、`taf` 和 `taffish-mcp` 的源码在 [taffish/taffish](https://github.com/taffish/taffish)。使用官方平台包无需另装 Lisp；只有构建 TAFFISH 本身时才需要准备开发环境。[0.12.0 源码构建指南](https://github.com/taffish/taffish/blob/v0.12.0/docs/dev/zh-CN/build-from-source.md)区分官方 SBCL/macOS、LispWorks/Linux 构建，以及 CCL、ECL 开发构建各自的要求。了解架构和发布过程，读[源码树开发文档](https://github.com/taffish/taffish/tree/main/docs/dev/zh-CN)；提交补丁和测试，读[贡献指南](https://github.com/taffish/taffish/blob/main/CONTRIBUTING.md)。私下报告安全漏洞，请按[安全策略](https://github.com/taffish/taffish/blob/main/SECURITY.md)联系维护者。
 
 <a id="当前状态"></a>
 

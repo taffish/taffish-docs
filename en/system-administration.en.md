@@ -17,6 +17,7 @@ scheduling and resource policy.
 - [Scope Model](#scope-model)
 - [Default Layout](#default-layout)
 - [Install TAFFISH System-Wide](#install-taffish-system-wide)
+  - [Local installation and runtime terms](#local-installation-and-runtime-terms)
 - [Initialize A Managed Installation](#initialize-a-managed-installation)
 - [Scope-Aware Command Matrix](#scope-aware-command-matrix)
 - [Configuration And Mirrors](#configuration-and-mirrors)
@@ -41,8 +42,8 @@ TAFFISH supports two independent state scopes:
 
 Installing the `taf` binary system-wide does not change the default scope of
 later commands. Scope-aware commands still default to user scope on every
-invocation. An administrator who runs `taf update` without `--system` updates
-root's user index, not the machine's system index.
+invocation. Without `--system`, `taf update` updates the calling account's user
+index, not the shared index. When run as root, that is root's user index.
 
 Use explicit scope in scripts, runbooks, and administrator examples.
 
@@ -65,6 +66,9 @@ different locations.
 
 ## Install TAFFISH System-Wide
 
+The online installers provide the released TAFFISH 0.12.0. If you already have
+the package, use the [local instructions below](#local-installation-and-runtime-terms).
+
 GitHub/default installer:
 
 ```sh
@@ -77,14 +81,51 @@ China/Gitee installer:
 curl -fsSL https://gitee.com/taffish-org/taffish/raw/main/install/install-taffish.gitee.sh | sudo sh -s -- --system
 ```
 
-If Gitee returns HTTP 403 for a macOS Apple Silicon binary, use the
-[instructions for installing from the tagged archive](quick-start.en.md#install-taffish).
+For 0.11.0, if Gitee returns HTTP 403 for a macOS Apple Silicon binary, use the
+[instructions for installing from the tagged archive](quick-start.en.md#other-installation-options).
 For a shared installation, run the installer as root with `--system` instead of `--user`; keep `--verify gpg`.
 
 The installer writes the three core commands to `/usr/local/bin`, creates the
 system home, initializes system config when requested, and attempts a system
-index update. It copies completion and Vim files, but it does not edit global
-shell or editor configuration.
+index update, except when `--local` skips that online step. It copies completion
+and Vim files, but it does not edit global shell or editor configuration.
+
+<a id="local-0120-candidate-and-runtime-terms"></a>
+
+### Local installation and runtime terms
+
+Prepare the matching 0.12.0 installer, complete platform package and verification
+files as described in [Quick Start](quick-start.en.md#local-and-offline-installation).
+Neither official platform package requires a separate Lisp installation.
+Linux needs `tar` and `gzip`; Apple Silicon needs macOS 15 or later and uses
+the system `tar`. When upgrading macOS from 0.11.0, keep its Homebrew `zstd`
+until the old commands have been replaced.
+
+With `gpg` and `gpgv` available, read the runtime terms from the verified
+package first. This command does not install or execute its programs:
+
+```sh
+sh install-taffish.sh --local --version 0.12.0 --verify gpg --show-runtime-license
+```
+
+Linux installations and upgrades require acceptance of the bundled LispWorks
+runtime terms; users do not need to buy or install LispWorks. For a shared
+installation, arrange for users to read and accept the terms, or accept on
+their behalf only when authorized. After that review, an unattended install is:
+
+```sh
+sudo sh install-taffish.sh --local --version 0.12.0 --system --verify gpg --accept-runtime-license
+```
+
+Without the explicit acceptance flag, Linux installation prompts on a
+controlling terminal and stops if acceptance is unavailable or declined.
+macOS needs no runtime acceptance. Both platforms install their license
+notices under `<TAFFISH_HOME>/share/licenses/`; the Linux installation receipt
+also records the accepted text's hash and acceptance method.
+See the [runtime terms and installation details](https://github.com/taffish/taffish/blob/v0.12.0/install/README.md#runtime-licenses).
+
+`--local` skips the online index update. When network access is appropriate,
+refresh the shared index explicitly with `sudo taf update --system`.
 
 ## Initialize A Managed Installation
 
@@ -130,7 +171,7 @@ taf-fastqc -- --help
 | `taf list` | `taf list --system` | no |
 | `taf which` | `taf which --system <COMMAND>` | no |
 | `taf doctor` | `taf doctor --system` | only with `--init` |
-| `taf config` | `taf config --system` | only with `init` |
+| `taf config` | `taf config --system` | with `init` or `language <LANGUAGE>`; display commands are read-only |
 
 Project-local commands such as `taf new`, `taf check`, `taf run`, `taf build`,
 and `taf publish` are not system package-management commands.
@@ -156,6 +197,9 @@ taf config path --system
 taf config --user
 taf config path --user
 ```
+
+`taf config language --system` displays the language settings. To save a system
+language, use `sudo taf config language en --system` (or `zh`); this requires root.
 
 The source rewrite mechanism changes app repository clone URLs. It does not
 rewrite container registry URLs. A private or regional deployment must ensure

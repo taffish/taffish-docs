@@ -38,7 +38,9 @@ The default user install uses `~/.local/bin` for the three core commands and
 export PATH="$HOME/.local/bin:$HOME/.local/share/taffish/bin:$PATH"
 ```
 
-Then open a new shell or source your shell profile.
+This takes effect in the current shell and its child processes. To keep the
+setting in new terminals, first save the line in the appropriate shell startup
+file as described in [Quick Start](quick-start.en.md), then open a new terminal.
 
 Check:
 
@@ -78,9 +80,15 @@ scope and permissions matrix.
 
 ## `taffish` Cannot Find Runtime Libraries On macOS
 
-The 0.11.0 Apple Silicon binaries declare macOS 15.0 as their minimum system
-version and depend on Homebrew `zstd`. Installing a missing library does not
-make an older macOS version supported. If the error names `libzstd`:
+The official 0.12.0 Apple Silicon binaries link only to macOS
+system libraries: they need neither Homebrew `zstd` nor a separate Lisp
+installation. The minimum is still macOS 15. If a purported 0.12.0 command
+reports a missing `libzstd`, check `which taf`, `which taffish` and
+`which taffish-mcp`: the shell may still select an old or locally built command.
+
+The published 0.11.0 Apple Silicon binaries do depend on Homebrew `zstd`.
+Keep it installed during an upgrade to 0.12.0, because the installer runs the
+old programs to identify them before replacement. For a 0.11.0 `libzstd` error:
 
 ```sh
 brew install zstd
@@ -93,6 +101,12 @@ taffish --version
 taffish-mcp --version
 taf doctor
 ```
+
+Installing that library does not make older macOS versions supported.
+For local 0.12.0 installation, platform archives and Gitee
+macOS split downloads, see [Quick Start](quick-start.en.md#local-and-offline-installation).
+Source builds may have different runtime dependencies; see the
+[source-build guide](https://github.com/taffish/taffish/blob/v0.12.0/docs/dev/en/build-from-source.md).
 
 ## `taf update` Fails
 
@@ -127,8 +141,11 @@ outside TAFFISH.
 Mirror config does not automatically mirror container registries. If an app
 uses GHCR, the machine running the app still needs access to that image source.
 
-The installer may warn if `taf update` fails, but it does not roll back the
-installed binaries.
+An online install may warn if its final `taf update` fails, but it does not
+roll back the installed binaries. The 0.12.0 installer's `--local`
+mode deliberately skips that update. An absent or old index after a local
+install is not evidence that installing the programs failed; refresh it
+explicitly in the intended scope when network access is available.
 
 ## `taf install` Cannot Find An App
 
@@ -464,7 +481,7 @@ an otherwise eligible version.
 
 ## Smoke Command Fails Because Of Nested Quotes
 
-Smoke `test` entries are TOML strings and are executed through `sh -lc` inside
+Smoke `test` entries are TOML strings and are executed through `sh -c` inside
 the smoke container. When a command itself needs quotes, prefer single quotes
 inside the shell snippet:
 

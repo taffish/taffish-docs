@@ -135,7 +135,7 @@ test = ["my-tool --help"]
 test = ["python -c 'import vina, rdkit, meeko, gemmi, prody'"]
 ```
 
-`\"` 这类 TOML 转义是合法的，但 smoke `test` 命令最终会在容器中通过 `sh -lc`
+`\"` 这类 TOML 转义是合法的，但 smoke `test` 命令最终会在容器中通过 `sh -c`
 执行；使用单引号通常更清楚，也更不容易写错。
 
 建议：
