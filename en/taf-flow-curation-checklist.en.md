@@ -20,6 +20,9 @@ Do not publish while any blocker remains.
 
 ## 1. Identity and scope
 
+- [ ] A new flow started with `taf new <name> --flow`; it did not copy a
+      scientific working tree, hand-write the canonical workflow, or inherit
+      another project's paths, thresholds, or pending states as defaults.
 - [ ] The flow name describes the task, not only a tool.
 - [ ] `taffish.toml` type, version, description, and keywords are accurate.
 - [ ] README explains what problem the flow solves.
@@ -27,6 +30,12 @@ Do not publish while any blocker remains.
 - [ ] The flow is not a duplicate wrapper around one tool.
 - [ ] The steps are common or easy to justify in the field.
 - [ ] Defaults do not overpromise.
+- [ ] Before implementation, a production flow froze or explicitly marked N/A
+      its task card, input/schema, step, I/O, real call-site dependency, report
+      plan, QC/failure, and acceptance contracts.
+- [ ] Technical validation, scientific candidate, human acceptance, accepted
+      release, `publish_ready`, and `published` are separate states; one
+      context-free `PASS` does not stand for all gates.
 
 ## 2. Dependencies and reproducibility
 
@@ -59,6 +68,9 @@ Do not publish while any blocker remains.
 - [ ] Variable-length argument lists are not executed through bare wrappers,
       `eval`, or the host PATH; if a helper script is needed, it lives in the
       output directory and is executed through a real call-site `[[taf: ...]]`.
+- [ ] Project Python/R/helpers used by production, test harnesses, collectors,
+      or report revisions run through declared exact taf apps, not an
+      undeclared host language runtime.
 - [ ] The flow does not use host `fastqc`, `samtools`, `bwa`, `STAR`, or similar tools.
 - [ ] Shell/coreutils assumptions are covered by smoke tests.
 - [ ] Normal execution does not download core resources from the network.
@@ -83,12 +95,17 @@ Do not publish while any blocker remains.
 - [ ] The current directory is not polluted.
 - [ ] Input and reference files are not modified.
 - [ ] Existing output directories are rejected by default.
+- [ ] Output-path collisions with directories, ordinary files, or symlinks are
+      rejected before computation.
 - [ ] `--force`, if present, is documented and cannot delete inputs.
 - [ ] `--resume`, if present, documents reusable steps and risks.
 - [ ] Temporary files live under `<outdir>/02_intermediate/` or `<outdir>/.tmp/`.
 - [ ] Logs remain available under `<outdir>/01_logs/` after failure.
+- [ ] Failed runs retain auditable terminal step/manifest state and an explicit
+      failed/quarantine identity, never a misleading accepted/completed marker;
+      reuse requires closed identity, schema, parameter, and checksum evidence.
 
-Recommended layout:
+Recommended baseline layout:
 
 ```text
 <outdir>/
@@ -99,6 +116,11 @@ Recommended layout:
   04_reports/
   run.manifest.json
 ```
+
+- [ ] The baseline maps `<report-dir>` to `<outdir>/04_reports`. If an extended
+      profile is used, README, the output schema, and the artifact manifest
+      record the actual `<report-dir>` mapping, and no artifact has two
+      competing canonical paths.
 
 ## 5. Steps and data flow
 
@@ -113,7 +135,8 @@ Recommended layout:
 ## 6. Results and reports
 
 - [ ] `03_results/` stores machine-readable primary results.
-- [ ] `04_reports/` stores user-facing reports.
+- [ ] The mapped `<report-dir>` stores user-facing reports; the recommended
+      baseline is `<outdir>/04_reports`.
 - [ ] A project-level or sample-level summary exists, such as `flow_summary.tsv`.
 - [ ] README explains what each report is for.
 - [ ] HTML, PDF, TSV, JSON, or other formats match field practice.
@@ -121,12 +144,19 @@ Recommended layout:
       where possible: main CSS/JS/logo/PNG/SVG figures/key summary tables and
       explanatory text are embedded, so copying the HTML alone still preserves
       the main reading experience.
-- [ ] Reader-facing `<img>` elements use non-empty
-      `data:image/...;base64,...` payloads, with no empty
-      `data:image/...;base64,` values; shell renderers in the `taffish-hub`
-      maintainer workspace use
-      `repos/apps/templates/flow-report/scripts/report_helpers.sh` to avoid
-      GNU versus macOS/BSD `base64` differences.
+- [ ] A formal HTML report pins the complete immutable
+      `taffish-report-render` identity at a real `[[taf: ...]]` call site and
+      is generated natively from structured TOML/JSON without a project
+      finalizer or private HTML/CSS/JavaScript.
+- [ ] `validate-spec`, strict `lint --json --fail-on-warn`, `explain --json`,
+      an applicable semantic round trip, `render --validate`,
+      `inspect-html --json --validate`, `list-assets --json`, and an independent
+      report receipt pass; machine, screen, interaction, print, scientific,
+      and business gates remain separate.
+- [ ] Reader-facing `<img>` elements use non-empty payloads with exact
+      `data:image/...;base64,...` MIME types; no empty payload or core format
+      such as WebP is downgraded to `application/octet-stream`, and expected
+      image counts/MIME types match the independent receipt.
 - [ ] If a formal HTML report is produced, its structure follows the shared
       TAFFISH flow-report template contract; the flow does not invent an
       incompatible one-off report shell, navigation model, language switch, or
@@ -142,10 +172,12 @@ Recommended layout:
       to a stale parent; subreport buttons fit their labels; long paths and
       table names wrap inside cards; status words such as `WARN` and `FAIL` do
       not split across lines.
-- [ ] Rendered HTML has been checked with
-      `repos/apps/templates/flow-report/scripts/check-rendered-report.py`;
-      production reports use
-      `--require-logo-data-uri` when the real logo is available.
+- [ ] If a maintainer working in the Hub source tree chooses to run
+      `repos/apps/templates/flow-report/scripts/check-rendered-report.py`, its
+      result is additional report-shell QA only. The script is not an installed
+      flow dependency or a required runtime check, and it does not replace the
+      renderer-native validation chain, the independent report receipt, or
+      browser visual/interaction checks.
 - [ ] External file links in the HTML are enhancements only; full matrices,
       PDFs, logs, MultiQC bundles, commands, manifests, and other audit files
       remain in the output directory but are not required for reading the main
@@ -185,9 +217,9 @@ Recommended layout:
 
 ## 7. Provenance
 
-- [ ] `04_reports/commands.sh` is produced.
-- [ ] `04_reports/versions.tsv` is produced.
-- [ ] `04_reports/methods.txt` is produced.
+- [ ] `<report-dir>/commands.sh` is produced.
+- [ ] `<report-dir>/versions.tsv` is produced.
+- [ ] `<report-dir>/methods.txt` is produced.
 - [ ] `<outdir>/run.manifest.json` is produced.
 - [ ] `commands.sh` records key commands and actual parameters.
 - [ ] `versions.tsv` records the flow and main dependency versions.
@@ -221,7 +253,8 @@ Recommended layout:
       the main flow-wrapper validation.
 - [ ] Smoke runs a tiny fixture through a real data path.
 - [ ] Smoke checks key result files.
-- [ ] Smoke checks `commands.sh`, `versions.tsv`, and `run.manifest.json`.
+- [ ] Smoke checks `<report-dir>/commands.sh`, `<report-dir>/versions.tsv`, and
+      `<outdir>/run.manifest.json`.
 - [ ] Smoke checks that the current directory has no unexpected new files.
 - [ ] Smoke is fast and small enough for local or CI use.
 - [ ] Local maintenance smoke respects an existing `TAFFISH_CONTAINER_BACKEND` and defaults to `podman` when it is unset.
@@ -278,7 +311,8 @@ Do not publish if any of these are true:
 - [ ] Dependency versions are not fixed.
 - [ ] Normal execution must download databases, models, or references.
 - [ ] Large databases or reference genomes are embedded in the flow image.
-- [ ] `commands.sh`, `versions.tsv`, or `run.manifest.json` is missing.
+- [ ] `<report-dir>/commands.sh`, `<report-dir>/versions.tsv`, or
+      `<outdir>/run.manifest.json` is missing.
 - [ ] Smoke does not run a real data path.
 - [ ] Smoke hard-codes the Docker backend or downloads dependency images.
 - [ ] The source tree prepared for publication still contains temporary `target/` wrappers, `.taf-*` frozen directories, or generated test files.

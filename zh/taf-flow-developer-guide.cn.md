@@ -44,20 +44,39 @@ taf-flow 不适合假装自己是完整 workflow engine：
 
 ## 3. 标准目录结构
 
-flow app 仍然使用普通 taf-app 目录结构：
+新 Flow 先由当前 TAFFISH 生成 canonical 骨架：
+
+```sh
+taf new <name> --flow
+```
+
+不要从其他项目复制工作树，也不要手写生成器负责的 workflow。生成后的常见维护结构为：
 
 ```text
 taf-example-flow/
   taffish.toml
-  Dockerfile
+  .github/workflows/build-image.yml  # 当前脚手架为该 app 生成时原样保留
   src/
     main.taf
   docs/
     help.md
   README.md
-  smoke.sh
-  testdata/
+  tests/
+    smoke.sh
+    formal.sh              # 需要正式/代表性验证时
+    fixtures/
+  target/
+    .gitkeep
+  docker/
+    Dockerfile             # 仅当该 app 自身确实需要容器时
 ```
+
+`taf new <name> --flow` 提供基础 app 结构；使用 `--docker` 时，当前生成器创建
+`docker/Dockerfile` 和 container metadata，并默认同时生成 GitHub Actions workflow；
+`--no-actions` 只抑制 Action。输入/schema、
+step/I/O/dependency/report 合同、失败语义、测试数据和科学验收仍需按具体 Flow 设计。
+维护者工作区可在 fresh scaffold 之后使用 `repos/apps/templates/flow-production/` 的
+post-scaffold overlay；它不替代生成器。
 
 `src/main.taf` 是 flow 的主入口。flow 通常不需要 tool app 的自动命令模式，而是提供稳定的领域接口，例如：
 
@@ -69,7 +88,7 @@ taf-ngs-qc-flow --reads1 R1.fq.gz --reads2 R2.fq.gz --outdir qc-out --threads 4
 
 ## 4. 输出目录规则
 
-官方 flow app 必须使用单一输出目录模型：
+官方 flow app 必须使用单一显式输出目录。以下五层树是推荐 baseline：
 
 ```text
 <outdir>/
@@ -92,7 +111,7 @@ taf-ngs-qc-flow --reads1 R1.fq.gz --reads2 R2.fq.gz --outdir qc-out --threads 4
 - 临时文件也应该放在 `<outdir>/02_intermediate/` 或 `<outdir>/.tmp/`。
 - 读取输入文件和参考文件可以在 `<outdir>` 外，但不能修改它们。
 
-推荐输出结构：
+推荐 baseline 输出结构：
 
 ```text
 <outdir>/
@@ -120,22 +139,31 @@ taf-ngs-qc-flow --reads1 R1.fq.gz --reads2 R2.fq.gz --outdir qc-out --threads 4
   run.manifest.json
 ```
 
-具体 flow 可以调整子目录名字，但应保持层次清楚：输入快照、日志、中间结果、最终结果、报告和 provenance 分开。
+`04_reports/` 是推荐 baseline 的报告目录。下文用 `<report-dir>` 表示当前 flow 映射后的
+权威报告目录；在 baseline 中，`<report-dir>` 就是 `<outdir>/04_reports`。确有需要的
+extended profile 可以使用 `<outdir>/05_reports`、`<outdir>/report` 或其他稳定映射，但必须
+在 README、输出 schema 和 artifact manifest 中明确记录该映射，并保持输入快照、日志、
+中间结果、最终结果、报告和 provenance 分开。同一个 artifact 只能有一个 canonical 路径；
+不能让 baseline 路径和 extended 路径同时成为权威副本。
 
 如果 flow 会生成最终 HTML 报告，推荐默认生成 self-contained / standalone HTML：
 把主要 CSS、JS、logo、PNG/SVG 图、关键摘要表格和解释文本内嵌到 HTML 中，让用户只拿到
-这一个文件也能离线打开并阅读主要结果。完整矩阵、PDF、日志、MultiQC 原始报告、
-`commands.sh`、`versions.tsv` 和 `run.manifest.json` 仍应保留在结果目录中，用于审计、
-二次分析和复现。HTML 中可以链接这些文件，但这些链接应是增强入口，不应是阅读主要
+这一个文件也能离线打开并阅读主要结果。完整矩阵、PDF、日志和其他审计产物仍应按输出
+schema 保留在 `<outdir>`；报告、MultiQC 原始报告、`commands.sh`、`versions.tsv`、
+`methods.txt` 等报告侧产物进入映射后的 `<report-dir>`，`run.manifest.json` 保留在
+`<outdir>` 根目录。HTML 中可以链接这些文件，但这些链接应是增强入口，不应是阅读主要
 报告内容的必需条件。
 
 图片内嵌必须是可验证的，不只是看起来写了 `data:image` 前缀。主报告里用于阅读的
-`<img>` 应使用非空 `data:image/...;base64,...` payload；`data:image/...;base64,`
-这种空 payload 应视为报告失败。`taffish-hub` 维护者工作区中的 shell renderer
-应复用模板提供的
-`repos/apps/templates/flow-report/scripts/report_helpers.sh` 中的
-`taffish_report_file_data_uri`，不要在每个 flow 里重新手写 `base64 file` 逻辑；
-后者在 GNU coreutils 中可用，但在 macOS/BSD `base64` 下会失败或产生空图。
+`<img>` 应使用非空且 MIME 精确的 `data:image/...;base64,...` payload；空 payload 或把
+WebP 等核心图片写成 `application/octet-stream` 都应视为报告失败。
+
+新的官方生产 Flow 采用 renderer-first 路径：在真实 `[[taf: ...]]` call site 固定完整不可变
+`taffish-report-render` 身份，以结构化 TOML/JSON 原生生成 HTML，不维护项目 finalizer 或私有
+HTML/CSS/JavaScript。至少执行 `validate-spec`、strict `lint --json --fail-on-warn`、
+`explain --json`、适用时 JSON/TOML 语义 round-trip、`render --validate`、
+`inspect-html --json --validate`、`list-assets --json` 和独立 report receipt。旧 shell helper 仅是
+legacy/template contract fixture，不是新 Flow 绕过 renderer 的默认路径。
 
 如果需要生成正式报告，推荐基于 TAFFISH 的共享 flow-report 模板契约来做，而不是每个
 flow 自己临时设计一套报告。报告可以有领域专属内容，但外壳、语言切换、左侧目录、
@@ -150,10 +178,11 @@ standalone HTML 规则应尽量保持一致。这样用户在不同 flow 的报�
 左侧目录、语言切换、外部链接、页脚、配色、间距和卡片组件应来自模板。领域内容可以
 扩展正文模块，但不要临场重写侧栏、导航、语言切换或子报告卡片。验收时应检查目录顺序
 与正文顺序一致、子目录展开不乱跳、子报告打开按钮按内容宽度显示、长路径和表格名在卡片
-内换行、`WARN` 等状态词不被拆成多行。该工作区的维护者可以用
-`repos/apps/templates/flow-report/scripts/check-rendered-report.py` 对生成的 HTML 做轻量
-结构检查；生产报告中真实 TAFFISH logo 应可用时，加 `--require-logo-data-uri`。这个脚本
-用于捕捉模板外壳漂移，不能替代普通浏览器里对真实 QC 子报告的视觉和交互抽查。
+内换行、`WARN` 等状态词不被拆成多行。只有在 Hub 源码树中工作的维护者才可以选择运行
+`repos/apps/templates/flow-report/scripts/check-rendered-report.py`，对生成的 HTML 做额外的
+模板外壳 QA；需要检查真实 TAFFISH logo 时可加 `--require-logo-data-uri`。这是可选的
+Hub 维护者检查，不是已安装 Flow 的依赖，也不属于已安装 Flow 的必需报告运行时链。
+它不能替代 renderer-native 验证链、独立 report receipt，或普通浏览器里的视觉和交互抽查。
 
 如果报告中需要提供 MultiQC、FastQC、Qualimap 等工具真实生成的 HTML/QC 子报告，
 推荐把原始 HTML bundle 打包进主报告，而不是重新写一个仿制页面。主报告可以用普通
@@ -393,7 +422,7 @@ Step 2. 原始 reads 质控
 Step 3. 报告汇总
 输入：03_results/fastqc/
 工具：taf-multiqc
-输出：04_reports/multiqc_report.html
+输出：<report-dir>/multiqc_report.html
 ```
 
 实现时也建议按 step 写日志：
@@ -413,7 +442,7 @@ Step 3. 报告汇总
 `commands.sh` 记录实际执行过的关键命令：
 
 ```text
-04_reports/commands.sh
+<report-dir>/commands.sh
 ```
 
 要求：
@@ -423,7 +452,7 @@ Step 3. 报告汇总
 - 不写入 token、密码等敏感信息。
 - 适合作为审计记录，不要求可以在任意环境完全原样复跑。
 
-`versions.tsv` 记录依赖版本：
+`<report-dir>/versions.tsv` 记录依赖版本：
 
 ```text
 tool	version	source
@@ -446,9 +475,9 @@ taf-multiqc	1.35-r2	taffish dependency
 }
 ```
 
-`methods.txt` 给用户提供可复制到实验记录或方法部分的简短描述。它不是论文方法学的替代品，但应该讲清楚主要工具、版本、关键参数和结果目录。
+`<report-dir>/methods.txt` 给用户提供可复制到实验记录或方法部分的简短描述。它不是论文方法学的替代品，但应该讲清楚主要工具、版本、关键参数和结果目录。
 
-`flow_summary.tsv` 汇总最关键的样本级或项目级结果，方便快速检查。
+`<report-dir>/flow_summary.tsv` 汇总最关键的样本级或项目级结果，方便快速检查。
 
 ## 11. 错误处理
 
@@ -503,7 +532,7 @@ flow 的 smoke 不只是跑 `--help`。
 - 依赖命令可以被调用并输出版本。
 - 极小 fixture 可以跑通一条真实路径。
 - 关键输出文件存在。
-- `commands.sh`、`versions.tsv`、`run.manifest.json` 存在。
+- `<report-dir>/commands.sh`、`<report-dir>/versions.tsv`、`<outdir>/run.manifest.json` 存在。
 - 运行结束后没有在当前目录留下非预期文件。
 
 fixture 应该尽量小，目标是验证封装、依赖、路径和最小功能，不替代科学正确性验证。

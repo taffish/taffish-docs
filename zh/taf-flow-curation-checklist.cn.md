@@ -20,6 +20,8 @@ Blocker：
 
 ## 1. 身份与边界
 
+- [ ] 新 Flow 先由 `taf new <name> --flow` 生成；没有复制 scientific 工作树、手写
+      canonical workflow 或把其他项目的阈值/路径/状态当成模板。
 - [ ] flow 名称清楚，能表达任务，而不是只表达某个工具名。
 - [ ] `taffish.toml` 中 app 类型、版本、描述和关键词准确。
 - [ ] README 说明了这个 flow 解决什么问题。
@@ -27,6 +29,10 @@ Blocker：
 - [ ] flow 不是单个 tool app 的重复包装。
 - [ ] flow 的步骤在该领域中属于常见或容易解释的实践。
 - [ ] 默认参数不会制造过度承诺。
+- [ ] 生产 Flow 在写代码前冻结 task card、输入/schema、step、I/O、真实 call-site
+      dependency、report plan、QC/failure 和 acceptance 合同，或逐项记录 N/A 理由。
+- [ ] 技术验证、科学候选、人工接受、accepted release、`publish_ready` 和 `published`
+      是不同字段/状态；一个无上下文的 `PASS` 没有代替全部门禁。
 
 ## 2. 依赖与可复现性
 
@@ -61,6 +67,8 @@ Blocker：
       `</dev/null`，不会消耗 `while read ... < file` 的输入。
 - [ ] 动态长度参数没有通过裸 wrapper、`eval` 或宿主机 PATH 执行；如需 helper script，
       它写在输出目录中，并通过真实 call site 的 `[[taf: ...]]` 执行。
+- [ ] 生产路径、测试 harness、collector 和报告修订使用的项目 Python/R/helper 也经由
+      声明的精确 taf app 运行，不依赖未声明的宿主语言运行时。
 - [ ] 没有依赖宿主机 PATH 中的 `fastqc`、`samtools`、`bwa`、`STAR` 等生信工具。
 - [ ] 基础 shell/coreutils 依赖已经在 smoke 中覆盖。
 - [ ] 正常运行不需要联网下载核心资源。
@@ -85,12 +93,15 @@ Blocker：
 - [ ] 不污染当前目录。
 - [ ] 不修改输入文件或参考文件。
 - [ ] 输出目录已存在时默认拒绝运行。
+- [ ] 与目录、普通文件或 symlink 的输出路径冲突都在计算前拒绝。
 - [ ] 如果支持 `--force`，覆盖行为清楚且不会误删输入。
 - [ ] 如果支持 `--resume`，可复用步骤和风险写清楚。
 - [ ] 临时文件位于 `<outdir>/02_intermediate/` 或 `<outdir>/.tmp/`。
 - [ ] 失败时日志仍保留在 `<outdir>/01_logs/`。
+- [ ] 失败 run 有终态 step/manifest 和明确 quarantine/failed 身份，不会留下可被误认成
+      accepted/completed 的 marker；复用只发生在身份、schema、参数和 checksum 全闭合时。
 
-推荐结构检查：
+推荐 baseline 结构检查：
 
 ```text
 <outdir>/
@@ -101,6 +112,10 @@ Blocker：
   04_reports/
   run.manifest.json
 ```
+
+- [ ] baseline 将 `<report-dir>` 映射为 `<outdir>/04_reports`；若采用 extended profile，
+      README、输出 schema 和 artifact manifest 明确记录实际 `<report-dir>` 映射，且同一
+      artifact 没有两个并列的 canonical 路径。
 
 ## 5. 步骤与数据流
 
@@ -115,18 +130,23 @@ Blocker：
 ## 6. 结果与报告
 
 - [ ] `03_results/` 中保存机器可读的主要结果。
-- [ ] `04_reports/` 中保存面向用户阅读的报告。
+- [ ] 映射后的 `<report-dir>` 中保存面向用户阅读的报告；推荐 baseline 为
+      `<outdir>/04_reports`。
 - [ ] 有一个项目级或样本级 summary 文件，例如 `flow_summary.tsv`。
 - [ ] 报告文件的用途在 README 中说明。
 - [ ] HTML、PDF、TSV、JSON 等输出格式符合该领域常见使用方式。
 - [ ] 如果生成最终 HTML 报告，HTML 尽量是 self-contained / standalone：主要
       CSS/JS/logo/PNG/SVG 图/关键摘要表格/解释文本已内嵌，单独复制该 HTML 后仍能
       离线阅读主要结果。
-- [ ] HTML 报告中的主图 `<img>` 均为非空 `data:image/...;base64,...`，没有
-      `data:image/...;base64,` 这类空 payload；`taffish-hub` 维护者工作区中的
-      shell renderer 使用模板提供的
-      `repos/apps/templates/flow-report/scripts/report_helpers.sh` 生成 data URI，避免
-      macOS/BSD 与 GNU `base64` 行为差异。
+- [ ] 正式 HTML 在真实 `[[taf: ...]]` call site 固定完整不可变
+      `taffish-report-render` 身份，只从结构化 TOML/JSON 原生生成，无项目 finalizer 或
+      私有 HTML/CSS/JavaScript。
+- [ ] 已通过 `validate-spec`、strict `lint --json --fail-on-warn`、`explain --json`、
+      适用时语义 round-trip、`render --validate`、`inspect-html --json --validate`、
+      `list-assets --json` 和独立 report receipt；机器、屏幕、交互、打印、科学与业务 gate 分开。
+- [ ] HTML 报告中的主图 `<img>` 均为非空且 MIME 精确的
+      `data:image/...;base64,...`，没有空 payload 或 WebP 等核心图片退化为
+      `application/octet-stream`；图片数量和 MIME 与独立回执一致。
 - [ ] 如果生成正式 HTML 报告，报告结构基于 TAFFISH 共享 flow-report 模板契约；
       没有为当前 flow 临时自造一套不兼容的报告外壳、目录、语言切换或交付结构。
 - [ ] HTML 报告保留模板硬外壳：`data-template="taffish-flow-report"`、
@@ -136,8 +156,10 @@ Blocker：
 - [ ] 左侧目录顺序与正文顺序一致，长报告子目录只在当前大章节下展开，目录高亮不
       反向跳回旧父章节；子报告按钮按内容宽度显示，长路径/表格名在卡片内换行，
       `WARN`/`FAIL` 等状态词不被拆行。
-- [ ] 已运行 `repos/apps/templates/flow-report/scripts/check-rendered-report.py` 对 HTML 做
-      模板外壳结构检查；生产报告在真实 logo 可用时使用 `--require-logo-data-uri`。
+- [ ] 若维护者在 Hub 源码树中选择运行
+      `repos/apps/templates/flow-report/scripts/check-rendered-report.py`，其结果只作为额外的
+      模板外壳 QA；该脚本不是已安装 Flow 的依赖或必需运行时检查，也未替代 renderer-native
+      验证链、独立 report receipt 或浏览器视觉/交互检查。
 - [ ] HTML 报告中的外部文件链接只是增强入口；完整矩阵、PDF、日志、MultiQC、
       commands、manifest 等仍保留在结果目录用于审计和二次分析，但不应成为阅读
       主要报告内容的必需依赖。
@@ -165,9 +187,9 @@ Blocker：
 
 ## 7. Provenance
 
-- [ ] 输出 `04_reports/commands.sh`。
-- [ ] 输出 `04_reports/versions.tsv`。
-- [ ] 输出 `04_reports/methods.txt`。
+- [ ] 输出 `<report-dir>/commands.sh`。
+- [ ] 输出 `<report-dir>/versions.tsv`。
+- [ ] 输出 `<report-dir>/methods.txt`。
 - [ ] 输出 `<outdir>/run.manifest.json`。
 - [ ] `commands.sh` 记录关键实际命令和参数。
 - [ ] `versions.tsv` 记录 flow 和主要依赖工具版本。
@@ -195,7 +217,8 @@ Blocker：
 - [ ] 测试脚本中直接调用 dependency wrapper 只用于没有合适上游 subflow 可用的 fixture 准备或环境探针，且不替代 flow wrapper 主路径验证。
 - [ ] smoke 使用极小 fixture 跑通真实数据路径。
 - [ ] smoke 检查关键结果文件存在。
-- [ ] smoke 检查 `commands.sh`、`versions.tsv`、`run.manifest.json` 存在。
+- [ ] smoke 检查 `<report-dir>/commands.sh`、`<report-dir>/versions.tsv`、
+      `<outdir>/run.manifest.json` 存在。
 - [ ] smoke 检查当前目录没有非预期新文件。
 - [ ] smoke 运行时间和数据大小适合 CI 或本地快速检查。
 - [ ] 本地维护 smoke 尊重已有 `TAFFISH_CONTAINER_BACKEND`，未设置时默认使用 `podman`。
@@ -248,7 +271,8 @@ Blocker：
 - [ ] 依赖版本没有固定。
 - [ ] 正常运行必须联网下载数据库、模型或参考文件。
 - [ ] 大型数据库或参考基因组被塞进 flow 镜像。
-- [ ] 没有 `commands.sh`、`versions.tsv` 或 `run.manifest.json`。
+- [ ] 没有 `<report-dir>/commands.sh`、`<report-dir>/versions.tsv` 或
+      `<outdir>/run.manifest.json`。
 - [ ] smoke 没有真实数据路径。
 - [ ] smoke 写死 Docker backend，或会主动下载依赖镜像。
 - [ ] 准备发布的源码树里残留临时 `target/` wrapper、`.taf-*` 冻结目录或测试生成文件。

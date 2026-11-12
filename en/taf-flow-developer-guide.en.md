@@ -44,20 +44,42 @@ Avoid creating a flow app when:
 
 ## 3. Standard project layout
 
-A flow app uses the normal taf-app layout:
+Create the canonical skeleton with the current TAFFISH generator first:
+
+```sh
+taf new <name> --flow
+```
+
+Do not copy another project's working tree or hand-write generator-owned
+workflows. A maintained flow commonly has this structure after scaffolding:
 
 ```text
 taf-example-flow/
   taffish.toml
-  Dockerfile
+  .github/workflows/build-image.yml  # preserve it when emitted for this app
   src/
     main.taf
   docs/
     help.md
   README.md
-  smoke.sh
-  testdata/
+  tests/
+    smoke.sh
+    formal.sh              # when representative or formal validation applies
+    fixtures/
+  target/
+    .gitkeep
+  docker/
+    Dockerfile             # only when the app itself needs a container
 ```
+
+`taf new <name> --flow` provides the base app structure. With the current
+generator, `--docker` adds `docker/Dockerfile` and container metadata and also
+generates the GitHub Actions workflow by default; `--no-actions` suppresses
+only the Action. Input/schema,
+step/I/O/dependency/report contracts, failure semantics, test data, and
+scientific acceptance still require flow-specific design. In the maintainer
+workspace, apply `repos/apps/templates/flow-production/` only after the fresh
+scaffold; it does not replace the generator.
 
 `src/main.taf` is the flow entrypoint. Flow apps usually expose a stable domain interface instead of tool-app command mode:
 
@@ -69,7 +91,8 @@ taf-ngs-qc-flow --reads1 R1.fq.gz --reads2 R2.fq.gz --outdir qc-out --threads 4
 
 ## 4. Output directory rule
 
-Official flow apps must use one explicit output directory:
+Official flow apps must use one explicit output directory. The following
+five-layer tree is the recommended baseline:
 
 ```text
 <outdir>/
@@ -92,7 +115,7 @@ Recommended rules:
 - Temporary files should live under `<outdir>/02_intermediate/` or `<outdir>/.tmp/`.
 - Inputs and references may be read outside `<outdir>`, but must not be modified.
 
-Recommended output layout:
+Recommended baseline output layout:
 
 ```text
 <outdir>/
@@ -120,26 +143,41 @@ Recommended output layout:
   run.manifest.json
 ```
 
-Concrete flows may adjust directory names, but should keep input snapshots, logs, intermediate files, final results, reports, and provenance separate.
+`04_reports/` is the recommended baseline report directory. This guide uses
+`<report-dir>` for the authoritative report directory mapped by the current
+flow; in the baseline, `<report-dir>` is `<outdir>/04_reports`. An extended
+profile may use `<outdir>/05_reports`, `<outdir>/report`, or another stable
+mapping when needed, but that mapping must be recorded explicitly in README,
+the output schema, and the artifact manifest. Input snapshots, logs,
+intermediate files, final results, reports, and provenance must remain
+separate. Each artifact has one canonical path; baseline and extended paths
+must not both act as authoritative copies.
 
 If a flow generates a final HTML report, prefer a self-contained / standalone
 HTML by default: inline the main CSS, JavaScript, logo, PNG/SVG figures, key summary
 tables, and explanatory text so users can copy the single HTML file and still
-read the main results offline. Full matrices, PDF plots, raw MultiQC reports,
-logs, `commands.sh`, `versions.tsv`, and `run.manifest.json` should remain in
-the result directory for audit, secondary analysis, and reproduction. Links from
-the HTML to these files are useful enhancements, but should not be required for
-reading the main report.
+read the main results offline. Full matrices, PDF plots, logs, and other audit
+artifacts should remain under `<outdir>` according to the output schema.
+Reports, raw MultiQC reports, `commands.sh`, `versions.tsv`, `methods.txt`, and
+other report-side artifacts go in the mapped `<report-dir>`, while
+`run.manifest.json` remains at the `<outdir>` root. Links from the HTML to these
+files are useful enhancements, but should not be required for reading the main
+report.
 
 Image embedding must be verifiable, not merely look like a `data:image`
-prefix. Reader-facing `<img>` elements in the main report should use non-empty
-`data:image/...;base64,...` payloads; an empty `data:image/...;base64,`
-payload is a report failure. Shell renderers maintained in the `taffish-hub`
-workspace should reuse
-`repos/apps/templates/flow-report/scripts/report_helpers.sh` and its
-`taffish_report_file_data_uri` helper instead of reimplementing `base64 file`
-logic in each flow. The latter works with GNU coreutils but can fail or produce
-empty images with macOS/BSD `base64`.
+prefix. Reader-facing `<img>` elements should use non-empty payloads with exact
+`data:image/...;base64,...` MIME types. Empty payloads and core formats such as
+WebP embedded as `application/octet-stream` are report failures.
+
+New official production flows use a renderer-first path: pin the complete
+immutable `taffish-report-render` identity at the real `[[taf: ...]]` call
+site, generate HTML natively from structured TOML/JSON, and do not maintain a
+project finalizer or private HTML/CSS/JavaScript. At minimum run
+`validate-spec`, strict `lint --json --fail-on-warn`, `explain --json`, a
+semantic JSON/TOML round trip when applicable, `render --validate`,
+`inspect-html --json --validate`, `list-assets --json`, and an independent
+report receipt. Old shell helpers are legacy/template contract fixtures, not the
+default route around the renderer for a new flow.
 
 For official reports, use the shared TAFFISH flow-report template contract
 rather than inventing a one-off report for each flow. Domain-specific reports
@@ -161,13 +199,14 @@ reimplement the sidebar, navigation, language switch, or subreport cards.
 Acceptance should confirm that navigation order matches section order,
 subnavigation does not jump back to a stale parent section, subreport buttons
 fit their labels, long paths and table names wrap inside cards, and status
-words such as `WARN` do not split across lines. Maintainers in that workspace
-can run
-`repos/apps/templates/flow-report/scripts/check-rendered-report.py` for a
-lightweight structural check; add `--require-logo-data-uri` when a real logo is
-required for a production report. This script detects template-shell drift but
-does not replace visual and interaction checks of real QC subreports in an
-ordinary browser.
+words such as `WARN` do not split across lines. Only maintainers working in the
+Hub source tree may optionally run
+`repos/apps/templates/flow-report/scripts/check-rendered-report.py` as
+additional report-shell QA; add `--require-logo-data-uri` when checking for the
+real TAFFISH logo. This is optional Hub maintainer QA, not a dependency of an
+installed flow and not part of its required report runtime chain. It cannot
+replace the renderer-native validation chain, the independent report receipt,
+or visual and interaction checks in an ordinary browser.
 
 If the report needs to provide real HTML/QC subreports generated by tools such
 as MultiQC, FastQC, or Qualimap, prefer embedding the original HTML bundle into
@@ -418,7 +457,7 @@ Output: 03_results/fastqc/
 Step 3. Report aggregation
 Input: 03_results/fastqc/
 Tool: taf-multiqc
-Output: 04_reports/multiqc_report.html
+Output: <report-dir>/multiqc_report.html
 ```
 
 Keep step logs separate, for example:
@@ -436,14 +475,14 @@ Every formal flow should produce the following provenance files.
 `commands.sh` records the key commands that actually ran:
 
 ```text
-04_reports/commands.sh
+<report-dir>/commands.sh
 ```
 
 Keep command order aligned with flow steps, include actual parameters, omit
 tokens and passwords, and treat it as an audit record rather than a guarantee
 that the text can be replayed unchanged in every environment.
 
-`versions.tsv` records dependency versions:
+`<report-dir>/versions.tsv` records dependency versions:
 
 ```text
 tool\tversion\tsource
@@ -466,11 +505,11 @@ taf-multiqc\t1.35-r2\ttaffish dependency
 }
 ```
 
-`methods.txt` gives users a concise description suitable for lab notes or a
+`<report-dir>/methods.txt` gives users a concise description suitable for lab notes or a
 methods draft. It does not replace a paper's methods section, but should name
 the main tools, versions, important parameters, and result locations.
 
-`flow_summary.tsv` summarizes the most important sample-level or project-level
+`<report-dir>/flow_summary.tsv` summarizes the most important sample-level or project-level
 results for quick inspection.
 
 ## 11. Error handling
@@ -519,7 +558,8 @@ They should check:
 - Main dependency versions are visible.
 - A tiny fixture runs through a real path.
 - Key output files exist.
-- `commands.sh`, `versions.tsv`, and `run.manifest.json` exist.
+- `<report-dir>/commands.sh`, `<report-dir>/versions.tsv`, and
+  `<outdir>/run.manifest.json` exist.
 - The current directory is not polluted by unexpected files.
 
 Fixtures should be tiny. They validate packaging, dependencies, paths, and minimal function, not full scientific correctness.

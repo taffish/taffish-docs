@@ -106,8 +106,19 @@ LICENSE
 
 Exceptions:
 
-- If the `taf new` template changes, sync `.github/workflows/build-image.yml`
-  to the new template.
+- When an existing app is creating a new immutable version/release successor and
+  its Action is confirmed to be an older standard template, the same app update
+  may sync `.github/workflows/build-image.yml`. Generate a fresh canonical
+  workflow with the current `taf new` in an isolated temporary directory.
+  `cellpose` may be used as a same-source reference only when it is byte-identical
+  to that fresh template under `cmp`.
+- Sync the Action only as a byte-for-byte whole-file copy. Record the old,
+  canonical, and final SHA256 values and use `cmp` to prove that the final file
+  exactly matches the canonical source. Do not hand-write, excerpt, merge,
+  reformat, or apply app-specific follow-up edits. With this evidence, the Action
+  can enter the same `taf publish`; it does not require a separate Action commit.
+  Stop and report instead of overwriting when references differ or the existing
+  workflow is customized, has uncommitted changes, is missing, or is damaged.
 - If the license actually changes, update both `LICENSE` and `taffish.toml`.
 - If `target/` contains build artifacts, do not edit it by hand. Re-run
   `taf build` or `taf publish`.

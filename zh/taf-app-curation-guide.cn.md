@@ -94,7 +94,14 @@ LICENSE
 
 例外：
 
-- 如果 `taf new` 模板本身升级，按新模板同步 `.github/workflows/build-image.yml`。
+- 旧 app 创建新的不可变 version/release 后继、且现有 Action 可确认只是旧版标准模板时，
+  可以在同一次 app 更新中同步 `.github/workflows/build-image.yml`。先在隔离临时目录用当前
+  `taf new` 生成 fresh canonical workflow；`cellpose` 只有在与 fresh 模板通过字节级 `cmp`
+  时才可作为同源参考。
+- Action 同步只能整文件、逐字节原样复制。记录 old、canonical、final SHA256，并用 `cmp`
+  证明 final 与 canonical 完全一致；禁止手写、摘取、拼接、格式化或 app-specific 二次修改。
+  证据完整时可随本次 app 直接 `taf publish`，不要求独立 Action 提交。参考源不一致、现有
+  定制/未提交改动或 workflow 缺失/损坏时停止并报告，不自动覆盖。
 - 如果许可证确实变化，更新 `LICENSE` 和 `taffish.toml`。
 - 如果 `target/` 是构建产物，不手工编辑；重新运行 `taf build` 或 `taf publish`。
 
